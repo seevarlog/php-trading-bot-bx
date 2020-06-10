@@ -1,0 +1,19 @@
+{
+  "authors": [
+    {
+      "name": "seevarlog",
+      "email": "",
+      "homepage": "",
+      "role": "Developer"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "trading_engine\\": "trading_engine/"
+    }
+  },
+  "require" : {
+    "php" : "^5.5 || ^7.0",
+    "ext-mbstring": "*"
+  }
+}

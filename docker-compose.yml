@@ -1,0 +1,20 @@
+version: '3'
+services:
+  webserver:
+    build:
+      context: .
+      dockerfile: ./docker_build/php-apache
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+    environment:
+      XDEBUG_CONFIG: remote_host=host.docker_build.internal
+  mysql:
+    image: mysql:5.7.29
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+  redis:
+    image : redis
