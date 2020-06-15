@@ -17,7 +17,7 @@ if (!($fp = fopen('bitstampUSD_1-min_data_2012-01-01_to_2020-04-22.csv', 'r'))) 
 }
 
 $candle_list = array();
-for ($i=0; $i<10000000; $i++)
+for ($i=0; $i<100000; $i++)
 {
     if (feof($fp))
     {
@@ -55,6 +55,8 @@ var_dump(Candle::getCandle($n)->getMA(60));
 
 $accounnt = Account::getInstance();
 $accounnt->amount = 10000;
+
+
 
 
 $money1 = 68.75;

@@ -1,9 +1,15 @@
 {
   "authors": [
     {
-      "name": "seevarlog",
-      "email": "",
-      "homepage": "",
+      "name": "Nils Adermann",
+      "email": "naderman@naderman.de",
+      "homepage": "http://www.naderman.de",
+      "role": "Developer"
+    },
+    {
+      "name": "Jordi Boggiano",
+      "email": "j.boggiano@seld.be",
+      "homepage": "https://seld.be",
       "role": "Developer"
     }
   ],
@@ -14,8 +20,6 @@
   },
   "require" : {
     "php" : "^5.5 || ^7.0",
-    "ext-mbstring": "*",
-    "ext-curl": "*",
-    "ext-json": "*"
+    "ext-mbstring": "*"
   }
 }
