@@ -29,6 +29,24 @@ class PositionManager extends Singleton
         return isset($this->position_list[$strategy_name]);
     }
 
+
+    /**
+     * @param $name
+     * @return Position
+     */
+    public function getPosition($name)
+    {
+        if (isset($this->position_list[$name]))
+        {
+            return $this->position_list[$name];
+        }
+
+        $new_obj = new Position();
+        $this->position_list[$name] = $new_obj;
+
+        return $new_obj;
+    }
+
     public function update($time, $price, Candle $last_candle)
     {
         foreach ($this->position_list as $position)

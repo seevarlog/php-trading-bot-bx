@@ -7,16 +7,16 @@ namespace trading_engine\objects;
 class Position
 {
     public $strategy_key;
-    public $position;
-    public $entry;
-    public $amount;
+    public $entry = 0;
+    public $amount = 0;
+
+    public function isValid()
+    {
+        return $this->amount === null ? false : true;
+    }
 
     public function getPositionProfit($price)
     {
-        if ( $this->position == TYPE_POSITION_BUY )
-        {
-
-        }
     }
 
     public function getPositionResult($price)

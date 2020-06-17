@@ -27,7 +27,7 @@ class OrderManager extends Singleton
 
     }
 
-    public function getPositionList($name)
+    public function getOrderList($name)
     {
         if (isset($this->order_list[$name]))
         {
