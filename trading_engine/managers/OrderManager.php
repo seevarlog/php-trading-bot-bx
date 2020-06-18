@@ -3,6 +3,7 @@
 namespace trading_engine\managers;
 
 use trading_engine\objects\Candle;
+use trading_engine\objects\LogTrade;
 use trading_engine\objects\Order;
 use trading_engine\util\Singleton;
 
@@ -16,11 +17,6 @@ use trading_engine\util\Singleton;
 class OrderManager extends Singleton
 {
     public $order_list = array();
-
-    public function setPosition($strategy_name, $entry_type, $entry, $is_limit)
-    {
-
-    }
 
     public function isExistPosition($strategy_key)
     {
@@ -43,6 +39,7 @@ class OrderManager extends Singleton
         {
             if ($order->isContract($price))
             {
+                //
 
             }
         }

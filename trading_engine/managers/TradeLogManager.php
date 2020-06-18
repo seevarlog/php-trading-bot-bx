@@ -5,8 +5,9 @@ namespace trading_engine\managers;
 
 
 use trading_engine\objects\LogTrade;
+use trading_engine\util\Singleton;
 
-class TradeLogManager
+class TradeLogManager extends Singleton
 {
     public $trade_log_list = array();
 

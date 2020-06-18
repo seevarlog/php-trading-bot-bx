@@ -16,6 +16,7 @@ class Order
     public $is_buy;
     public $is_stop;
     public $is_limit;
+    public $comment;
 
 
     public function isContract(Candle $candle)
@@ -36,6 +37,8 @@ class Order
     }
 
     /**
+     * 객체 지향적이지 않음
+     * 
      * @param Candle $candle
      * @return
      */
