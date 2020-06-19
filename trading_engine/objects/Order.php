@@ -9,11 +9,11 @@ use trading_engine\managers\PositionManager;
 
 class Order
 {
+    public $date;
     public $strategy_key;
     public $amount;
     public $entry;
     public $position;
-    public $is_buy;
     public $is_stop;
     public $is_limit;
     public $comment;
@@ -34,6 +34,18 @@ class Order
         }
 
         return false;
+    }
+
+    public function getFee()
+    {
+        if ($this->is_limit)
+        {
+            return $this->entry * $this->amount * 0.00025;
+        }
+        else
+        {
+            return $this->entry * $this->amount * 0.00075 * -1;
+        }
     }
 
     /**

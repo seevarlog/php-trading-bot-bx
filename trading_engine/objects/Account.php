@@ -8,5 +8,5 @@ use trading_engine\util\Singleton;
 
 class Account extends Singleton
 {
-    public $amount;
+    public $balance;
 }
