@@ -4,6 +4,8 @@
 namespace trading_engine\objects;
 
 
+use trading_engine\managers\TradeLogManager;
+
 class Position
 {
     public $strategy_key;
@@ -87,7 +89,7 @@ class Position
         }
 
         $account = Account::getInstance();
-        $account->balance = $add_balance + $fee;
+        $account->balance += $add_balance + $fee;
 
         $this->entry = ($prev_amount * $this->entry + $order->amount * $this->entry) / 2;
 
@@ -100,5 +102,6 @@ class Position
         $log->amount_after = $this->amount;
         $log->balance = $account->balance;
         $log->trade_fees = $fee;
+        TradeLogManager::getInstance()->addTradeLog($log);
     }
 }

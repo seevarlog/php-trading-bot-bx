@@ -24,12 +24,6 @@ class PositionManager extends Singleton
     public function addPosition(Order $order)
     {
         $position = self::getPosition($order->strategy_key);
-
-        // 로그 남김
-        $log = new LogTrade();
-        $log->strategy_name = $order->strategy_key;
-        $log->amount = $order->amount;
-        TradeLogManager::getInstance()->addTradeLog($log);
     }
 
     public function isExistPosition($strategy_name)

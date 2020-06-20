@@ -13,11 +13,25 @@ class Order
     public $strategy_key;
     public $amount;
     public $entry;
-    public $position;
     public $is_stop;
     public $is_limit;
     public $comment;
 
+
+    public static function getNewOrderObj($date, $st_key, $amount, $entry, $is_limit, $comment)
+    {
+        $order = new self();
+
+        $order->date = $date;
+        $order->strategy_key = $st_key;
+        $order->amount = $amount;
+        $order->entry = $entry;
+        $order->is_stop = $is_limit == false;
+        $order->is_limit = $is_limit;
+        $order->comment = $comment;
+
+        return $order;
+    }
 
     public function isContract(Candle $candle)
     {
@@ -27,7 +41,7 @@ class Order
             return true;
         }
 
-        if ( $this->position < 0 &&
+        if ( $this->amount < 0 &&
             $this->entry < $candle->getHigh())
         {
             return true;

@@ -1,5 +1,6 @@
 <?php
 
+use trading_engine\managers\TradeLogManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
 use trading_engine\strategy\StrategyMA;
@@ -10,7 +11,8 @@ require_once('vendor/autoload.php');
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
 ini_set('memory_limit','4G');
-
+ini_set("xdebug.overload_var_dump", "off");
+header("Content-Type: text/plain");
 
 if (!($fp = fopen('bitstampUSD_1-min_data_2012-01-01_to_2020-04-22.csv', 'r'))) {
     echo "err";
@@ -18,7 +20,7 @@ if (!($fp = fopen('bitstampUSD_1-min_data_2012-01-01_to_2020-04-22.csv', 'r'))) 
 }
 
 $candle_list = array();
-for ($i=0; $i<1000000; $i++)
+for ($i=0; $i<100000; $i++)
 {
     if (feof($fp))
     {
@@ -48,7 +50,6 @@ for ($i=0; $i<1000000; $i++)
 
     Candle::$data[] = $candle;
 }
-echo "123";
 
 $n = count(Candle::$data)-50000;
 var_dump(Candle::$data[count(Candle::$data)-50000]);
@@ -56,20 +57,25 @@ var_dump(Candle::getCandle($n)->getMA(60));
 
 // 계정 셋팅
 $account = Account::getInstance();
-$account->amount = 10000;
-
-for ($i=100000; $i<100000; $i++)
-{
-    $candle = Candle::getCandle($i);
-
-}
-
+$account->balance = 10000;
 
 
 StrategyMA::getInstance()->MaGoldenCrossBuy(Candle::getCandle($n));
 
+var_dump(\trading_engine\managers\OrderManager::getInstance());
 
 
+for ($i=0; $i<100000; $i++)
+{
+    $candle = Candle::getCandle($i);
+
+    \trading_engine\managers\OrderManager::getInstance()->update($candle);
+}
+
+var_dump(\trading_engine\managers\OrderManager::getInstance());
+
+var_dump(Account::getInstance());
+var_dump(TradeLogManager::getInstance());
 
 $money1 = 68.75;
 $money2 = 54.35;

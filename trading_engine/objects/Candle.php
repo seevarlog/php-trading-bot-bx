@@ -10,6 +10,7 @@ namespace trading_engine\objects;
  */
 class Candle
 {
+    public $t;
     public $h;
     public $l;
     public $c;
@@ -19,6 +20,10 @@ class Candle
 
     public static $data = array();
 
+    public function getTime()
+    {
+        return $this->t;
+    }
     /**
      * @param $n
      * @return self
@@ -81,6 +86,20 @@ class Candle
         {
              $sum += $prev->c;
              $prev = $prev->getCandlePrev();
+        }
+
+        return $sum / $day;
+    }
+
+    // 평균 변동성 구하기
+    public function getAvgVolatility($day)
+    {
+        $sum = 0;
+        $prev = $this->getCandlePrev();
+        for ($i=0; $i<$day; $i++)
+        {
+            $sum += $prev->getHigh() - $prev->getLow();
+            $prev = $prev->getCandlePrev();
         }
 
         return $sum / $day;

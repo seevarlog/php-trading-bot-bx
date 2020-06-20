@@ -13,6 +13,6 @@ class TradeLogManager extends Singleton
 
     public function addTradeLog(LogTrade $log)
     {
-
+        $this->trade_log_list[] = $log;
     }
 }

@@ -21,7 +21,21 @@ class OrderManager extends Singleton
 
     public function isExistPosition($strategy_key)
     {
+        return count($this->getOrderList($strategy_key)) > 0;
+    }
 
+
+    public function addOrder(Order $order)
+    {
+        $strategy_name = $order->strategy_key;
+        if (!isset($this->order_list[$strategy_name]))
+        {
+            $this->order_list[$strategy_name] = array();
+        }
+
+        $this->order_list[$strategy_name][] = $order;
+
+        return;
     }
 
     public function getOrderList($name)
@@ -34,16 +48,19 @@ class OrderManager extends Singleton
         return [];
     }
 
-    public function update($time, $price, Candle $last_candle)
+    public function update(Candle $last_candle)
     {
         foreach ($this->order_list as $strategy_key => $order_list)
         {
-            foreach ($order_list as $order)
+            foreach ($order_list as $k=>$order)
             {
-                if ($order->isContract($price))
+                if ($order->isContract($last_candle))
                 {
+                    var_dump("체결");
                     $position = PositionManager::getInstance()->getPosition($order->strategy_key);
                     $position->addPositionByOrder($order);
+
+                    unset($this->order_list[$strategy_key][$k]);
                 }
             }
         }

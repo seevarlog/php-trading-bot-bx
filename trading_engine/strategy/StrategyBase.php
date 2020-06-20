@@ -4,7 +4,9 @@
 namespace trading_engine\strategy;
 
 
-class StrategyBase
+use trading_engine\util\Singleton;
+
+class StrategyBase extends Singleton
 {
     public $min = 1;
 
