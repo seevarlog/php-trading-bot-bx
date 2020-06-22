@@ -28,6 +28,8 @@ class StrategyMA extends StrategyBase
         $ma60 = $candle->getMA(60);
         $ma120 = $candle->getMA(120);
         $ma360 = $candle->getMA(360);
+        var_dump($ma20);
+        var_dump($ma360);
 
         // check golden cross status
         if ($ma120 > $ma60 && $ma60 > $ma20)

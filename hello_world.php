@@ -11,8 +11,8 @@ require_once('vendor/autoload.php');
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
 ini_set('memory_limit','4G');
-ini_set("xdebug.overload_var_dump", "off");
-header("Content-Type: text/plain");
+//ini_set("xdebug.overload_var_dump", "off");
+header("Content-Type: HTML");
 
 if (!($fp = fopen('bitstampUSD_1-min_data_2012-01-01_to_2020-04-22.csv', 'r'))) {
     echo "err";
@@ -34,7 +34,7 @@ for ($i=0; $i<100000; $i++)
 
     if ($arr[1] == "NaN")
     {
-        $candle->setData(Candle::$data[$i-1]->t, Candle::$data[$i-1]->o, Candle::$data[$i-1]->h, Candle::$data[$i-1]->l, Candle::$data[$i-1]->c);
+        $candle->setData($arr[0], Candle::$data[$i-1]->o, Candle::$data[$i-1]->h, Candle::$data[$i-1]->l, Candle::$data[$i-1]->c);
     }
     else
     {
@@ -52,8 +52,6 @@ for ($i=0; $i<100000; $i++)
 }
 
 $n = count(Candle::$data)-50000;
-var_dump(Candle::$data[count(Candle::$data)-50000]);
-var_dump(Candle::getCandle($n)->getMA(60));
 
 // 계정 셋팅
 $account = Account::getInstance();
@@ -65,7 +63,7 @@ StrategyMA::getInstance()->MaGoldenCrossBuy(Candle::getCandle($n));
 var_dump(\trading_engine\managers\OrderManager::getInstance());
 
 
-for ($i=0; $i<100000; $i++)
+for ($i=$n+1; $i<100000; $i++)
 {
     $candle = Candle::getCandle($i);
 
