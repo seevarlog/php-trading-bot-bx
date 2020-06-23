@@ -54,6 +54,11 @@ class OrderManager extends Singleton
         {
             foreach ($order_list as $k=>$order)
             {
+                if ($order->date < $last_candle->getTime())
+                {
+                    continue;
+                }
+
                 if ($order->isContract($last_candle))
                 {
                     var_dump("체결");
