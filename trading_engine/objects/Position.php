@@ -120,6 +120,8 @@ class Position
         $log->date_contract = time();
         $log->amount_prev = $prev_amount;
         $log->amount_after = $this->amount;
+        $log->price_prev = $prev_entry;
+        $log->price_after = $order->entry;
         $log->balance = $account->balance;
         $log->trade_fees = $fee;
         TradeLogManager::getInstance()->addTradeLog($log);

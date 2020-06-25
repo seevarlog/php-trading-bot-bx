@@ -51,13 +51,14 @@ class StrategyMA extends StrategyBase
         );
         OrderManager::getInstance()->addOrder($order);
 
+        var_dump("avg:".$candle->getAvgVolatility(20));
         // 손절 주문
         $order = Order::getNewOrderObj(
             $candle->getTime(),
             $this->getStrategyKey(),
             -10000,
-            $ma360 * $candle->getAvgVolatility(20) * 4,
-            0,
+            $ma360 + $candle->getAvgVolatility(20) * 4,
+            1,
             "test"
         );
         OrderManager::getInstance()->addOrder($order);
@@ -67,7 +68,7 @@ class StrategyMA extends StrategyBase
             $candle->getTime(),
             $this->getStrategyKey(),
             -10000,
-            $ma360 + ($candle->getAvgVolatility(20) * 8),
+            $ma360 - ($candle->getAvgVolatility(20) * 8),
             0,
             "test"
         );

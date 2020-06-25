@@ -18,6 +18,7 @@ use trading_engine\util\Singleton;
 class OrderManager extends Singleton
 {
     public $order_list = array();
+    public $order_id = 1;
 
     public function isExistPosition($strategy_key)
     {
@@ -33,7 +34,10 @@ class OrderManager extends Singleton
             $this->order_list[$strategy_name] = array();
         }
 
+        $order->order_id = $this->order_id;
         $this->order_list[$strategy_name][] = $order;
+
+        $this->order_id += 1;
 
         return;
     }
@@ -48,13 +52,43 @@ class OrderManager extends Singleton
         return [];
     }
 
+    public function clearAllOrder(Order $last_candle)
+    {
+        if (!isset($this->order_list[$last_candle->strategy_key]))
+        {
+            $this->order_list[$last_candle->strategy_key] = array();
+        }
+
+        foreach ($this->order_list[$last_candle->strategy_key] as $order)
+        {
+            $this->cancelOrder($order);
+        }
+    }
+
+    public function cancelOrder(Order $_order)
+    {
+        if (!isset($this->order_list[$_order->strategy_key]))
+        {
+            return;
+        }
+
+        foreach ($this->order_list[$_order->strategy_key] as $key=>$order)
+        {
+            if ($order->order_id == $_order->order_id)
+            {
+                unset($this->order_list[$_order->strategy_key][$key]);
+                return ;
+            }
+        }
+    }
+
     public function update(Candle $last_candle)
     {
         foreach ($this->order_list as $strategy_key => $order_list)
         {
             foreach ($order_list as $k=>$order)
             {
-                if ($order->date < $last_candle->getTime())
+                if ($order->date > $last_candle->getTime())
                 {
                     continue;
                 }
@@ -64,6 +98,10 @@ class OrderManager extends Singleton
                     var_dump("체결");
                     $position = PositionManager::getInstance()->getPosition($order->strategy_key);
                     $position->addPositionByOrder($order);
+                    if ($position->amount == 0)
+                    {
+                        $this->clearAllOrder($order);
+                    }
 
                     unset($this->order_list[$strategy_key][$k]);
                 }

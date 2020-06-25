@@ -11,7 +11,7 @@ require_once('vendor/autoload.php');
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
 ini_set('memory_limit','4G');
-//ini_set("xdebug.overload_var_dump", "off");
+ini_set("xdebug.overload_var_dump", "off");
 header("Content-Type: HTML");
 
 if (!($fp = fopen('bitstampUSD_1-min_data_2012-01-01_to_2020-04-22.csv', 'r'))) {

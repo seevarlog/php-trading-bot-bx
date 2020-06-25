@@ -9,6 +9,7 @@ use trading_engine\managers\PositionManager;
 
 class Order
 {
+    public $order_id;
     public $date;
     public $strategy_key;
     public $amount;
