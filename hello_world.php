@@ -51,21 +51,19 @@ for ($i=0; $i<100000; $i++)
     Candle::$data[] = $candle;
 }
 
-$n = count(Candle::$data)-50000;
-
 // 계정 셋팅
 $account = Account::getInstance();
 $account->balance = 10000;
 
 
-StrategyMA::getInstance()->MaGoldenCrossBuy(Candle::getCandle($n));
-
 var_dump(\trading_engine\managers\OrderManager::getInstance());
 
 
-for ($i=$n+1; $i<100000; $i++)
+for ($i=1000; $i<100000; $i++)
 {
     $candle = Candle::getCandle($i);
+
+    \trading_engine\strategy\StrategyLongRsi::getInstance()->rsiLong($candle);
 
     \trading_engine\managers\OrderManager::getInstance()->update($candle);
 }
@@ -83,3 +81,6 @@ $len = fprintf($fp, '%01.2f', $money);
 // will write "123.10" to currency.txt
 
 echo "end";
+
+
+var_dump(Candle::getCandle(3000)->getRsi(14));

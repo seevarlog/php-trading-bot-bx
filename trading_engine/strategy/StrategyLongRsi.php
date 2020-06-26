@@ -3,61 +3,43 @@
 
 namespace trading_engine\strategy;
 
+
 use trading_engine\managers\OrderManager;
 use trading_engine\objects\Candle;
 use trading_engine\objects\Order;
-use trading_engine\util\Singleton;
 
-class StrategyMA extends StrategyBase
+class StrategyLongRsi extends StrategyBase
 {
-    public function MaGoldenCrossBuy(Candle $candle)
+    public function rsiLong(Candle $candle)
     {
-        $strategy_name = debug_backtrace()[0]['function'];
-        $strategy_key = $this->getStrategyKey();
-        var_dump(123132);
-        $orderMng = OrderManager::getInstance();
-        if ($orderMng->isExistPosition($strategy_key))
+        if ($candle->getRsi(20) > 25)
         {
-            $position_list = $orderMng->getPositionList($strategy_key);
-
             return;
         }
-        var_dump(123132);
 
-        $ma20 = $candle->getMA(20);
-        $ma60 = $candle->getMA(60);
-        $ma120 = $candle->getMA(120);
-        $ma360 = $candle->getMA(360);
-        var_dump($ma20);
-        var_dump($ma360);
-
-        // check golden cross status
-        if ($ma120 > $ma60 && $ma60 > $ma20)
-        {
-            $is_golden = true;
-
-
-        }
-
+        $buy_price = $candle->getClose() - $candle->getAvgVolatility(20);
+        $sell_price = $buy_price + $candle->getAvgVolatility(20) * 5;
+        $stop_price = $buy_price - $candle->getAvgVolatility(20) * 5;
 
         // 매수 주문
         $order = Order::getNewOrderObj(
             $candle->getTime(),
             $this->getStrategyKey(),
             10000,
-            $ma360,
+            $buy_price,
             1,
             0,
             "test"
         );
         OrderManager::getInstance()->addOrder($order);
 
+
         // 손절 주문
         $order = Order::getNewOrderObj(
             $candle->getTime(),
             $this->getStrategyKey(),
             -10000,
-            $ma360 + $candle->getAvgVolatility(20) * 4,
+            $stop_price,
             1,
             1,
             "test"
@@ -69,16 +51,11 @@ class StrategyMA extends StrategyBase
             $candle->getTime(),
             $this->getStrategyKey(),
             -10000,
-            $ma360 - ($candle->getAvgVolatility(20) * 8),
+            $sell_price,
             0,
             1,
             "test"
         );
         OrderManager::getInstance()->addOrder($order);
-    }
-
-    function ma_dead_cross_sell(Candle $candle)
-    {
-
     }
 }

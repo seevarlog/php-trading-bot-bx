@@ -16,10 +16,11 @@ class Order
     public $entry;
     public $is_stop;
     public $is_limit;
+    public $is_reduce_only;
     public $comment;
 
 
-    public static function getNewOrderObj($date, $st_key, $amount, $entry, $is_limit, $comment)
+    public static function getNewOrderObj($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment)
     {
         $order = new self();
 
@@ -29,6 +30,7 @@ class Order
         $order->entry = $entry;
         $order->is_stop = $is_limit == false;
         $order->is_limit = $is_limit;
+        $order->is_reduce_only = $is_reduce_only;
         $order->comment = $comment;
 
         return $order;

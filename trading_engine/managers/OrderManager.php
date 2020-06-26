@@ -2,6 +2,7 @@
 
 namespace trading_engine\managers;
 
+use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
 use trading_engine\objects\LogTrade;
 use trading_engine\objects\Order;
@@ -95,13 +96,24 @@ class OrderManager extends Singleton
 
                 if ($order->isContract($last_candle))
                 {
-                    var_dump("체결");
                     $position = PositionManager::getInstance()->getPosition($order->strategy_key);
+                    if ($order->is_reduce_only)
+                    {
+                        if (($position->amount + $order->amount) != 0)
+                        {
+                            $this->clearAllOrder($order);
+                            continue;
+                        }
+                    }
+
                     $position->addPositionByOrder($order);
                     if ($position->amount == 0)
                     {
                         $this->clearAllOrder($order);
+                        continue;
                     }
+
+                    var_dump("balance:".Account::getInstance()->balance);
 
                     unset($this->order_list[$strategy_key][$k]);
                 }
