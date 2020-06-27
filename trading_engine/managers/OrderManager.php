@@ -96,13 +96,14 @@ class OrderManager extends Singleton
 
                 if ($order->isContract($last_candle))
                 {
+                    $candle = $last_candle;
                     $position = PositionManager::getInstance()->getPosition($order->strategy_key);
                     if ($order->is_reduce_only)
                     {
                         if (($position->amount + $order->amount) != 0)
                         {
                             $this->clearAllOrder($order);
-                            continue;
+                            break;
                         }
                     }
 
@@ -110,7 +111,7 @@ class OrderManager extends Singleton
                     if ($position->amount == 0)
                     {
                         $this->clearAllOrder($order);
-                        continue;
+                        break;
                     }
 
                     var_dump("balance:".Account::getInstance()->balance);

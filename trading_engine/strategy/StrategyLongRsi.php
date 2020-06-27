@@ -17,9 +17,13 @@ class StrategyLongRsi extends StrategyBase
             return;
         }
 
-        $buy_price = $candle->getClose() - $candle->getAvgVolatility(20);
-        $sell_price = $buy_price + $candle->getAvgVolatility(20) * 5;
-        $stop_price = $buy_price - $candle->getAvgVolatility(20) * 5;
+        $candle_multiple = 3;
+
+        $volatility = $candle->getAvgVolatility(1000);
+
+        $buy_price = $candle->getClose() - $volatility * 5;
+        $sell_price = $buy_price + $volatility * $candle_multiple;
+        $stop_price = $buy_price - $volatility * $candle_multiple;
 
         // 매수 주문
         $order = Order::getNewOrderObj(
@@ -29,22 +33,10 @@ class StrategyLongRsi extends StrategyBase
             $buy_price,
             1,
             0,
-            "test"
+            "진입"
         );
         OrderManager::getInstance()->addOrder($order);
 
-
-        // 손절 주문
-        $order = Order::getNewOrderObj(
-            $candle->getTime(),
-            $this->getStrategyKey(),
-            -10000,
-            $stop_price,
-            1,
-            1,
-            "test"
-        );
-        OrderManager::getInstance()->addOrder($order);
 
         // 매도 주문
         $order = Order::getNewOrderObj(
@@ -52,10 +44,23 @@ class StrategyLongRsi extends StrategyBase
             $this->getStrategyKey(),
             -10000,
             $sell_price,
-            0,
             1,
-            "test"
+            1,
+            "익절"
         );
         OrderManager::getInstance()->addOrder($order);
+
+        // 손절 주문
+        $order = Order::getNewOrderObj(
+            $candle->getTime(),
+            $this->getStrategyKey(),
+            -10000,
+            $stop_price,
+            0,
+            1,
+            "손절"
+        );
+        OrderManager::getInstance()->addOrder($order);
+
     }
 }

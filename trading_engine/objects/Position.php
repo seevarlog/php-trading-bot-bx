@@ -5,6 +5,7 @@ namespace trading_engine\objects;
 
 
 use Cassandra\Varint;
+use trading_engine\managers\OrderManager;
 use trading_engine\managers\TradeLogManager;
 
 class Position
@@ -39,7 +40,8 @@ class Position
         $profit_balance = 0;
 
         $fee = $order->getFee();
-        $add_balance += $fee;
+        var_dump("fee->".$fee);
+        //$add_balance += $fee;
 
         // 포지션 손익 계산
         if ($this->amount > 0)
@@ -57,13 +59,12 @@ class Position
                 }
             }
 
-            var_dump($order->entry);
-            var_dump($this->entry);
-            var_dump("order:".$order->entry);
-            var_dump($this->entry);
+            var_dump("position:".$this->entry. " -> ".$order->entry);
 
-            $profit_balance = $profit_amount * ($order->entry / $this->entry);
+            $profit_balance = $profit_amount * (($order->entry / $this->entry) - 1);
             $add_balance += $profit_balance;
+
+            var_dump("add_balance".$add_balance);
         }
         else if ($this->amount < 0)
         {

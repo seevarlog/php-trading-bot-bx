@@ -134,6 +134,12 @@ class Candle
             $first_candle->au = ($prev->au * ($day-1) + $up) / $day;
             $first_candle->ad = ($prev->ad * ($day-1) + $down) / $day;
 
+            if (($first_candle->au + $first_candle->ad) == 0)
+            {
+                $first_candle->au = 1;
+                $first_candle->ad = 1;
+            }
+
             $first_candle->r = 100 * $first_candle->au / ( $first_candle->au + $first_candle->ad );
             $first_candle->rd = $day;
 
@@ -190,7 +196,7 @@ class Candle
         $prev = $this->getCandlePrev();
         for ($i=0; $i<$day; $i++)
         {
-            $sum += $prev->getHigh() - $prev->getLow();
+            $sum += abs($prev->getHigh() - $prev->getLow());
             $prev = $prev->getCandlePrev();
         }
 

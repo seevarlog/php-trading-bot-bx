@@ -38,15 +38,30 @@ class Order
 
     public function isContract(Candle $candle)
     {
-        if ( $this->amount > 0 &&
-            $this->entry > $candle->getLow())
+        if ( $this->amount > 0)
         {
-            return true;
+            if ($this->entry > $candle->getLow() && $this->is_limit)
+            {
+                return true;
+            }
+            else if ($candle->getLow() <= $this->entry && $this->entry < $candle->getHigh() && $this->is_stop)
+            {
+                return true;
+            }
+
         }
 
-        if ( $this->amount < 0 &&
-            $this->entry < $candle->getHigh())
+        if ( $this->amount < 0)
         {
+            if ($this->entry < $candle->getHigh())
+            {
+                return true;
+            }
+            else if ($candle->getLow() <= $this->entry && $this->entry < $candle->getHigh() && $this->is_stop)
+            {
+                return true;
+            }
+
             return true;
         }
 
@@ -57,11 +72,25 @@ class Order
     {
         if ($this->is_limit)
         {
-            return $this->entry * $this->amount * 0.00025;
+            if ($this->amount > 0)
+            {
+                return $this->entry * $this->amount * 0.00025;
+            }
+            else
+            {
+                return $this->entry * $this->amount * 0.00025 * -1;
+            }
         }
         else
         {
-            return $this->entry * $this->amount * 0.00075 * -1;
+            if ($this->amount > 0)
+            {
+                return $this->entry * $this->amount * 0.00075 * -1;
+            }
+            else
+            {
+                return $this->entry * $this->amount * 0.00075;
+            }
         }
     }
 
