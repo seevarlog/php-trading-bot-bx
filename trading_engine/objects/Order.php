@@ -53,7 +53,7 @@ class Order
 
         if ( $this->amount < 0)
         {
-            if ($this->entry < $candle->getHigh())
+            if ($this->entry < $candle->getHigh() && $this->is_limit)
             {
                 return true;
             }
@@ -61,8 +61,6 @@ class Order
             {
                 return true;
             }
-
-            return true;
         }
 
         return false;

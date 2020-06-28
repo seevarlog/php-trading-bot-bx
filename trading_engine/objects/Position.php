@@ -4,7 +4,6 @@
 namespace trading_engine\objects;
 
 
-use Cassandra\Varint;
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\TradeLogManager;
 
@@ -28,7 +27,7 @@ class Position
 
     }
 
-    public function addPositionByOrder(Order $order)
+    public function addPositionByOrder(Order $order, $time)
     {
         $this->strategy_key = $order->strategy_key;
 
@@ -46,16 +45,16 @@ class Position
         // 포지션 손익 계산
         if ($this->amount > 0)
         {
-            $this->amount += $order->amount;
-            if ($this->amount < $prev_amount)
+            $sum_amount = $this->amount + $order->amount;
+            if ($sum_amount < $prev_amount)
             {
-                if ($this->amount <= 0)
+                if ($sum_amount <= 0)
                 {
-                    $profit_amount = $prev_amount + $this->amount;
+                    $profit_amount = $prev_amount + $sum_amount;
                 }
                 else
                 {
-                    $profit_amount = $prev_amount - $this->amount;
+                    $profit_amount = $prev_amount - $sum_amount;
                 }
             }
 
@@ -68,14 +67,14 @@ class Position
         }
         else if ($this->amount < 0)
         {
-            $this->amount += $order->amount;
-            if ($this->amount > 0)
+            $sum_amount = $this->amount + $order->amount;
+            if ($sum_amount > 0)
             {
-                $profit_amount = $prev_amount + $this->amount;
+                $profit_amount = $prev_amount + $sum_amount;
             }
             else
             {
-                $profit_amount = $this->amount - $prev_amount;
+                $profit_amount = $sum_amount - $prev_amount;
             }
             var_dump("entry");
             var_dump($order->entry);
@@ -85,21 +84,6 @@ class Position
             $profit_balance = $profit_amount * ($order->entry / $this->entry);
             $add_balance += $profit_balance;
         }
-        else
-        {
-            $this->amount += $order->amount;
-        }
-
-
-        if ($this->amount > 0 == $is_positive_num)  // 포지션이 바이 매수가 바뀌었는지 체크
-        {
-            $this->entry = $order->entry;
-        }
-
-        if ($order->amount == $this->amount)        // 포지션이 없었다가 생김
-        {
-            $this->entry = $order->entry;
-        }
 
         $account = Account::getInstance();
         $account->balance += $add_balance + $fee;
@@ -107,10 +91,12 @@ class Position
         if ($prev_amount + $order->amount == 0)
         {
             $this->entry = $order->entry;
+            $this->amount += $order->amount;
         }
         else
         {
-            $this->entry = ($prev_amount * $this->entry + $order->amount * $this->entry) / ($prev_amount + $order->amount);
+            $this->entry = ($prev_amount * $this->entry + $order->amount * $order->entry) / ($prev_amount + $order->amount);
+            $this->amount += $order->amount;
         }
 
 
@@ -118,7 +104,7 @@ class Position
         $log->strategy_name = $order->strategy_key;
         $log->comment = $order->comment;
         $log->date_order = $order->date;
-        $log->date_contract = time();
+        $log->date_contract = $time;
         $log->amount_prev = $prev_amount;
         $log->amount_after = $this->amount;
         $log->price_prev = $prev_entry;

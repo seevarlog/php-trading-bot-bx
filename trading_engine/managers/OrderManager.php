@@ -98,6 +98,14 @@ class OrderManager extends Singleton
                 {
                     $candle = $last_candle;
                     $position = PositionManager::getInstance()->getPosition($order->strategy_key);
+                    for($i=0; $i<50; $i++)
+                    {
+                        //var_dump($candle->getLow()."-".$candle->getHigh());
+                        $candle = $candle->getCandlePrev();
+                    }
+                    //var_dump($position);
+                    //var_dump($order);
+
                     if ($order->is_reduce_only)
                     {
                         if (($position->amount + $order->amount) != 0)
@@ -107,7 +115,7 @@ class OrderManager extends Singleton
                         }
                     }
 
-                    $position->addPositionByOrder($order);
+                    $position->addPositionByOrder($order, $last_candle->getTime());
                     if ($position->amount == 0)
                     {
                         $this->clearAllOrder($order);

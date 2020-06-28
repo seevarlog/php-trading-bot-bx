@@ -12,15 +12,16 @@ error_reporting(E_ALL);
 ini_set("display_errors", 1);
 ini_set('memory_limit','4G');
 ini_set("xdebug.overload_var_dump", "off");
-header("Content-Type: HTML");
+header('Content-Type: text/html; charset=UTF-8');
 
+ob_start();
 if (!($fp = fopen('bitstampUSD_1-min_data_2012-01-01_to_2020-04-22.csv', 'r'))) {
     echo "err";
     return;
 }
 
 $candle_list = array();
-for ($i=0; $i<100000; $i++)
+for ($i=0; $i<500000; $i++)
 {
     if (feof($fp))
     {
@@ -59,13 +60,13 @@ $account->balance = 10000;
 var_dump(\trading_engine\managers\OrderManager::getInstance());
 
 
-for ($i=1000; $i<100000; $i++)
+for ($i=1000; $i<500000; $i++)
 {
     $candle = Candle::getCandle($i);
 
-    \trading_engine\strategy\StrategyLongRsi::getInstance()->rsiLong($candle);
-
     \trading_engine\managers\OrderManager::getInstance()->update($candle);
+
+    \trading_engine\strategy\StrategyLongRsi::getInstance()->rsiLong($candle);
 }
 
 var_dump(\trading_engine\managers\OrderManager::getInstance());
@@ -81,6 +82,7 @@ $len = fprintf($fp, '%01.2f', $money);
 // will write "123.10" to currency.txt
 
 echo "end";
+ob_end_clean();
 
-
-var_dump(Candle::getCandle(3000)->getRsi(14));
+var_dump(Account::getInstance());
+TradeLogManager::getInstance()->showResultHtml();

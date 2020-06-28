@@ -12,16 +12,22 @@ class StrategyLongRsi extends StrategyBase
 {
     public function rsiLong(Candle $candle)
     {
-        if ($candle->getRsi(20) > 25)
+        $orderMng = OrderManager::getInstance();
+        if ($orderMng->isExistPosition($this->getStrategyKey()))
         {
             return;
         }
 
-        $candle_multiple = 3;
+        if ($candle->getRsi(20) > 30)
+        {
+            return;
+        }
+
+        $candle_multiple = 20;
 
         $volatility = $candle->getAvgVolatility(1000);
 
-        $buy_price = $candle->getClose() - $volatility * 5;
+        $buy_price = $candle->getClose() - $volatility * 3;
         $sell_price = $buy_price + $volatility * $candle_multiple;
         $stop_price = $buy_price - $volatility * $candle_multiple;
 
