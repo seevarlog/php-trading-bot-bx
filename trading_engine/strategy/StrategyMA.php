@@ -12,43 +12,40 @@ class StrategyMA extends StrategyBase
 {
     public function MaGoldenCrossBuy(Candle $candle)
     {
-        $strategy_name = debug_backtrace()[0]['function'];
         $strategy_key = $this->getStrategyKey();
-        var_dump(123132);
         $orderMng = OrderManager::getInstance();
         if ($orderMng->isExistPosition($strategy_key))
         {
-            $position_list = $orderMng->getPositionList($strategy_key);
-
             return;
         }
-        var_dump(123132);
-
         $ma20 = $candle->getMA(20);
         $ma60 = $candle->getMA(60);
         $ma120 = $candle->getMA(120);
         $ma360 = $candle->getMA(360);
-        var_dump($ma20);
-        var_dump($ma360);
 
+        $is_golden = false;
         // check golden cross status
-        if ($ma120 > $ma60 && $ma60 > $ma20)
+        if ($ma120 < $ma60 && $ma60 < $ma20)
         {
             $is_golden = true;
-
-
         }
 
+        if (!$is_golden)
+        {
+            return;
+        }
+
+        $profit_multi = 10;
 
         // 매수 주문
         $order = Order::getNewOrderObj(
             $candle->getTime(),
             $this->getStrategyKey(),
             10000,
-            $ma360,
+            $ma120,
             1,
             0,
-            "test"
+            "진입"
         );
         OrderManager::getInstance()->addOrder($order);
 
@@ -57,10 +54,10 @@ class StrategyMA extends StrategyBase
             $candle->getTime(),
             $this->getStrategyKey(),
             -10000,
-            $ma360 + $candle->getAvgVolatility(20) * 4,
+            $ma120 - $candle->getAvgVolatility(20) * $profit_multi,
+            0,
             1,
-            1,
-            "test"
+            "손절"
         );
         OrderManager::getInstance()->addOrder($order);
 
@@ -69,10 +66,10 @@ class StrategyMA extends StrategyBase
             $candle->getTime(),
             $this->getStrategyKey(),
             -10000,
-            $ma360 - ($candle->getAvgVolatility(20) * 8),
-            0,
+            $ma120 + ($candle->getAvgVolatility(20) * $profit_multi),
             1,
-            "test"
+            1,
+            "익절"
         );
         OrderManager::getInstance()->addOrder($order);
     }

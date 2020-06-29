@@ -40,7 +40,7 @@ class OrderManager extends Singleton
 
         $this->order_id += 1;
 
-        return;
+        return $this->order_id;
     }
 
     public function getOrderList($name)

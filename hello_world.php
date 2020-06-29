@@ -15,7 +15,7 @@ ini_set("xdebug.overload_var_dump", "off");
 header('Content-Type: text/html; charset=UTF-8');
 
 ob_start();
-if (!($fp = fopen('bitstampUSD_1-min_data_2012-01-01_to_2020-04-22.csv', 'r'))) {
+if (!($fp = fopen('bitstampUSD.csv', 'r'))) {
     echo "err";
     return;
 }
@@ -54,19 +54,20 @@ for ($i=0; $i<500000; $i++)
 
 // 계정 셋팅
 $account = Account::getInstance();
-$account->balance = 10000;
+$account->balance = 1;
 
 
 var_dump(\trading_engine\managers\OrderManager::getInstance());
 
 
-for ($i=1000; $i<500000; $i++)
+for ($i=0; $i<count(Candle::$data)-100; $i++)
 {
     $candle = Candle::getCandle($i);
 
     \trading_engine\managers\OrderManager::getInstance()->update($candle);
 
     \trading_engine\strategy\StrategyLongRsi::getInstance()->rsiLong($candle);
+    //\trading_engine\strategy\StrategyMA::getInstance()->MaGoldenCrossBuy($candle);
 }
 
 var_dump(\trading_engine\managers\OrderManager::getInstance());
@@ -84,5 +85,4 @@ $len = fprintf($fp, '%01.2f', $money);
 echo "end";
 ob_end_clean();
 
-var_dump(Account::getInstance());
 TradeLogManager::getInstance()->showResultHtml();

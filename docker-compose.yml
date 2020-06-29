@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: ./docker_build/php-apache
     ports:
-      - "80:80"
+      - "8011:80"
     volumes:
       - ./:/var/www/html
     environment:

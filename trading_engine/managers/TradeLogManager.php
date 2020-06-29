@@ -65,11 +65,13 @@ HTML;
                     $balance_delta = $log_clt->balance - $log->balance;
                     $win += $log_clt->comment == "익절" ? 1 : 0;
                     $lose += $log_clt->comment == "손절" ? 1 : 0;
+                    $date_str_start = date('Y-m-d H:i:s', $log->date_contract);
+                    $date_str_end = date('Y-m-d H:i:s', $log_clt->date_contract);
 
                     echo <<<HTML
     <tr>
-        <td>{$log->date_order}</td>
-        <td>{$log_clt->date_order}</td>
+        <td>{$date_str_start}</td>
+        <td>{$date_str_end}</td>
         <td>{$trade_time}</td>
         <td>{$log->amount_after}</td>
         <td>{$log->price_after}</td>

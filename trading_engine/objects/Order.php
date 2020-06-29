@@ -72,22 +72,22 @@ class Order
         {
             if ($this->amount > 0)
             {
-                return $this->entry * $this->amount * 0.00025;
+                return $this->amount * 0.00025;
             }
             else
             {
-                return $this->entry * $this->amount * 0.00025 * -1;
+                return $this->amount * 0.00025 * -1;
             }
         }
         else
         {
             if ($this->amount > 0)
             {
-                return $this->entry * $this->amount * 0.00075 * -1;
+                return $this->amount * 0.00075 * -1;
             }
             else
             {
-                return $this->entry * $this->amount * 0.00075;
+                return $this->amount * 0.00075;
             }
         }
     }

@@ -17,6 +17,8 @@ class Candle
     public $o;
     public $p;
     public $n;
+
+    //  rsi 용 멤버
     public $r = -1;
     public $rd = 0;
     public $au = 0;
@@ -173,6 +175,16 @@ class Candle
      */
     public function getCandlePrev()
     {
+        if ($this->p <= 1)
+        {
+            $this->p = 1;
+        }
+
+        if (isset(self::$data[$this->p]))
+        {
+            echo $this->p;
+        }
+
         return self::$data[$this->p];
     }
 
