@@ -200,7 +200,7 @@ class Candle
 
         if (isset(self::$data[$this->p]))
         {
-            echo $this->p;
+            //echo $this->p;
         }
 
         return self::$data[$this->p];
@@ -232,4 +232,79 @@ class Candle
 
         return $sum / $day;
     }
+    
+    public function getstandardDeviationClose($day)
+    {
+        // 1. 평균 구하기
+        $sum = 0;
+        $prev = $this->getCandlePrev();
+        $tmpPrev = $prev;
+        for ($i=0; $i<$day; $i++)
+        {
+            $sum += $prev->getClose();
+            $prev = $prev->getCandlePrev();
+        }
+        
+        $avg = $sum / $day;
+        $sum = 0;
+        $prev = $tmpPrev;
+        
+        for ($i=0; $i<$day; $i++)
+        {
+            $sum += pow(abs($prev->getClose() - $avg),2);
+            $prev = $prev->getCandlePrev();
+        }
+        return sqrt($sum / $day);
+    }
+    
+    // 평균 변동성 구하기 (종가 기준)
+    public function getAvgVolatilityClose($day)
+    {
+        $sum = 0;
+        $prev = $this->getCandlePrev();
+        for ($i=0; $i<$day; $i++)
+        {
+            $sum += $prev->getClose();
+            $prev = $prev->getCandlePrev();
+        }
+
+        return $sum / $day;
+    }
+    
+    public function getBBUpLine($day, $k)
+    {
+        return $this->getAvgVolatilityClose($day) + ($this->getstandardDeviationClose($day) * $k);
+    }
+    
+    public function getBBDownLine($day, $k)
+    {
+        return $this->getAvgVolatilityClose($day) - ($this->getstandardDeviationClose($day) * $k);
+    }
+    
+    public function crossoverBBDownLine($day, $k)
+    {
+        $prev = $this->getCandlePrev();
+        if($prev->getClose() < $prev->getBBDownLine($day, $k))
+        {
+            if($this->getClose() > $this->getBBDownLine($day, $k))
+            {
+                return True;
+            }
+        }
+        return False;
+    }
+    
+    public function crossoverBBUpLine($day, $k)
+    {
+        $prev = $this->getCandlePrev();
+        if($prev->getClose() > $prev->getBBUpLine($day, $k))
+        {
+            if($this->getClose() < $this->getBBUpLine($day, $k))
+            {
+                return True;
+            }
+        }
+        return False;
+    }
+    
 }
