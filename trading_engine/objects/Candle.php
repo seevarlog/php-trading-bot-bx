@@ -87,6 +87,24 @@ class Candle
         return $sum / $day;
     }
 
+    // n 일동안의 기울기 합을 구함
+    public function getRsiInclinationSum($n)
+    {
+        $sum = 0;
+        $candle = $this;
+        for ($i=0; $i<$n; $i++)
+        {
+            $now = $candle->getRsi(14);
+            $prev = $candle->getCandlePrev()->getRsi(14);
+
+            $sum += $prev - $now;
+
+            $candle = $candle->getCandlePrev();
+        }
+
+        return $sum;
+    }
+
     public function getRsi($day)
     {
         if ($this->getCandlePrev()->r != -1 && $this->rd == $day)

@@ -29,11 +29,12 @@ class TradeLogManager extends Singleton
 
     public function showResultHtml()
     {
+        $fp = fopen("result.htm", "w");
         foreach ($this->trade_log_list as $strategy_key => $trade_log_list)
         {
             $win = 0;
             $lose = 0;
-            echo <<<HTML
+            $str = <<<HTML
 <table border="1">
     <tr>
         <td>진입</td>
@@ -49,6 +50,8 @@ class TradeLogManager extends Singleton
         <td>총잔액</td>
     </tr>
 HTML;
+            fwrite($fp, $str);
+            echo $str;
 
             foreach ($trade_log_list as $k=>$log)
             {
@@ -68,7 +71,7 @@ HTML;
                     $date_str_start = date('Y-m-d H:i:s', $log->date_contract);
                     $date_str_end = date('Y-m-d H:i:s', $log_clt->date_contract);
 
-                    echo <<<HTML
+                    $str = <<<HTML
     <tr>
         <td>{$date_str_start}</td>
         <td>{$date_str_end}</td>
@@ -83,18 +86,25 @@ HTML;
         <td>{$log_clt->balance}</td>
     </tr>
 HTML;
+                    echo $str;
+                    fwrite($fp, $str);
                 }
             }
             $trade_count = $win + $lose;
             $trade_ratio = round($win / $trade_count * 100, 2) ;
-            echo <<<HTML
+
+            $str = <<<HTML
 </table>
 진입 : {$trade_count}
 승리 : {$win}
 패배 : {$lose}
 승률 : {$trade_ratio}
 HTML;
+            echo $str;
+            fwrite($fp, $str);
 
         }
+
+        fclose($fp);
     }
 }
