@@ -10,7 +10,7 @@ namespace trading_engine\objects;
  */
 class Candle
 {
-    public $t;
+    public $t = 0;
     public $h;
     public $l;
     public $c;
@@ -23,6 +23,9 @@ class Candle
     public $rd = 0;
     public $au = 0;
     public $ad = 0;
+
+    public $bd = 0; // BB day
+    public $ba = 0; // BB Avg close
 
     public static $data = array();
 
@@ -176,8 +179,18 @@ class Candle
         $this->h = (float)$high;
         $this->l = (float)$low;
         $this->c = (float)$close;
+    }
 
-
+    public function sumCandle($time, $open, $high, $low, $close)
+    {
+        if ($this->t == 0)
+        {
+            $this->t = $time;
+            $this->o = $open;
+        }
+        if ($this->h < $high) $this->h = $high;
+        if ($this->l > $low)  $this->l = $low;
+        if ($this->c < $high) $this->c = $close;
     }
 
     /**
@@ -233,7 +246,7 @@ class Candle
         return $sum / $day;
     }
     
-    public function getstandardDeviationClose($day)
+    public function getStandardDeviationClose($day)
     {
         // 1. 평균 구하기
         $sum = 0;
@@ -254,7 +267,9 @@ class Candle
             $sum += pow(abs($prev->getClose() - $avg),2);
             $prev = $prev->getCandlePrev();
         }
-        return sqrt($sum / $day);
+
+        $ret = sqrt($sum / $day);
+        return $ret;
     }
     
     // 평균 변동성 구하기 (종가 기준)
@@ -262,23 +277,35 @@ class Candle
     {
         $sum = 0;
         $prev = $this->getCandlePrev();
+
+        if ($prev->bd == $day && $this->n > $day)
+        {
+            $this->bd = $day;
+            $this->ba = ($prev->ba * $day - self::getCandle($this->n - $day)->getClose() + $this->getClose()) / $day;
+
+            return $this->ba;
+        }
+
         for ($i=0; $i<$day; $i++)
         {
             $sum += $prev->getClose();
             $prev = $prev->getCandlePrev();
         }
 
-        return $sum / $day;
+        $this->bd = $day;
+        $this->ba = $sum / $day;
+
+        return $this->ba;
     }
     
     public function getBBUpLine($day, $k)
     {
-        return $this->getAvgVolatilityClose($day) + ($this->getstandardDeviationClose($day) * $k);
+        return $this->getAvgVolatilityClose($day) + ($this->getStandardDeviationClose($day) * $k);
     }
     
     public function getBBDownLine($day, $k)
     {
-        return $this->getAvgVolatilityClose($day) - ($this->getstandardDeviationClose($day) * $k);
+        return $this->getAvgVolatilityClose($day) - ($this->getStandardDeviationClose($day) * $k);
     }
     
     public function crossoverBBDownLine($day, $k)

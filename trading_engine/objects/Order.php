@@ -36,6 +36,33 @@ class Order
         return $order;
     }
 
+    /**
+     * 같은 주문이 있다면 찾아서 업데이트
+     * @param $date
+     * @param $st_key
+     * @param $amount
+     * @param $entry
+     * @param $is_limit
+     * @param $is_reduce_only
+     * @param $comment
+     * @return Order
+     */
+    public static function updateOrderObj($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment)
+    {
+        $order = new self();
+
+        $order->date = $date;
+        $order->strategy_key = $st_key;
+        $order->amount = $amount;
+        $order->entry = $entry;
+        $order->is_stop = $is_limit == false;
+        $order->is_limit = $is_limit;
+        $order->is_reduce_only = $is_reduce_only;
+        $order->comment = $comment;
+
+        return $order;
+    }
+
     public function isContract(Candle $candle)
     {
         if ( $this->amount > 0)

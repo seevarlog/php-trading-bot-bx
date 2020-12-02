@@ -15,10 +15,13 @@ ini_set("xdebug.overload_var_dump", "off");
 header('Content-Type: text/html; charset=UTF-8');
 
 ob_start();
-if (!($fp = fopen('bitstampUSD.csv', 'r'))) {
+$time_start = time();
+if (!($fp = fopen('SmallbitstampUSD.csv', 'r'))) {
     echo "err";
     return;
 }
+
+// 30분봉 만들어봄
 
 $candle_list = array();
 for ($i=0; $i<500000; $i++)
@@ -32,6 +35,8 @@ for ($i=0; $i<500000; $i++)
 
     $candle = new Candle();
     $arr = explode(",", fgets($fp,1024));
+
+
 
     if ($arr[1] == "NaN")
     {
@@ -56,18 +61,15 @@ for ($i=0; $i<500000; $i++)
 $account = Account::getInstance();
 $account->balance = 1;
 
-
-var_dump(\trading_engine\managers\OrderManager::getInstance());
-
-
 for ($i=0; $i<count(Candle::$data)-100; $i++)
 {
     $candle = Candle::getCandle($i);
 
     \trading_engine\managers\OrderManager::getInstance()->update($candle);
 
-    \trading_engine\strategy\StrategyLongRsi::getInstance()->rsiLong($candle);
+    \trading_engine\strategy\StrategyBB::getInstance()->BBS($candle);
     //\trading_engine\strategy\StrategyMA::getInstance()->MaGoldenCrossBuy($candle);
+    //\trading_engine\strategy\StrategyShortRsi::getInstance()->rsi($candle);
 }
 
 var_dump(\trading_engine\managers\OrderManager::getInstance());
@@ -82,7 +84,9 @@ $money = $money1 + $money2;
 $len = fprintf($fp, '%01.2f', $money);
 // will write "123.10" to currency.txt
 
-echo "end";
-ob_end_clean();
+//ob_end_clean();
 
 TradeLogManager::getInstance()->showResultHtml();
+
+$result_time = time() - $time_start;
+echo "end. time : ".$result_time;

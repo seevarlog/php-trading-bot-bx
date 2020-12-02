@@ -1,7 +1,72 @@
 <?php
 
 
-class make_1minCandle_to_Ncandle
-{
+use trading_engine\objects\Candle;
 
+require_once('bitmex.php');
+require_once('vendor/autoload.php');
+
+if (!($fp = fopen('SmallbitstampUSD.csv', 'r'))) {
+    echo "err";
+    return;
 }
+
+$candle_min = 60 * 24;
+$cur_candle = new Candle();
+$last_candle = new Candle();
+$candle_save_list = [];
+
+for ($i=0; $i<500000; $i++)
+{
+    if (feof($fp))
+    {
+        echo "!2";
+        break;
+    }
+
+    if ($i % $candle_min == 0)
+    {
+        $cur_candle = new \trading_engine\objects\Candle();
+    }
+
+    $arr = explode(",", fgets($fp,1024));
+    if ($arr[1] == "NaN")
+    {
+        if ($i % $candle_min == 0)
+        {
+            $cur_candle->setData($arr[0], $last_candle->o, $last_candle->h, $last_candle->l, $last_candle->c);
+        }
+        else
+        {
+            $cur_candle->sumCandle($arr[0], $last_candle->o, $last_candle->h, $last_candle->l, $last_candle->c);
+        }
+    }
+    else
+    {
+        if ($i % $candle_min == 0)
+        {
+            $cur_candle->setData($arr[0], $arr[1], $arr[2], $arr[3], $arr[4]);
+        }
+        else
+        {
+            $cur_candle->sumCandle($arr[0], $arr[1], $arr[2], $arr[3], $arr[4]);
+        }
+    }
+
+    if ($i % $candle_min == 0 && $i != 0)
+    {
+        $candle_save_list[] = $cur_candle;
+    }
+    $last_candle = clone $cur_candle;
+}
+
+var_dump($candle_save_list);
+fclose($fp);
+
+$fp = fopen("result_1min_to_".$candle_min."min.csv", "w");
+fwrite($fp, "Timestamp,Open,High,Low,Close,Volume_(BTC),Volume_(Currency),Weighted_Price\n");
+foreach ($candle_save_list as $candle)
+{
+    fwrite($fp, $candle->t.",".$candle->o.",".$candle->h.",".$candle->l.",".$candle->c."\n");
+}
+fclose($fp);

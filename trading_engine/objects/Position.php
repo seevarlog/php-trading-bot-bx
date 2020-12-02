@@ -29,6 +29,18 @@ class Position
 
     public function addPositionByOrder(Order $order, $time)
     {
+        $leverage = 1;
+
+
+        if (strtotime("2019-08-19 11:48:00") == $time)
+        {
+            echo 3;
+        }
+        if (strtotime("2019-08-19 11:50:00") == $time)
+        {
+            echo 3;
+        }
+
         $this->strategy_key = $order->strategy_key;
 
         $is_positive_num = $order->amount > 0;
@@ -38,7 +50,7 @@ class Position
         $profit_amount = 0;
         $profit_balance = 0;
 
-        $fee = $order->getFee();
+        $fee = $order->getFee() * $leverage;
         var_dump("fee->".$fee);
         //$add_balance += $fee;
 
@@ -60,7 +72,7 @@ class Position
 
             var_dump("position:".$this->entry. " -> ".$order->entry);
 
-            $profit_balance = $profit_amount * (($order->entry / $this->entry) - 1);
+            $profit_balance = $profit_amount * (($order->entry / $this->entry) - 1) * $leverage;
             $add_balance += $profit_balance;
 
             var_dump("add_balance".$add_balance);
@@ -68,20 +80,24 @@ class Position
         else if ($this->amount < 0)
         {
             $sum_amount = $this->amount + $order->amount;
-            if ($sum_amount > 0)
+
+            if ($sum_amount > $prev_amount)
             {
-                $profit_amount = $prev_amount + $sum_amount;
-            }
-            else
-            {
-                $profit_amount = $sum_amount - $prev_amount;
+                if ($sum_amount > 0)
+                {
+                    $profit_amount = $prev_amount + $sum_amount;
+                }
+                else
+                {
+                    $profit_amount = $prev_amount - $sum_amount;
+                }
             }
             var_dump("entry");
             var_dump($order->entry);
             var_dump($this->entry);
             var_dump($profit_amount);
 
-            $profit_balance = $profit_amount * ($order->entry / $this->entry);
+            $profit_balance = $profit_amount * (($order->entry / $this->entry) - 1) * $leverage;
             $add_balance += $profit_balance;
         }
 
@@ -104,7 +120,7 @@ class Position
         $log->strategy_name = $order->strategy_key;
         $log->comment = $order->comment;
         $log->date_order = $order->date;
-        $log->date_contract = $time;
+        $log->date_end = $time;
         $log->amount_prev = $prev_amount;
         $log->amount_after = $this->amount;
         $log->price_prev = $prev_entry;

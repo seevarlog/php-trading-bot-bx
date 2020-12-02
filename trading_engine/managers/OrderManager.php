@@ -27,6 +27,17 @@ class OrderManager extends Singleton
     }
 
 
+    public function getPositionCount($strategy_key)
+    {
+        return count($this->getOrderList($strategy_key));
+    }
+
+    public function updateOrder($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment)
+    {
+
+    }
+
+
     public function addOrder(Order $order)
     {
         $strategy_name = $order->strategy_key;
@@ -53,14 +64,32 @@ class OrderManager extends Singleton
         return [];
     }
 
-    public function clearAllOrder(Order $last_candle)
+    public function getOrder($strategy_name, $comment)
     {
-        if (!isset($this->order_list[$last_candle->strategy_key]))
+        if (!isset($this->order_list[$strategy_name]))
         {
-            $this->order_list[$last_candle->strategy_key] = array();
+            return new Order();
         }
 
-        foreach ($this->order_list[$last_candle->strategy_key] as $order)
+        foreach ($this->order_list[$strategy_name] as $order)
+        {
+            if ($order->comment == $comment)
+            {
+                return $order;
+            }
+        }
+
+        return new Order();
+    }
+
+    public function clearAllOrder(string $strategy_key)
+    {
+        if (!isset($this->order_list[$strategy_key]))
+        {
+            $this->order_list[$strategy_key] = array();
+        }
+
+        foreach ($this->order_list[$strategy_key] as $order)
         {
             $this->cancelOrder($order);
         }
@@ -78,6 +107,24 @@ class OrderManager extends Singleton
             if ($order->order_id == $_order->order_id)
             {
                 unset($this->order_list[$_order->strategy_key][$key]);
+                return ;
+            }
+        }
+    }
+
+
+    public function cancelOrderComment($strategy_key, $comment)
+    {
+        if (!isset($this->order_list[$strategy_key]))
+        {
+            return;
+        }
+
+        foreach ($this->order_list[$strategy_key] as $key=>$order)
+        {
+            if ($order->comment == $comment)
+            {
+                unset($this->order_list[$strategy_key][$key]);
                 return ;
             }
         }
@@ -110,7 +157,7 @@ class OrderManager extends Singleton
                     {
                         if (($position->amount + $order->amount) != 0)
                         {
-                            $this->clearAllOrder($order);
+                            $this->clearAllOrder($order->strategy_key);
                             break;
                         }
                     }
@@ -118,7 +165,7 @@ class OrderManager extends Singleton
                     $position->addPositionByOrder($order, $last_candle->getTime());
                     if ($position->amount == 0)
                     {
-                        $this->clearAllOrder($order);
+                        $this->clearAllOrder($order->strategy_key);
                         break;
                     }
 

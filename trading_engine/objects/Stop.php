@@ -4,7 +4,9 @@
 namespace trading_engine\objects;
 
 
-class Stop
-{
+use trading_engine\util\Singleton;
 
+class Stop extends Singleton
+{
+    public $time;
 }

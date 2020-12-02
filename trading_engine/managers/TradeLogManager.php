@@ -35,9 +35,11 @@ class TradeLogManager extends Singleton
             $win = 0;
             $lose = 0;
             $str = <<<HTML
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <table border="1">
     <tr>
-        <td>진입</td>
+        <td>주문시간</td>
+        <td>거래시간</td>
         <td>거래시간</td>
         <td>소요시간</td>
         <td>거래량</td>
@@ -64,15 +66,17 @@ HTML;
 
                     $log_clt = $trade_log_list[$k+1];
                     $ratio = round($log_clt->price_after / $log->price_after * 100, 2) - 100;
-                    $trade_time = $log_clt->date_contract - $log->date_contract;
+                    $trade_time = $log_clt->date_end - $log->date_end;
                     $balance_delta = $log_clt->balance - $log->balance;
-                    $win += $log_clt->comment == "익절" ? 1 : 0;
-                    $lose += $log_clt->comment == "손절" ? 1 : 0;
-                    $date_str_start = date('Y-m-d H:i:s', $log->date_contract);
-                    $date_str_end = date('Y-m-d H:i:s', $log_clt->date_contract);
+                    $win += $balance_delta > 0 ? 1 : 0;
+                    $lose += $balance_delta <= 0 ? 1 : 0;
+                    $date_str_start = date('Y-m-d H:i:s', $log->date_end);
+                    $date_str_order = date('Y-m-d H:i:s', $log->date_order);
+                    $date_str_end = date('Y-m-d H:i:s', $log_clt->date_end);
 
                     $str = <<<HTML
     <tr>
+        <td>{$date_str_order}</td>
         <td>{$date_str_start}</td>
         <td>{$date_str_end}</td>
         <td>{$trade_time}</td>

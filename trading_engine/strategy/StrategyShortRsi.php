@@ -8,9 +8,9 @@ use trading_engine\managers\OrderManager;
 use trading_engine\objects\Candle;
 use trading_engine\objects\Order;
 
-class StrategyLongRsi extends StrategyBase
+class StrategyShortRsi extends StrategyBase
 {
-    public function rsiLong(Candle $candle)
+    public function rsi(Candle $candle)
     {
         $orderMng = OrderManager::getInstance();
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
@@ -68,19 +68,14 @@ class StrategyLongRsi extends StrategyBase
 
         $buy_price = $candle->getClose() - 1;
         //$sell_price = $buy_price + $volatility * $candle_multiple;
-        $sell_price = $buy_price + 200;
-        $stop_price = $buy_price - 100;
-        $max_stop_price = $buy_price * 0.97;
-        if ($stop_price < $max_stop_price)
-        {
-            $stop_price = $max_stop_price;
-        }
+        $sell_price = $buy_price - 200;
+        $stop_price = $buy_price + 200;
 
         // 매수 주문
         $order = Order::getNewOrderObj(
             $candle->getTime(),
             $this->getStrategyKey(),
-            1,
+            -1,
             $buy_price,
             1,
             0,
@@ -92,7 +87,7 @@ class StrategyLongRsi extends StrategyBase
         $order = Order::getNewOrderObj(
             $candle->getTime(),
             $this->getStrategyKey(),
-            -1,
+            1,
             $sell_price,
             1,
             1,
@@ -104,7 +99,7 @@ class StrategyLongRsi extends StrategyBase
         $order = Order::getNewOrderObj(
             $candle->getTime(),
             $this->getStrategyKey(),
-            -1,
+            1,
             $stop_price,
             0,
             1,
