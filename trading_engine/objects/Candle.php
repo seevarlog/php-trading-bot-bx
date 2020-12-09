@@ -97,15 +97,31 @@ class Candle
         $candle = $this;
         for ($i=0; $i<$n; $i++)
         {
-            $now = $candle->getRsi(14);
-            $prev = $candle->getCandlePrev()->getRsi(14);
+            $now = $candle->getRsi(20);
+            $prev = $candle->getCandlePrev()->getRsi(20);
 
-            $sum += $prev - $now;
+            $sum += $now - $prev;
 
             $candle = $candle->getCandlePrev();
         }
 
         return $sum;
+    }
+
+    public function findRsiLowerThan($prev_n, $lower_rsi_value, $rsi_n)
+    {
+        $candle = $this;
+        for ($i=0; $i<$prev_n; $i++)
+        {
+            if ($candle->getRsi($rsi_n) <= $lower_rsi_value)
+            {
+                return true;
+            }
+
+            $candle = $candle->getCandlePrev();
+        }
+
+        return false;
     }
 
     public function getRsi($day)

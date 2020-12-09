@@ -5,6 +5,7 @@ namespace trading_engine\strategy;
 
 
 use trading_engine\managers\OrderManager;
+use trading_engine\managers\PositionManager;
 use trading_engine\objects\Candle;
 use trading_engine\objects\Order;
 
@@ -31,6 +32,20 @@ class StrategyLongRsi extends StrategyBase
             }
         }
 
+        $ma60 = $candle->getMA(60);
+        $ma120 = $candle->getMA(120);
+
+        $is_golden = false;
+        if ($ma60 > $ma120)
+        {
+            $is_golden = true;
+        }
+
+        if (!$is_golden)
+        {
+            return;
+        }
+
         /*
         if($position_count >= 1 && $candle->getRsi(20) > 70 && $candle->getRsiInclinationSum(3) < 0)
         {
@@ -51,13 +66,29 @@ class StrategyLongRsi extends StrategyBase
         }
         */
 
-        if ($position_count >= 1)
-        {
-            return ;
-        }
 
-        // RSI 30 이하만 주문
-        if ($candle->getRsi(20) > 26 || $candle->getRsiInclinationSum(10) < 0)
+        if (PositionManager::getInstance()->getPosition($this->getStrategyKey())->amount != 0)
+        {
+            return;
+        }
+        $orderMng->cancelOrderComment($this->getStrategyKey(), "진입");
+        $orderMng->cancelOrderComment($this->getStrategyKey(), "손절");
+        $orderMng->cancelOrderComment($this->getStrategyKey(), "익절");
+
+        // RSI 30 이하만 주문 <- 여기 버그있음
+        // 5번의 rsi 값으로 저점을 찍었나 확인 후 진입하는 전략
+/*
+        if ((
+            $candle->getRsi(20) > 10 &&
+            $candle->getRsi(20) < 30 &&
+            $candle->getRsiInclinationSum(4) > 0 )
+        )
+*/
+        if ( $candle->getRsi(20) < 33 && $candle->getRsi(20) > 10)
+        {
+
+        }
+        else
         {
             return;
         }
@@ -66,11 +97,11 @@ class StrategyLongRsi extends StrategyBase
         // 직전 1000 개의 캔들로 평균 변동성을 계싼
         $volatility = $candle->getAvgVolatility(20);
 
-        $buy_price = $candle->getClose() - 1;
+        $buy_price = $candle->getClose();
         //$sell_price = $buy_price + $volatility * $candle_multiple;
-        $sell_price = $buy_price + 200;
-        $stop_price = $buy_price - 100;
-        $max_stop_price = $buy_price * 0.97;
+        $sell_price = $buy_price * 1.06;
+        $stop_price = $buy_price * 0.94;
+        $max_stop_price = $buy_price * 0.94;
         if ($stop_price < $max_stop_price)
         {
             $stop_price = $max_stop_price;
@@ -89,7 +120,7 @@ class StrategyLongRsi extends StrategyBase
         $order_id = OrderManager::getInstance()->addOrder($order);
 
         // 매도 주문
-        $order = OrderManager::getInstance()->updateORder(
+        $order = Order::getNewOrderObj(
             $candle->getTime(),
             $this->getStrategyKey(),
             -1,

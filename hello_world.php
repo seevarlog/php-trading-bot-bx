@@ -3,12 +3,12 @@
 use trading_engine\managers\TradeLogManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
-use trading_engine\strategy\StrategyMA;
+use trading_engine\strategy\StrategyZig;
 
-require_once('bitmex.php');
 require_once('vendor/autoload.php');
 
-error_reporting(E_ALL);
+//error_reporting(E_ALL);
+
 ini_set("display_errors", 1);
 ini_set('memory_limit','4G');
 ini_set("xdebug.overload_var_dump", "off");
@@ -16,7 +16,7 @@ header('Content-Type: text/html; charset=UTF-8');
 
 ob_start();
 $time_start = time();
-if (!($fp = fopen('SmallbitstampUSD.csv', 'r'))) {
+if (!($fp = fopen(__DIR__.'/result_1min_to_5min.csv', 'r'))) {
     echo "err";
     return;
 }
@@ -64,11 +64,12 @@ $account->balance = 1;
 for ($i=0; $i<count(Candle::$data)-100; $i++)
 {
     $candle = Candle::getCandle($i);
-
     \trading_engine\managers\OrderManager::getInstance()->update($candle);
 
-    \trading_engine\strategy\StrategyBB::getInstance()->BBS($candle);
+
+    //\trading_engine\strategy\StrategyBB::getInstance()->BBS($candle);
     //\trading_engine\strategy\StrategyMA::getInstance()->MaGoldenCrossBuy($candle);
+    \trading_engine\strategy\StrategyLongRsi::getInstance()->rsiLong($candle);
     //\trading_engine\strategy\StrategyShortRsi::getInstance()->rsi($candle);
 }
 
@@ -81,7 +82,7 @@ $money1 = 68.75;
 $money2 = 54.35;
 $money = $money1 + $money2;
 // echo $money will output "123.1";
-$len = fprintf($fp, '%01.2f', $money);
+//$len = fprintf($fp, '%01.2f', $money);
 // will write "123.10" to currency.txt
 
 //ob_end_clean();

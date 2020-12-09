@@ -3,20 +3,23 @@
 
 use trading_engine\objects\Candle;
 
-require_once('bitmex.php');
 require_once('vendor/autoload.php');
 
-if (!($fp = fopen('SmallbitstampUSD.csv', 'r'))) {
+ini_set("display_errors", 1);
+ini_set('memory_limit','4G');
+
+if (!($fp = fopen('bitstampUSD_1-min_data_2012-01-01_to_2020-04-22.csv', 'r'))) {
     echo "err";
     return;
 }
 
-$candle_min = 60 * 24;
+
+$candle_min = 30; // 몇 분붕을 만들지 정함
 $cur_candle = new Candle();
 $last_candle = new Candle();
 $candle_save_list = [];
 
-for ($i=0; $i<500000; $i++)
+for ($i=0; $i<50000000; $i++)
 {
     if (feof($fp))
     {

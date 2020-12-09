@@ -50,6 +50,7 @@ class TradeLogManager extends Singleton
         <td>손익률</td>
         <td>수량변화</td>
         <td>총잔액</td>
+        <td>닷</td>
     </tr>
 HTML;
             fwrite($fp, $str);
@@ -88,6 +89,7 @@ HTML;
         <td>{$ratio}</td>
         <td>{$balance_delta}</td>
         <td>{$log_clt->balance}</td>
+        <td>{$log_clt->comment}</td>
     </tr>
 HTML;
                     echo $str;

@@ -31,16 +31,6 @@ class Position
     {
         $leverage = 1;
 
-
-        if (strtotime("2019-08-19 11:48:00") == $time)
-        {
-            echo 3;
-        }
-        if (strtotime("2019-08-19 11:50:00") == $time)
-        {
-            echo 3;
-        }
-
         $this->strategy_key = $order->strategy_key;
 
         $is_positive_num = $order->amount > 0;

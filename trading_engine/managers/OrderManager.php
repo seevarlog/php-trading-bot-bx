@@ -144,7 +144,8 @@ class OrderManager extends Singleton
                 if ($order->isContract($last_candle))
                 {
                     $candle = $last_candle;
-                    $position = PositionManager::getInstance()->getPosition($order->strategy_key);
+                    $position_mng = PositionManager::getInstance();
+                    $position = $position_mng->getPosition($order->strategy_key);
                     for($i=0; $i<50; $i++)
                     {
                         //var_dump($candle->getLow()."-".$candle->getHigh());

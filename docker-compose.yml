@@ -1,5 +1,15 @@
 version: '3'
 services:
+  webserver-php8:
+    build:
+      context: .
+      dockerfile: ./docker_build/php8
+    ports:
+      - "8012:80"
+    volumes:
+      - ./:/var/www/html
+    environment:
+      XDEBUG_CONFIG: remote_host=host.docker_build.internal
   webserver:
     build:
       context: .
