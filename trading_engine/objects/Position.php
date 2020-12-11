@@ -62,7 +62,7 @@ class Position
 
             var_dump("position:".$this->entry. " -> ".$order->entry);
 
-            $profit_balance = $profit_amount * (($order->entry / $this->entry) - 1) * $leverage;
+            $profit_balance = $order->amount * (($order->entry / $this->entry) - 1) * $leverage;
             $add_balance += $profit_balance;
 
             var_dump("add_balance".$add_balance);
@@ -87,7 +87,7 @@ class Position
             var_dump($this->entry);
             var_dump($profit_amount);
 
-            $profit_balance = $profit_amount * (($order->entry / $this->entry) - 1) * $leverage;
+            $profit_balance = $order->amount * (($order->entry / $this->entry) - 1) * $leverage;
             $add_balance += $profit_balance;
         }
 

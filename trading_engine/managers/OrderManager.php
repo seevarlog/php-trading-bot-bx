@@ -32,11 +32,6 @@ class OrderManager extends Singleton
         return count($this->getOrderList($strategy_key));
     }
 
-    public function updateOrder($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment)
-    {
-
-    }
-
 
     public function addOrder(Order $order)
     {
@@ -54,6 +49,31 @@ class OrderManager extends Singleton
         return $this->order_id;
     }
 
+
+    /**
+     * 같은 주문이 있다면 찾아서 업데이트
+     * @param $date
+     * @param $st_key
+     * @param $amount
+     * @param $entry
+     * @param $is_limit
+     * @param $is_reduce_only
+     * @param $comment
+     */
+    public function updateOrder($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment)
+    {
+        $order = $this->getOrder($st_key, $comment);
+
+        $order->date = $date;
+        $order->strategy_key = $st_key;
+        $order->amount = $amount;
+        $order->entry = $entry;
+        $order->is_stop = $is_limit == false;
+        $order->is_limit = $is_limit;
+        $order->is_reduce_only = $is_reduce_only;
+        $order->comment = $comment;
+    }
+
     public function getOrderList($name)
     {
         if (isset($this->order_list[$name]))
@@ -68,8 +88,9 @@ class OrderManager extends Singleton
     {
         if (!isset($this->order_list[$strategy_name]))
         {
-            return new Order();
+            $this->order_list[$strategy_name] = [];
         }
+
 
         foreach ($this->order_list[$strategy_name] as $order)
         {
@@ -79,7 +100,10 @@ class OrderManager extends Singleton
             }
         }
 
-        return new Order();
+        $order = new Order();
+        $this->order_list[$strategy_name][] = $order;
+
+        return $order;
     }
 
     public function clearAllOrder(string $strategy_key)
@@ -146,23 +170,17 @@ class OrderManager extends Singleton
                     $candle = $last_candle;
                     $position_mng = PositionManager::getInstance();
                     $position = $position_mng->getPosition($order->strategy_key);
+                    /*
                     for($i=0; $i<50; $i++)
                     {
                         //var_dump($candle->getLow()."-".$candle->getHigh());
                         $candle = $candle->getCandlePrev();
                     }
+                    */
                     //var_dump($position);
                     //var_dump($order);
 
-                    if ($order->is_reduce_only)
-                    {
-                        if (($position->amount + $order->amount) != 0)
-                        {
-                            $this->clearAllOrder($order->strategy_key);
-                            break;
-                        }
-                    }
-
+                    // 감소 전용 로직 ?
                     $position->addPositionByOrder($order, $last_candle->getTime());
                     if ($position->amount == 0)
                     {

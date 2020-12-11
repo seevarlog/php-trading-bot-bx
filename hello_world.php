@@ -16,7 +16,7 @@ header('Content-Type: text/html; charset=UTF-8');
 
 ob_start();
 $time_start = time();
-if (!($fp = fopen(__DIR__.'/result_1min_to_5min.csv', 'r'))) {
+if (!($fp = fopen(__DIR__.'/bitstampUSD.csv', 'r'))) {
     echo "err";
     return;
 }
@@ -67,9 +67,9 @@ for ($i=0; $i<count(Candle::$data)-100; $i++)
     \trading_engine\managers\OrderManager::getInstance()->update($candle);
 
 
-    //\trading_engine\strategy\StrategyBB::getInstance()->BBS($candle);
+    \trading_engine\strategy\StrategyBB::getInstance()->BBS($candle);
     //\trading_engine\strategy\StrategyMA::getInstance()->MaGoldenCrossBuy($candle);
-    \trading_engine\strategy\StrategyLongRsi::getInstance()->rsiLong($candle);
+    //\trading_engine\strategy\StrategyLongRsi::getInstance()->rsiLong($candle);
     //\trading_engine\strategy\StrategyShortRsi::getInstance()->rsi($candle);
 }
 

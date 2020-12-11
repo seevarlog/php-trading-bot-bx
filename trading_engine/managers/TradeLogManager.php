@@ -97,7 +97,15 @@ HTML;
                 }
             }
             $trade_count = $win + $lose;
-            $trade_ratio = round($win / $trade_count * 100, 2) ;
+            if ($trade_count > 0)
+            {
+                $trade_ratio = round($win / $trade_count * 100, 2) ;
+            }
+            else
+            {
+                $trade_ratio = 0;
+            }
+
 
             $str = <<<HTML
 </table>

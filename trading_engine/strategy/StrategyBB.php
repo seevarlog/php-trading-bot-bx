@@ -92,7 +92,7 @@ class StrategyBB extends StrategyBase
     public function BBS(Candle $candle)
     {
         $k = 2.8;
-        $day = 60;
+        $day = 56;
         $orderMng = OrderManager::getInstance();
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
         $positionMng = PositionManager::getInstance();
@@ -118,26 +118,25 @@ class StrategyBB extends StrategyBase
 
         foreach ($order_list as $order)
         {
-            if ($order->comment == "손절" && $is_exist_position)
+            if ($order->comment == "손절")
             {
                 continue;
             }
 
-            if ($candle->getTime() - $order->date > 60 * 60)
+            if ($candle->getTime() - $order->date > 60 * 30)
             {
                 var_dump("캔슬 : ".$order->comment);
                 $orderMng->cancelOrder($order);
             }
         }
 
-        if($position_count > 0)
+        if($position_count > 0 )
         {
-            if ($candle->crossoverBBDownLine($day, $k) == true)
+            if ($candle->crossoverBBUpLine($day, $k) == true)
             {
                 $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
-                OrderManager::getInstance()->cancelOrderComment($this->getStrategyKey(), "익절");
                 echo "매도<br>";
-                $sell_price = $candle->getClose() - 1;
+                $sell_price = $candle->getClose() + 1;
                 // 매도 주문
                 $order = Order::getNewOrderObj(
                     $candle->getTime(),
@@ -152,56 +151,43 @@ class StrategyBB extends StrategyBase
             }
         }
 
-        if ($position_count >= 1)
-        {
-            foreach ($orderMng->getOrderList($this->getStrategyKey()) as $order)
-            {
-                if ($order->comment == "익절")
-                {
-                    return;
-                }
-            }
-        }
-
-
-        if ($candle->crossoverBBUpLine($day, $k) == false || $is_exist_entry_order || $is_exist_position)
+        if ($positionMng->getPosition($this->getStrategyKey())->amount > 0)
         {
             return ;
         }
-        // 매수 대기
-        OrderManager::getInstance()->cancelOrderComment($this->getStrategyKey(), "진입");
-        OrderManager::getInstance()->cancelOrderComment($this->getStrategyKey(), "손절");
 
-        echo "매수 진입<br>";
+        if ($candle->crossoverBBDownLine($day, $k) == false)
+        {
+            return ;
+        }
+
         $candle_multiple = 20;
 
         $volatility = $candle->getAvgVolatility(50);
-        $buy_price = $candle->getClose() + ($volatility /3);
+        $buy_price = $candle->getClose() * 0.999;
         $stop_price = $buy_price * 1.02;
         // 매수 시그널, 아래서 위로 BB를 뚫음
         // 매수 주문
-        $order = Order::getNewOrderObj(
+        OrderManager::getInstance()->updateOrder(
             $candle->getTime(),
             $this->getStrategyKey(),
-            -Account::getInstance()->balance,
+            Account::getInstance()->balance,
             $buy_price,
             1,
             0,
             "진입"
         );
-        $order_id = OrderManager::getInstance()->addOrder($order);
 
         // 손절 주문
-        $order = Order::getNewOrderObj(
+        OrderManager::getInstance()->updateOrder(
             $candle->getTime(),
             $this->getStrategyKey(),
-            Account::getInstance()->balance,
+            -Account::getInstance()->balance,
             $stop_price,
             0,
             1,
             "손절"
         );
-        OrderManager::getInstance()->addOrder($order);
     }
 
     public function BB(Candle $candle)
