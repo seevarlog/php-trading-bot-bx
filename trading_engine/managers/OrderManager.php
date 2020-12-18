@@ -21,9 +21,17 @@ class OrderManager extends Singleton
     public $order_list = array();
     public $order_id = 1;
 
-    public function isExistPosition($strategy_key)
+    public function isExistPosition($strategy_key, $comment)
     {
-        return count($this->getOrderList($strategy_key)) > 0;
+        foreach ($this->getOrderList($strategy_key) as $order)
+        {
+            if ($order->comment == $comment)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
@@ -60,7 +68,7 @@ class OrderManager extends Singleton
      * @param $is_reduce_only
      * @param $comment
      */
-    public function updateOrder($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment)
+    public function updateOrder($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment, $log)
     {
         $order = $this->getOrder($st_key, $comment);
 
@@ -72,6 +80,7 @@ class OrderManager extends Singleton
         $order->is_limit = $is_limit;
         $order->is_reduce_only = $is_reduce_only;
         $order->comment = $comment;
+        $order->log = $log;
     }
 
     public function getOrderList($name)
@@ -91,7 +100,6 @@ class OrderManager extends Singleton
             $this->order_list[$strategy_name] = [];
         }
 
-
         foreach ($this->order_list[$strategy_name] as $order)
         {
             if ($order->comment == $comment)
@@ -101,6 +109,7 @@ class OrderManager extends Singleton
         }
 
         $order = new Order();
+        $order->comment = $comment;
         $this->order_list[$strategy_name][] = $order;
 
         return $order;
@@ -150,6 +159,48 @@ class OrderManager extends Singleton
             {
                 unset($this->order_list[$strategy_key][$key]);
                 return ;
+            }
+        }
+    }
+
+    public function updateRealMarket(Candle $last_candle)
+    {
+        foreach ($this->order_list as $strategy_key => $order_list)
+        {
+            foreach ($order_list as $k=>$order)
+            {
+                if ($order->date > $last_candle->getTime())
+                {
+                    continue;
+                }
+
+                if ($order->isContract($last_candle))
+                {
+                    $candle = $last_candle;
+                    $position_mng = PositionManager::getInstance();
+                    $position = $position_mng->getPosition($order->strategy_key);
+                    /*
+                    for($i=0; $i<50; $i++)
+                    {
+                        //var_dump($candle->getLow()."-".$candle->getHigh());
+                        $candle = $candle->getCandlePrev();
+                    }
+                    */
+                    //var_dump($position);
+                    //var_dump($order);
+
+                    // 감소 전용 로직 ?
+                    $position->addPositionByOrder($order, $last_candle->getTime());
+                    if ($position->amount == 0)
+                    {
+                        $this->clearAllOrder($order->strategy_key);
+                        break;
+                    }
+
+                    var_dump("balance:".Account::getInstance()->balance);
+
+                    unset($this->order_list[$strategy_key][$k]);
+                }
             }
         }
     }

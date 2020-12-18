@@ -15,10 +15,6 @@ class StrategyZig extends StrategyBase
     {
         $strategy_key = $this->getStrategyKey();
         $orderMng = OrderManager::getInstance();
-        if ($orderMng->isExistPosition($strategy_key))
-        {
-            return;
-        }
         $ma20 = $candle->getMA(20);
         $ma60 = $candle->getMA(60);
         $ma120 = $candle->getMA(120);

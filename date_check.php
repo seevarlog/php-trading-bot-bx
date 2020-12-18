@@ -8,15 +8,16 @@ require_once('vendor/autoload.php');
 ini_set("display_errors", 1);
 ini_set('memory_limit','4G');
 
-if (!($fp = fopen(__DIR__.'/bitstampUSD_1-min_data_2012-01-01_to_2019-03-13.csv', 'r'))) {
+if (!($fp = fopen('bitstampUSD_1-min_data_2012-01-01_to_2019-03-13.csv', 'r'))) {
     echo "err";
     return;
 }
 
 
-$candle_min = 60*60*24; // 몇 분붕을 만들지 정함
+$candle_min = 5; // 몇 분붕을 만들지 정함
 $cur_candle = new Candle();
 $last_candle = new Candle();
+$date = [];
 $candle_save_list = [];
 
 for ($i=0; $i<500000000; $i++)
@@ -46,29 +47,14 @@ for ($i=0; $i<500000000; $i++)
     }
     else
     {
-        if ($i % $candle_min == 0)
-        {
-            $cur_candle->setData($arr[0], $arr[1], $arr[2], $arr[3], $arr[4]);
-        }
-        else
-        {
-            $cur_candle->sumCandle($arr[0], $arr[1], $arr[2], $arr[3], $arr[4]);
-        }
+        $date[date("Y-m-d", (int)$arr[0])] =1;
     }
-
-    if ($i % $candle_min == 0 && $i != 0)
-    {
-        $candle_save_list[] = $cur_candle;
-    }
-    $last_candle = clone $cur_candle;
 }
 
-fclose($fp);
-
-$fp = fopen("result_1min_to_".$candle_min."min.csv", "w");
-fwrite($fp, "Timestamp,Open,High,Low,Close,Volume_(BTC),Volume_(Currency),Weighted_Price\n");
-foreach ($candle_save_list as $candle)
+var_dump($date);
+$fp = fopen("date_check.html", "w");
+foreach ($date as $k=>$v)
 {
-    fwrite($fp, $candle->t.",".$candle->o.",".$candle->h.",".$candle->l.",".$candle->c."\n");
+    fwrite($fp, $k."\n");
 }
 fclose($fp);

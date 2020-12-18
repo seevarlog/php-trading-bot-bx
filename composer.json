@@ -19,8 +19,8 @@
     }
   },
   "require" : {
-    "php" : ">=7.4",
+    "php" : "*",
     "ext-mbstring": "*",
-    "WebSocket": "*"
+    "linwj/bybit": "*"
   }
 }

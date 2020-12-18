@@ -17,7 +17,7 @@ class TradeLogManager extends Singleton
 {
     public $trade_log_list = array();
 
-    public function addTradeLog(LogTrade $log)
+    public function addTradeLog($log)
     {
         if(!isset($this->trade_log_list[$log->strategy_name]))
         {
@@ -40,61 +40,36 @@ class TradeLogManager extends Singleton
     <tr>
         <td>주문시간</td>
         <td>거래시간</td>
-        <td>거래시간</td>
         <td>소요시간</td>
         <td>거래량</td>
         <td>진입가</td>
-        <td>마감가</td>
         <td>진입수수료</td>
-        <td>마감수수료</td>
-        <td>손익률</td>
-        <td>수량변화</td>
         <td>총잔액</td>
-        <td>닷</td>
+        <td>로그</td>
     </tr>
 HTML;
             fwrite($fp, $str);
-            echo $str;
+
+            var_dump("카운트 : ". count($trade_log_list));
 
             foreach ($trade_log_list as $k=>$log)
             {
-                if ($log->comment == "진입")
-                {
-                    if (!isset($trade_log_list[$k+1]))
-                    {
-                        break;
-                    }
-
-                    $log_clt = $trade_log_list[$k+1];
-                    $ratio = round($log_clt->price_after / $log->price_after * 100, 2) - 100;
-                    $trade_time = $log_clt->date_end - $log->date_end;
-                    $balance_delta = $log_clt->balance - $log->balance;
-                    $win += $balance_delta > 0 ? 1 : 0;
-                    $lose += $balance_delta <= 0 ? 1 : 0;
-                    $date_str_start = date('Y-m-d H:i:s', $log->date_end);
-                    $date_str_order = date('Y-m-d H:i:s', $log->date_order);
-                    $date_str_end = date('Y-m-d H:i:s', $log_clt->date_end);
-
-                    $str = <<<HTML
+                $time = strtotime($log->date_order);
+                $str = <<<HTML
     <tr>
-        <td>{$date_str_order}</td>
-        <td>{$date_str_start}</td>
-        <td>{$date_str_end}</td>
-        <td>{$trade_time}</td>
-        <td>{$log->amount_after}</td>
-        <td>{$log->price_after}</td>
-        <td>{$log_clt->price_after}</td>
+        <td>{$time}</td>
+        <td>{$log->date_order}</td>
+        <td>소요시간</td>
+        <td>{$log->amount}</td>
+        <td>{$log->entry}</td>
         <td>{$log->trade_fees}</td>
-        <td>{$log_clt->trade_fees}</td>
-        <td>{$ratio}</td>
-        <td>{$balance_delta}</td>
-        <td>{$log_clt->balance}</td>
-        <td>{$log_clt->comment}</td>
+        <td>{$log->total_balance}</td>
+        <td>{$log->comment}</td>
+        <td>{$log->log}</td>
     </tr>
 HTML;
-                    echo $str;
-                    fwrite($fp, $str);
-                }
+                fwrite($fp, $str);
+
             }
             $trade_count = $win + $lose;
             if ($trade_count > 0)

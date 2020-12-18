@@ -2,5 +2,3 @@ FROM chrisb9/php8-nginx-xdebug
 
 # make Data vol directory
 RUN mkdir /tmp/data
-
-RUN npm install lightweight-charts

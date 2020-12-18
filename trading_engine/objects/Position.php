@@ -12,6 +12,7 @@ class Position
     public $strategy_key;
     public $entry = 0;
     public $amount = 0;
+    public $log = [];
 
     public function isValid()
     {
@@ -29,10 +30,17 @@ class Position
 
     public function addPositionByOrder(Order $order, $time)
     {
-        $leverage = 1;
+        $leverage = 10;
 
         $this->strategy_key = $order->strategy_key;
+        $datetime = date('Y-m-d H:i:s', $time);
 
+        if ($this->amount != 0 && $order->comment == "진입")
+        {
+            echo "error";
+        }
+
+        $prev_balance = Account::getInstance()->balance;
         $is_positive_num = $order->amount > 0;
         $prev_amount = $this->amount;
         $prev_entry = $this->entry;
@@ -41,82 +49,75 @@ class Position
         $profit_balance = 0;
 
         $fee = $order->getFee() * $leverage;
-        var_dump("fee->".$fee);
         //$add_balance += $fee;
 
         // 포지션 손익 계산
         if ($this->amount > 0)
         {
-            $sum_amount = $this->amount + $order->amount;
-            if ($sum_amount < $prev_amount)
+            if ($order->amount < 0)
             {
-                if ($sum_amount <= 0)
+                $profit_amount = $order->amount;
+                if ($this->amount + $order->amount < 0)
                 {
-                    $profit_amount = $prev_amount + $sum_amount;
+                    $profit_amount = $order->amount - $profit_amount;
                 }
-                else
+
+                $profit_balance = -$profit_amount * (($order->entry / $this->entry) - 1);
+                $this->amount += $order->amount;
+                if ($this->amount + $order->amount < 0)
                 {
-                    $profit_amount = $prev_amount - $sum_amount;
+                    $this->entry = $order->entry;
                 }
             }
-
-            var_dump("position:".$this->entry. " -> ".$order->entry);
-
-            $profit_balance = $order->amount * (($order->entry / $this->entry) - 1) * $leverage;
-            $add_balance += $profit_balance;
-
-            var_dump("add_balance".$add_balance);
+            else
+            {
+                $this->entry = ($this->entry * $this->amount) + ($order->entry * $this->amount) / 2;
+                $this->amount += $order->amount;
+            }
         }
         else if ($this->amount < 0)
         {
-            $sum_amount = $this->amount + $order->amount;
-
-            if ($sum_amount > $prev_amount)
+            if ($order->amount > 0)
             {
-                if ($sum_amount > 0)
+                $profit_amount = $order->amount;
+                if ($profit_amount > 0)
                 {
-                    $profit_amount = $prev_amount + $sum_amount;
+                    $profit_amount = $order->amount - $profit_amount;
                 }
-                else
+
+                $profit_balance = $profit_amount * (($order->entry / $this->entry) - 1);
+                $this->amount += $order->amount;
+                if ($this->amount + $order->amount > 0)
                 {
-                    $profit_amount = $prev_amount - $sum_amount;
+                    $this->entry = $order->entry;
                 }
             }
-            var_dump("entry");
-            var_dump($order->entry);
-            var_dump($this->entry);
-            var_dump($profit_amount);
-
-            $profit_balance = $order->amount * (($order->entry / $this->entry) - 1) * $leverage;
-            $add_balance += $profit_balance;
+            else
+            {
+                $this->entry = -(($this->entry * $this->amount) + ($order->entry * $this->amount)) / 2;
+                $this->amount += $order->amount;
+            }
         }
-
-        $account = Account::getInstance();
-        $account->balance += $add_balance + $fee;
-
-        if ($prev_amount + $order->amount == 0)
+        else if ($this->amount == 0)
         {
             $this->entry = $order->entry;
-            $this->amount += $order->amount;
-        }
-        else
-        {
-            $this->entry = ($prev_amount * $this->entry + $order->amount * $order->entry) / ($prev_amount + $order->amount);
-            $this->amount += $order->amount;
+            $this->amount = $order->amount;
         }
 
+        $profit_balance *= $leverage;
+        $account = Account::getInstance();
+        $account->balance += $profit_balance + $fee;
 
         $log = new LogTrade();
         $log->strategy_name = $order->strategy_key;
         $log->comment = $order->comment;
-        $log->date_order = $order->date;
-        $log->date_end = $time;
-        $log->amount_prev = $prev_amount;
-        $log->amount_after = $this->amount;
-        $log->price_prev = $prev_entry;
-        $log->price_after = $order->entry;
-        $log->balance = $account->balance;
+        $log->date_order = date('Y-m-d H:i:s', $order->date);
+        $log->amount = $order->amount;
+        $log->entry = $order->entry;
+        $log->profit_balance = $profit_balance;
+        $log->total_balance = $account->balance;
         $log->trade_fees = $fee;
+        $log->log = $order->log;
         TradeLogManager::getInstance()->addTradeLog($log);
     }
 }

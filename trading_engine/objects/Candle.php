@@ -2,6 +2,8 @@
 
 namespace trading_engine\objects;
 
+use trading_engine\managers\CandleManager;
+
 /**
  * Class Candle
  *
@@ -18,6 +20,12 @@ class Candle
     public $p;
     public $n;
 
+    public $tick;
+    public $idx;
+
+    public $cn = null;
+    public $cp = null;
+
     //  rsi 용 멤버
     public $r = -1;
     public $rd = 0;
@@ -27,7 +35,16 @@ class Candle
     public $bd = 0; // BB day
     public $ba = 0; // BB Avg close
 
+    // 평균 변동성 캐시
+    public $av = 0;
+    public $avDay = 0;
+
     public static $data = array();
+
+    public function __construct($time_tick)
+    {
+        $this->tick = $time_tick;
+    }
 
     public function getTime()
     {
@@ -124,6 +141,23 @@ class Candle
         return false;
     }
 
+
+    public function findRsiUpperThan($prev_n, $upper_rsi_value, $rsi_n)
+    {
+        $candle = $this;
+        for ($i=0; $i<$prev_n; $i++)
+        {
+            if ($candle->getRsi($rsi_n) >= $upper_rsi_value)
+            {
+                return true;
+            }
+
+            $candle = $candle->getCandlePrev();
+        }
+
+        return false;
+    }
+
     public function getRsi($day)
     {
         if ($this->getCandlePrev()->r != -1 && $this->rd == $day)
@@ -209,12 +243,26 @@ class Candle
         if ($this->c < $high) $this->c = $close;
     }
 
+
+    public function updateCandle($high, $low, $close)
+    {
+        if ($this->h < $high) $this->h = $high;
+        if ($this->l > $low)  $this->l = $low;
+        $this->c = $close;
+    }
+
+
+
     /**
      * @return self
      */
     public function getCandleNext()
     {
-        return self::$data[$this->n];
+        if ($this->cn == null)
+        {
+            $this->cn = new Candle($this->tick);
+        }
+        return $this->cn;
     }
 
     /**
@@ -222,17 +270,11 @@ class Candle
      */
     public function getCandlePrev()
     {
-        if ($this->p <= 1)
+        if ($this->cp == null)
         {
-            $this->p = 1;
+            $this->cp = new Candle($this->tick);
         }
-
-        if (isset(self::$data[$this->p]))
-        {
-            //echo $this->p;
-        }
-
-        return self::$data[$this->p];
+        return $this->cp;
     }
 
     public function getMA($day)
@@ -253,6 +295,11 @@ class Candle
     {
         $sum = 0;
         $prev = $this->getCandlePrev();
+        if ($prev->av != 0 && $prev->avDay == $day)
+        {
+
+        }
+
         for ($i=0; $i<$day; $i++)
         {
             $sum += abs($prev->getHigh() - $prev->getLow());
@@ -313,17 +360,90 @@ class Candle
 
         return $this->ba;
     }
+
+
+    public function getAvgVolatilityPercent($day)
+    {
+        $sum = 0;
+        $prev = $this->getCandlePrev();
+
+        if ($prev->bd == $day && $this->n > $day)
+        {
+            $delta = abs($this->h - $this->l);
+
+            return $this->ba;
+        }
+
+        if ($this->c == 0)
+        {
+            return 0.0546;
+        }
+
+        $sum_percent = 0;
+        for ($i=0; $i<$day; $i++)
+        {
+            if ($this->o == $this->c)
+            {
+                $sum_percent = 0;
+            }
+            else
+            {
+                $sum_percent += ($this->h - $this->l) / $this->c / ($this->o - $this->c) * abs($this->o - $this->c);
+            }
+            $prev = $prev->getCandlePrev();
+        }
+        $sum_percent /= $day;
+
+        return $sum_percent;
+    }
+
+    public function getAvgVolatilityPercentForStop($day)
+    {
+        $sum = 0;
+        $prev = $this->getCandlePrev();
+
+        if ($prev->bd == $day && $this->n > $day)
+        {
+            $delta = abs($this->h - $this->l);
+
+            return $this->ba;
+        }
+
+        if ($this->c == 0)
+        {
+            return 0.0546;
+        }
+
+        // 평균 0.0546
+        // 표준편차 0.066
+        $sum_percent = 0;
+        for ($i=0; $i<$day; $i++)
+        {
+            if ($this->o == $this->c)
+            {
+                $sum_percent = 0;
+            }
+            else
+            {
+                $sum_percent += abs(($this->h - $this->l) / $this->c);
+            }
+            $prev = $prev->getCandlePrev();
+        }
+        $sum_percent /= $day;
+
+        return $sum_percent;
+    }
     
     public function getBBUpLine($day, $k)
     {
-        return $this->getAvgVolatilityClose($day) + ($this->getStandardDeviationClose($day) * $k);
+        return $this->getMA($day) + ($this->getStandardDeviationClose($day) * $k);
     }
     
     public function getBBDownLine($day, $k)
     {
-        return $this->getAvgVolatilityClose($day) - ($this->getStandardDeviationClose($day) * $k);
+        return $this->getMA($day) - ($this->getStandardDeviationClose($day) * $k);
     }
-    
+
     public function crossoverBBDownLine($day, $k)
     {
         $prev = $this->getCandlePrev();
@@ -336,7 +456,7 @@ class Candle
         }
         return False;
     }
-    
+
     public function crossoverBBUpLine($day, $k)
     {
         $prev = $this->getCandlePrev();
