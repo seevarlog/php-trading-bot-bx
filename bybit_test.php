@@ -1,7 +1,13 @@
 <?php
 
+//테스트넷
 //15hbAEqxfbeEtnclzf
 //V5u1FFvdGXnC0th9KeC0xtOswbmG0DK0Toie
+
+//리얼
+//40SdzxvYlqpA7p1kDi
+//8WjYoyTQritpVWZ9JN95upNmCLJdetg71Q5l
+
 include __DIR__."/vendor/autoload.php";
 
 use Lin\Bybit\BybitInverse;
@@ -14,15 +20,19 @@ use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
 use trading_engine\objects\Order;
 use trading_engine\strategy\StrategyBB;
+use trading_engine\strategy\StrategyTest;
 use trading_engine\util\CoinPrice;
 use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
 use trading_engine\util\Notify;
 
+ini_set("display_errors", 1);
+ini_set('memory_limit','3G');
+
 $bybit = new BybitInverse(
-    '15hbAEqxfbeEtnclzf',
-    'V5u1FFvdGXnC0th9KeC0xtOswbmG0DK0Toie',
-    'https://api-testnet.bybit.com/'
+    '40SdzxvYlqpA7p1kDi',
+    '8WjYoyTQritpVWZ9JN95upNmCLJdetg71Q5l',
+    'https://api.bybit.com/'
 );
 
 GlobalVar::getInstance()->setByBit($bybit);
@@ -158,7 +168,7 @@ $candle_1m_list = $bybit->publics()->getKlineList([
 
 
 
-// 1일봉 셋팅
+// 1분봉 셋팅
 $prev_candle_1m = new \trading_engine\objects\Candle(1);
 foreach ($candle_1m_list['result'] as $candle_data)
 {
@@ -198,10 +208,10 @@ foreach ($candle_1day_list['result'] as $candle_data)
 {
     $candle_1day = new \trading_engine\objects\Candle(1 * 60 *24);
     $candle_1day->t = $candle_data['open_time'];
-    $candle_1day->t = $candle_data['open'];
-    $candle_1day->t = $candle_data['high'];
-    $candle_1day->t = $candle_data['low'];
-    $candle_1day->t = $candle_data['close'];
+    $candle_1day->o = $candle_data['open'];
+    $candle_1day->h = $candle_data['high'];
+    $candle_1day->l = $candle_data['low'];
+    $candle_1day->c = $candle_data['close'];
 
     $candle_1day->cp = $prev_candle_1day;
     $prev_candle_1day->cn = $candle_1day;
@@ -230,6 +240,7 @@ try {
         if (!($time_second < 5 || $time_second > 55)) {
             continue;
         }
+
         // 캔들 마감 전에는 빨리 갱신한다.
         $candle_api_result = $bybit->publics()->getKlineList([
             'symbol' => "BTCUSD",
@@ -248,12 +259,57 @@ try {
         $candle_1m->h = $candle_data['high'];
         $candle_1m->l = $candle_data['low'];
         $candle_1m->c = $candle_data['close'];
+        if ($candle->t == $candle_data['open_time'])
+        {
+            $candle->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
+        }
+
+
+        $time_day = time() % (3600 * 24);
+        if ((($time_day < 2 || $time_day > (3600 * 24) - 2 ) ))
+        {
+            $candle_day_api_result = $bybit->publics()->getKlineList([
+                'symbol' => "BTCUSD",
+                'interval' => "D",
+                'from' => time() - 3600*24,
+            ]);
+
+            if (isset($candle_day_api_result['result'][0])) {
+                $candle_day_data = $candle_day_api_result['result'][0];
+                $last_day_candle = CandleManager::getInstance()->getLastCandle(60*24);
+
+                if ($last_day_candle->t < $candle_day_api_result['result'][0])
+                {
+                    $candle_day = new Candle(60*24);
+                    $candle_day->t = $candle_day_data['open_time'];
+                    $candle_day->o = $candle_day_data['open'];
+                    $candle_day->h = $candle_day_data['high'];
+                    $candle_day->l = $candle_day_data['low'];
+                    $candle_day->c = $candle_day_data['close'];
+
+                    $last_day_candle->cn = $candle_day;
+                    $candle->cp = $last_day_candle;
+                    $candle_day = $last_day_candle;
+
+                    CandleManager::getInstance()->addNewCandle($candle_day);
+                    Notify::sendMsg("일봉 캔들 업데이트 발생했어.");
+                }
+            }
+        }
+        else
+        {
+            CandleManager::getInstance()->getLastCandle(60*24)->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
+        }
 
         if ($candle->t == $candle_1m->t) {
             continue;
         }
 
-        Notify::sendMsg("업데이트 발생");
+        $order_count = count(OrderManager::getInstance()->getOrderList("BBS1"));
+        $position_msg = PositionManager::getInstance()->getPosition("BBS1")->getPositionMsg();
+        PositionManager::getInstance()->getPosition("BBS1");
+
+        Notify::sendMsg("업데이트 발생했어 c:{$candle->c}     h:{$candle->h}       l:{$candle->l}     o:{$candle->o}        order:{$order_count}   position:{$position_msg}");
 
         foreach (OrderManager::getInstance()->getOrderList("BBS1") as $order) {
             if ($order->is_stop == 1) {
@@ -282,8 +338,8 @@ try {
         // 오더북 체크크
 
         OrderManager::getInstance()->update($candle);
-        \trading_engine\strategy\StrategyTest::getInstance()->BBS($candle);
-        //StrategyBB::getInstance()->BBS($candle);
+        //StrategyTest::getInstance()->BBS($candle);
+        StrategyBB::getInstance()->BBS($candle);
 
 
         $candle_1m->cp = $candle;

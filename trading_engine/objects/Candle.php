@@ -41,9 +41,9 @@ class Candle
 
     public static $data = array();
 
-    public function __construct($time_tick)
+    public function __construct($min_tick)
     {
-        $this->tick = $time_tick;
+        $this->tick = $min_tick;
     }
 
     public function getTime()

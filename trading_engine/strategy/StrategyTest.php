@@ -64,7 +64,7 @@ class StrategyTest extends StrategyBase
                 $candle->getTime(),
                 $this->getStrategyKey(),
                 -Account::getInstance()->getUSDBalance(),
-                $bit - 500,
+                $bit - 5,
                 0,
                 1,
                 "손절",

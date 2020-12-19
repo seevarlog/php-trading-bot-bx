@@ -314,6 +314,14 @@ class OrderManager extends Singleton
                     if ($position->amount == 0)
                     {
                         $this->clearAllOrder($order->strategy_key);
+                        // 밸런스 동기화
+                        if (Config::getInstance()->isRealTrade())
+                        {
+                            $account = Account::getInstance();
+                            $account->balance = GlobalVar::getInstance()->
+                                                getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
+                            Notify::sendMsg("지갑 동기화했다. usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
+                        }
                         break;
                     }
 

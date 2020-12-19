@@ -123,21 +123,21 @@ class Position
         $account = Account::getInstance();
         $account->balance += $profit_balance + $fee;
         $bit_price = CoinPrice::getInstance()->getBitPrice();
+        $profit_balance_usd = round($exec_order_price * $profit_balance, 2);
+        $profit_fee_usd = round($exec_order_price * $fee, 2);
 
-        Notify::sendMsg(sprintf("$order->comment. 거래발생했다. \r\n
-        prev_entry : %f\r\n
-        order : %f\r\n
-        amount : %f\r\n 
-        \r\n
-        결과 : %f(%f), 수수료 : %f(%f)",
-            $prev_entry,
-            $order->entry,
-            $order->amount,
-            round($bit_price * $profit_balance, 2),
-            $profit_balance,
-            round($bit_price * $fee, 2),
-            $fee
-        ));
+        if (Config::getInstance()->isRealTrade())
+        {
+            $msg = <<<MSG
+{$order->comment}. 거래발생했다.   prev_entry : {$prev_entry}   order : {$order->entry}    exec_order : {$exec_order_price}    amount : {$order->amount}
+
+    결과 : {$profit_balance_usd} USD ({$profit_balance} btc) 
+    수수료 : {$profit_fee_usd} USD ({$fee} btc)
+    
+숭배하라"
+MSG;
+            Notify::sendMsg($msg);
+        }
 
         $log = new LogTrade();
         $log->strategy_name = $order->strategy_key;
@@ -150,5 +150,10 @@ class Position
         $log->trade_fees = $fee;
         $log->log = $order->log;
         TradeLogManager::getInstance()->addTradeLog($log);
+    }
+
+    public function getPositionMsg()
+    {
+        return "수량 : ".$this->amount."   진입 : ".$this->entry;
     }
 }
