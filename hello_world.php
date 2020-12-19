@@ -17,7 +17,7 @@ header('Content-Type: text/html; charset=UTF-8');
 
 ob_start();
 $time_start = time();
-if (!($fp = fopen(__DIR__.'/bitstampUSD.csv', 'r'))) {
+if (!($fp = fopen(__DIR__.'/BIT2.csv', 'r'))) {
     echo "err";
     return;
 }

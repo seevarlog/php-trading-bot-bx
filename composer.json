@@ -21,6 +21,7 @@
   "require" : {
     "php" : "*",
     "ext-mbstring": "*",
-    "linwj/bybit": "*"
+    "linwj/bybit": "*",
+    "guzzlehttp/guzzle": "*"
   }
 }

@@ -10,6 +10,7 @@ use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
 use trading_engine\objects\Order;
+use trading_engine\util\Config;
 
 class StrategyBB extends StrategyBase
 {
@@ -96,10 +97,14 @@ class StrategyBB extends StrategyBase
             if ($candle->crossoverBBUpLine($day, $k_up) == true)
             {
                 $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
+                if (Config::getInstance()->is_real_trade)
+                {
+                    $amount *= 1;
+                }
                 echo "매도<br>";
                 $sell_price = $candle->getClose() + 1;
                 // 매도 주문
-                $order = Order::getNewOrderObj(
+                OrderManager::getInstance()->updateOrder(
                     $candle->getTime(),
                     $this->getStrategyKey(),
                     $amount,
@@ -109,7 +114,6 @@ class StrategyBB extends StrategyBase
                     "익절",
                     $k_plus
                 );
-                OrderManager::getInstance()->addOrder($order);
             }
         }
 
@@ -136,7 +140,7 @@ class StrategyBB extends StrategyBase
         OrderManager::getInstance()->updateOrder(
             $candle->getTime(),
             $this->getStrategyKey(),
-            Account::getInstance()->balance,
+            Account::getInstance()->getUSDBalance(),
             $buy_price,
             1,
             0,
@@ -148,7 +152,7 @@ class StrategyBB extends StrategyBase
         OrderManager::getInstance()->updateOrder(
             $candle->getTime(),
             $this->getStrategyKey(),
-            -Account::getInstance()->balance,
+            -Account::getInstance()->getUSDBalance(),
             $stop_price,
             0,
             1,

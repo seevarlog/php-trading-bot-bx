@@ -66,6 +66,7 @@ class StrategyBBShort extends StrategyBase
                 $buy_price = $candle->getClose() * 0.999;
                 // 매도 주문
 
+                /*
                 $order = Order::getNewOrderObj(
                     $candle->getTime(),
                     $this->getStrategyKey(),
@@ -76,6 +77,7 @@ class StrategyBBShort extends StrategyBase
                     "익절"
                 );
                 OrderManager::getInstance()->addOrder($order);
+                */
             }
         }
 

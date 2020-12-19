@@ -6,6 +6,8 @@ namespace trading_engine\objects;
 
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\TradeLogManager;
+use trading_engine\util\CoinPrice;
+use trading_engine\util\Notify;
 
 class Position
 {
@@ -30,7 +32,7 @@ class Position
 
     public function addPositionByOrder(Order $order, $time)
     {
-        $leverage = 10;
+        $leverage = 1;
 
         $this->strategy_key = $order->strategy_key;
         $datetime = date('Y-m-d H:i:s', $time);
@@ -40,7 +42,7 @@ class Position
             echo "error";
         }
 
-        $prev_balance = Account::getInstance()->balance;
+        $prev_balance = Account::getInstance()->getBitBalance();
         $is_positive_num = $order->amount > 0;
         $prev_amount = $this->amount;
         $prev_entry = $this->entry;
@@ -107,6 +109,22 @@ class Position
         $profit_balance *= $leverage;
         $account = Account::getInstance();
         $account->balance += $profit_balance + $fee;
+        $bit_price = CoinPrice::getInstance()->getBitPrice();
+
+        Notify::sendMsg(sprintf("$order->comment. 거래발생했다. \r\n
+        prev_entry : %f\r\n
+        order : %f\r\n
+        amount : %f\r\n 
+        \r\n
+        결과 : %f(%f), 수수료 : %f(%f)",
+            $prev_entry,
+            $order->entry,
+            $order->amount,
+            round($bit_price * $profit_balance, 2),
+            $profit_balance,
+            round($bit_price * $fee, 2),
+            $fee
+        ));
 
         $log = new LogTrade();
         $log->strategy_name = $order->strategy_key;
@@ -115,7 +133,7 @@ class Position
         $log->amount = $order->amount;
         $log->entry = $order->entry;
         $log->profit_balance = $profit_balance;
-        $log->total_balance = $account->balance;
+        $log->total_balance = $account->getBitBalance();
         $log->trade_fees = $fee;
         $log->log = $order->log;
         TradeLogManager::getInstance()->addTradeLog($log);

@@ -21,11 +21,6 @@ class PositionManager extends Singleton
 {
     public $position_list = array();
 
-    public function addPosition(Order $order)
-    {
-        $position = self::getPosition($order->strategy_key);
-    }
-
     public function isExistPosition($strategy_name)
     {
         return isset($this->position_list[$strategy_name]);
