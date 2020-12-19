@@ -7,6 +7,7 @@ namespace trading_engine\objects;
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\TradeLogManager;
 use trading_engine\util\CoinPrice;
+use trading_engine\util\Config;
 use trading_engine\util\Notify;
 
 class Position
@@ -52,6 +53,11 @@ class Position
 
         $fee = $order->getFee() * $leverage;
         //$add_balance += $fee;
+        $exec_order_price = $order->entry;
+        if ($order->is_stop)
+        {
+            $exec_order_price = $order->stop_market_price;
+        }
 
         // 포지션 손익 계산
         if ($this->amount > 0)
@@ -64,16 +70,17 @@ class Position
                     $profit_amount = $order->amount - $profit_amount;
                 }
 
-                $profit_balance = -$profit_amount * (($order->entry / $this->entry) - 1);
+
+                $profit_balance = -$profit_amount * (($exec_order_price / $this->entry) - 1);
                 $this->amount += $order->amount;
                 if ($this->amount + $order->amount < 0)
                 {
-                    $this->entry = $order->entry;
+                    $this->entry = $exec_order_price;
                 }
             }
             else
             {
-                $this->entry = ($this->entry * $this->amount) + ($order->entry * $this->amount) / 2;
+                $this->entry = ($this->entry * $this->amount) + ($exec_order_price * $this->amount) / 2;
                 $this->amount += $order->amount;
             }
         }
@@ -87,26 +94,32 @@ class Position
                     $profit_amount = $order->amount - $profit_amount;
                 }
 
-                $profit_balance = $profit_amount * (($order->entry / $this->entry) - 1);
+                $profit_balance = $profit_amount * (($exec_order_price / $this->entry) - 1);
                 $this->amount += $order->amount;
                 if ($this->amount + $order->amount > 0)
                 {
-                    $this->entry = $order->entry;
+                    $this->entry = $exec_order_price;
                 }
             }
             else
             {
-                $this->entry = -(($this->entry * $this->amount) + ($order->entry * $this->amount)) / 2;
+                $this->entry = -(($this->entry * $this->amount) + ($exec_order_price * $this->amount)) / 2;
                 $this->amount += $order->amount;
             }
         }
         else if ($this->amount == 0)
         {
-            $this->entry = $order->entry;
+            $this->entry = $exec_order_price;
             $this->amount = $order->amount;
         }
 
         $profit_balance *= $leverage;
+        if (Config::getInstance()->isRealTrade())
+        {
+            $profit_balance /= $exec_order_price;
+            $fee /= $exec_order_price;
+        }
+
         $account = Account::getInstance();
         $account->balance += $profit_balance + $fee;
         $bit_price = CoinPrice::getInstance()->getBitPrice();
