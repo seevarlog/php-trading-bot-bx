@@ -4,7 +4,6 @@ use trading_engine\managers\CandleManager;
 use trading_engine\managers\TradeLogManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
-use trading_engine\strategy\StrategyZig;
 
 require_once('vendor/autoload.php');
 
@@ -12,12 +11,12 @@ require_once('vendor/autoload.php');
 
 ini_set("display_errors", 1);
 ini_set('memory_limit','4G');
-ini_set("xdebug.overload_var_dump", "off");
+//ini_set("xdebug.overload_var_dump", "off");
 header('Content-Type: text/html; charset=UTF-8');
 
 ob_start();
 $time_start = time();
-if (!($fp = fopen(__DIR__.'/BIT2.csv', 'r'))) {
+if (!($fp = fopen(__DIR__.'/bitstampUSD_1-min_data_2012-01-01_to_2019-03-13.csv', 'r'))) {
     echo "err";
     return;
 }
@@ -30,7 +29,7 @@ $candle_1day_prev = new Candle(60 * 24);
 $candleMng = CandleManager::getInstance();
 $prev_candle = new Candle(1);
 $candle_list = array();
-for ($i=0; $i<500000; $i++)
+for ($i=0; $i<150000; $i++)
 {
     if (feof($fp))
     {
@@ -99,39 +98,25 @@ var_dump(count(CandleManager::getInstance()->candle_data_list[1]));
 
 // 계정 셋팅
 $account = Account::getInstance();
-$account->balance = 1;
+$account->balance = 1000;
 
-$candle = CandleManager::getInstance()->getFirstCandle(1);
-for ($i=0; $i<100000; $i++)
+
+$candle = CandleManager::getInstance()->getFirstCandle(1)->getCandleNext();
+$prev_candle = $candle;
+var_dump($candle->getDateTime());
+for ($i=0; $i<500000000; $i++)
 {
-    if ($candle == null)
-    {
-        var_dump($i. "bug");
-        break;
-    }
-
+    \trading_engine\util\CoinPrice::getInstance()->updateBitPrice($candle->c);
     \trading_engine\managers\OrderManager::getInstance()->update($candle);
 
     \trading_engine\strategy\StrategyBB::getInstance()->BBS($candle);
-    //\trading_engine\strategy\StrategyBBShort::getInstance()->BBS($candle);
-    //\trading_engine\strategy\StrategyMA::getInstance()->MaGoldenCrossBuy($candle);
-    //\trading_engine\strategy\StrategyLongRsi::getInstance()->rsiLong($candle);
-    //\trading_engine\strategy\StrategyShortRsi::getInstance()->rsi($candle);
 
-
+    $prev_candle = $candle;
     $candle = $candle->cn;
+
 }
 
-var_dump($candle);
 
-var_dump(\trading_engine\managers\OrderManager::getInstance());
-
-var_dump(Account::getInstance());
-var_dump(TradeLogManager::getInstance());
-
-$money1 = 68.75;
-$money2 = 54.35;
-$money = $money1 + $money2;
 // echo $money will output "123.1";
 //$len = fprintf($fp, '%01.2f', $money);
 // will write "123.10" to currency.txt
@@ -142,3 +127,7 @@ TradeLogManager::getInstance()->showResultHtml();
 
 $result_time = time() - $time_start;
 echo "end. time : ".$result_time;
+
+var_dump($account->getUSDBalanceFloat());
+var_dump($account->getBitBalance());
+var_dump($prev_candle->getDateTime());

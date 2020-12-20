@@ -1,3 +1,4 @@
+
 <?php
 
 
@@ -8,7 +9,7 @@ require_once('vendor/autoload.php');
 ini_set("display_errors", 1);
 ini_set('memory_limit','4G');
 
-if (!($fp = fopen(__DIR__.'/bitstampUSD_1-min_data_2012-01-01_to_2019-03-13.csv', 'r'))) {
+if (!($fp = fopen(__DIR__.'/rev', 'r'))) {
     echo "err";
     return;
 }

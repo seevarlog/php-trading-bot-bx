@@ -28,8 +28,8 @@ class Order
 
         $order->date = $date;
         $order->strategy_key = $st_key;
-        $order->amount = $amount;
-        $order->entry = $entry;
+        $order->amount = (int)$amount;
+        $order->entry = self::correctEntry($entry);
         $order->is_stop = $is_limit == false;
         $order->is_limit = $is_limit;
         $order->is_reduce_only = $is_reduce_only;
@@ -37,6 +37,18 @@ class Order
         $order->log = $log;
 
         return $order;
+    }
+
+    public static function correctEntry($entry)
+    {
+        if ($entry > 1000)
+        {
+            $integer = (int)($entry);
+            $decimal = $entry - $integer;
+            $decimal = $decimal >= 0.5 ? 0.5 : 0;
+            return $integer + $decimal;
+        }
+        return $entry;
     }
 
 

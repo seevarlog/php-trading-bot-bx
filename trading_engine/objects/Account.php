@@ -16,6 +16,11 @@ class Account extends Singleton
         return (int)($this->balance * CoinPrice::getInstance()->bit_price);
     }
 
+    public function getUSDBalanceFloat()
+    {
+        return ($this->balance * CoinPrice::getInstance()->bit_price);
+    }
+
     public function getBitBalance()
     {
         return $this->balance;
