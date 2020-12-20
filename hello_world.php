@@ -30,7 +30,7 @@ $candle_1day_prev = new Candle(60 * 24);
 $candleMng = CandleManager::getInstance();
 $prev_candle = new Candle(1);
 $candle_list = array();
-for ($i=0; $i<500000; $i++)
+for ($i=0; $i<50000; $i++)
 {
     if (feof($fp))
     {
@@ -112,8 +112,8 @@ for ($i=0; $i<100000; $i++)
 
     \trading_engine\managers\OrderManager::getInstance()->update($candle);
 
-    \trading_engine\strategy\StrategyBB::getInstance()->BBS($candle);
-    //\trading_engine\strategy\StrategyBBShort::getInstance()->BBS($candle);
+    //\trading_engine\strategy\StrategyBB::getInstance()->BBS($candle);
+    \trading_engine\strategy\StrategyBBShort::getInstance()->BBS($candle);
     //\trading_engine\strategy\StrategyMA::getInstance()->MaGoldenCrossBuy($candle);
     //\trading_engine\strategy\StrategyLongRsi::getInstance()->rsiLong($candle);
     //\trading_engine\strategy\StrategyShortRsi::getInstance()->rsi($candle);

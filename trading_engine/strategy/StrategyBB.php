@@ -16,6 +16,7 @@ class StrategyBB extends StrategyBase
 {
     public function BBS(Candle $candle)
     {
+        $leverage = 9.5;
         $dayCandle = CandleManager::getInstance()->getCur1DayCandle($candle);
 
 
@@ -102,7 +103,7 @@ class StrategyBB extends StrategyBase
                     $amount *= 1;
                 }
                 echo "매도<br>";
-                $sell_price = $candle->getClose() + 1;
+                $sell_price = $candle->getClose() * 1.003;
                 // 매도 주문
                 OrderManager::getInstance()->updateOrder(
                     $candle->getTime(),
@@ -140,7 +141,7 @@ class StrategyBB extends StrategyBase
         OrderManager::getInstance()->updateOrder(
             $candle->getTime(),
             $this->getStrategyKey(),
-            Account::getInstance()->getUSDBalance(),
+            Account::getInstance()->getUSDBalance() * $leverage,
             $buy_price,
             1,
             0,
@@ -152,7 +153,7 @@ class StrategyBB extends StrategyBase
         OrderManager::getInstance()->updateOrder(
             $candle->getTime(),
             $this->getStrategyKey(),
-            -Account::getInstance()->getUSDBalance(),
+            -Account::getInstance()->getUSDBalance() * $leverage,
             $stop_price,
             0,
             1,

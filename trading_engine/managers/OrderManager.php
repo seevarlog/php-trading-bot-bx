@@ -107,8 +107,8 @@ class OrderManager extends Singleton
 
         $order->date = $date;
         $order->strategy_key = $st_key;
-        $order->amount = $amount;
-        $order->entry = $entry;
+        $order->amount = (int)$amount;
+        $order->entry = Order::correctEntry($entry);
         $order->is_stop = $is_limit == false;
         $order->is_limit = $is_limit;
         $order->is_reduce_only = $is_reduce_only;
@@ -169,6 +169,7 @@ class OrderManager extends Singleton
                             'p_r_price'=>$order->entry
                         ]
                     );
+                    var_dump($result);
                     Notify::sendMsg(sprintf("주문 수정했다. 진입가 : %f", $order->entry));
                 }
                 else if ($order->is_stop)
@@ -177,9 +178,10 @@ class OrderManager extends Singleton
                         [
                             'stop_order_id'=>$order->order_id,
                             'symbol'=>"BTCUSD",
-                            'p_r_price'=>$order->entry
+                            'p_r_trigger_price'=>$order->entry
                         ]
                     );
+                    var_dump($result);
                     Notify::sendMsg(sprintf("주문 수정했다. 이건 손절가 : %f", $order->entry));
                 }
             }

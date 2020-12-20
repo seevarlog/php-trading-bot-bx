@@ -144,7 +144,7 @@ MSG;
         $log->comment = $order->comment;
         $log->date_order = date('Y-m-d H:i:s', $order->date);
         $log->amount = $order->amount;
-        $log->entry = $order->entry;
+        $log->entry = Order::correctEntry($order->entry);
         $log->profit_balance = $profit_balance;
         $log->total_balance = $account->getBitBalance();
         $log->trade_fees = $fee;
