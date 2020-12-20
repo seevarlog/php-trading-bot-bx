@@ -18,7 +18,6 @@ class StrategyBB extends StrategyBase
 
     public function BBS(Candle $candle)
     {
-
         $leverage = 9.5;
         $dayCandle = CandleManager::getInstance()->getCur1DayCandle($candle);
 

@@ -106,12 +106,14 @@ foreach ($order_list['result']['data'] as $data)
         $comment = "익절";
     }
 
+    var_dump($data);
+
 
     $order = Order::getNewOrderObj(
         strtotime($order_data["created_at"]),
         "BBS1",
         $order_data["qty"],
-        $order_data["stop_px"],
+        $order_data["price"],
         $is_limit,
         0,
         $comment,
@@ -144,7 +146,7 @@ foreach ($order_list['result']['data'] as $data)
         strtotime($order_data["created_at"]),
         "BBS1",
         $order_data["qty"],
-        $order_data["base_price"],
+        $order_data["stop_px"],
         0,
         0,
         $comment,
