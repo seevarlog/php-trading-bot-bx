@@ -14,7 +14,7 @@ class Candle
 {
     public $t = 0;
     public $h;
-    public $l;
+    public $l = 0;
     public $c;
     public $o;
     public $p;
@@ -44,6 +44,10 @@ class Candle
     public function __construct($min_tick)
     {
         $this->tick = $min_tick;
+    }
+    public function getDateTime()
+    {
+        return $datetime = date('Y-m-d H:i:s', $this->t);
     }
 
     public function getTime()
@@ -105,6 +109,22 @@ class Candle
         }
 
         return $sum / $day;
+    }
+
+    public function getMaxMinValueInLength($length_day)
+    {
+        $min = $this->l;
+        $max = $this->h;
+
+        $candle = $this;
+        for ($i=0; $i<$length_day; $i++)
+        {
+            if ($min > $candle->l) $min = $candle->l;
+            if ($max < $candle->h) $max = $candle->h;
+            $candle = $candle->getCandlePrev();
+        }
+
+        return [$max, $min];
     }
 
     // n 일동안의 기울기 합을 구함
@@ -248,6 +268,7 @@ class Candle
     {
         if ($this->h < $high) $this->h = $high;
         if ($this->l > $low)  $this->l = $low;
+        else if ($this->l == 0) $this->l = $low;
         $this->c = $close;
     }
 

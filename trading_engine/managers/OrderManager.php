@@ -312,7 +312,7 @@ class OrderManager extends Singleton
                     //var_dump($order);
 
                     // 감소 전용 로직 ?
-                    $position->addPositionByOrder($order, $last_candle->getTime());
+                    $position->addPositionByOrder($order, $last_candle);
                     if ($position->amount == 0)
                     {
                         $this->clearAllOrder($order->strategy_key);

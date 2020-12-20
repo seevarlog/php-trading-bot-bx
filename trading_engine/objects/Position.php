@@ -6,6 +6,7 @@ namespace trading_engine\objects;
 
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\TradeLogManager;
+use trading_engine\strategy\StrategyBB;
 use trading_engine\util\CoinPrice;
 use trading_engine\util\Config;
 use trading_engine\util\Notify;
@@ -31,9 +32,10 @@ class Position
 
     }
 
-    public function addPositionByOrder(Order $order, $time)
+    public function addPositionByOrder(Order $order, Candle $candle)
     {
         $leverage = 1;
+        $time = $candle->t;
 
         $this->strategy_key = $order->strategy_key;
         $datetime = date('Y-m-d H:i:s', $time);
@@ -56,6 +58,10 @@ class Position
         $exec_order_price = $order->entry;
         if ($order->is_stop)
         {
+            if (!Config::getInstance()->isRealTrade())
+            {
+                $order->stop_market_price = $order->entry;
+            }
             $exec_order_price = $order->stop_market_price;
         }
 
@@ -114,10 +120,35 @@ class Position
         }
 
         $profit_balance *= $leverage;
-        if (Config::getInstance()->isRealTrade())
+        $profit_balance /= $exec_order_price;
+        $fee /= $exec_order_price;
+
+        if ($order->comment == "진입")
         {
-            $profit_balance /= $exec_order_price;
-            $fee /= $exec_order_price;
+            $ma360 = $candle->getMA(360);
+            $ma240 = $candle->getMA(240);
+            $ma120 = $candle->getMA(120);
+
+            $ma360to240per = abs(1 - $ma360 / $ma240);
+            $ma240to120per = abs(1 - $ma240 / $ma120);
+            $isCertainDistance = $ma360to240per >= 0.0003 && $ma240to120per >= 0.0003;
+
+            // 0.02 이상
+
+            if ($ma360 < $ma240 && $ma240 < $ma120 && $isCertainDistance)
+            {
+                var_dump("골드");
+                StrategyBB::$last_last_entry = "gold";
+            }
+            else if ($ma360 > $ma240 && $ma240 > $ma120 && $isCertainDistance)
+            {
+                var_dump("데드");
+                StrategyBB::$last_last_entry = "dead";
+            }
+            else
+            {
+                StrategyBB::$last_last_entry = "sideways";
+            }
         }
 
         $account = Account::getInstance();
@@ -148,7 +179,7 @@ MSG;
         $log->profit_balance = $profit_balance;
         $log->total_balance = $account->getBitBalance();
         $log->trade_fees = $fee;
-        $log->log = $order->log;
+        $log->log = StrategyBB::$last_last_entry.$order->log;
         TradeLogManager::getInstance()->addTradeLog($log);
     }
 
