@@ -1,0 +1,10 @@
+{
+  "test": {
+    "key": "",
+    "secret": ""
+  },
+  "real": {
+    "key": "",
+    "secret": ""
+  }
+}
