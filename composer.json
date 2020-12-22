@@ -22,6 +22,7 @@
     "php" : "*",
     "ext-mbstring": "*",
     "linwj/bybit": "*",
-    "guzzlehttp/guzzle": "*"
+    "guzzlehttp/guzzle": "*",
+    "ext-json": "*"
   }
 }

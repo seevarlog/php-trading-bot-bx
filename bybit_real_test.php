@@ -1,12 +1,5 @@
 <?php
 
-//테스트넷
-//15hbAEqxfbeEtnclzf
-//V5u1FFvdGXnC0th9KeC0xtOswbmG0DK0Toie
-
-//리얼
-//40SdzxvYlqpA7p1kDi
-//8WjYoyTQritpVWZ9JN95upNmCLJdetg71Q5l
 
 include __DIR__."/vendor/autoload.php";
 
@@ -29,9 +22,11 @@ use trading_engine\util\Notify;
 ini_set("display_errors", 1);
 ini_set('memory_limit','3G');
 
+$config = json_decode(file_get_contents(__DIR__."/config/config.json"));
+
 $bybit = new BybitInverse(
-    '40SdzxvYlqpA7p1kDi',
-    '8WjYoyTQritpVWZ9JN95upNmCLJdetg71Q5l',
+    $config['test']['key'],
+    $config['test']['secret'],
     'https://api.bybit.com/'
 );
 
@@ -164,9 +159,8 @@ var_dump(OrderManager::getInstance()->order_list);
 $candle_1m_list = $bybit->publics()->getKlineList([
     'symbol'=>"BTCUSD",
     'interval'=>1,
-    'from'=>time()-60*180
+    'from'=>time()-60*188*2
 ]);
-
 
 
 
@@ -192,35 +186,86 @@ foreach ($candle_1m_list['result'] as $candle_data)
 
 
 
-
-
-// 일봉셋팅 (14일꺼 가져옴)
-$candle_1day_list = $bybit->publics()->getKlineList([
+// 1분봉 셋팅
+$candle_1m_list = $bybit->publics()->getKlineList([
     'symbol'=>"BTCUSD",
-    'interval'=>"D",
-    'from'=>time()-60*60*24*14
+    'interval'=>1,
+    'from'=>time()-60*188 - 60
 ]);
-//var_dump($candle_1day_list);
 
 
 
-// 1일봉 셋팅
-$prev_candle_1day = new \trading_engine\objects\Candle(1 * 60 *24);
-foreach ($candle_1day_list['result'] as $candle_data)
+// 1분봉 셋팅
+$prev_candle_1m = CandleManager::getInstance()->getLastCandle(1);
+foreach ($candle_1m_list['result'] as $candle_data)
 {
-    $candle_1day = new \trading_engine\objects\Candle(1 * 60 *24);
-    $candle_1day->t = $candle_data['open_time'];
-    $candle_1day->o = $candle_data['open'];
-    $candle_1day->h = $candle_data['high'];
-    $candle_1day->l = $candle_data['low'];
-    $candle_1day->c = $candle_data['close'];
+    $candle_1m = new \trading_engine\objects\Candle(1);
+    $candle_1m->t = $candle_data['open_time'];
+    $candle_1m->o = $candle_data['open'];
+    $candle_1m->h = $candle_data['high'];
+    $candle_1m->l = $candle_data['low'];
+    $candle_1m->c = $candle_data['close'];
 
-    $candle_1day->cp = $prev_candle_1day;
-    $prev_candle_1day->cn = $candle_1day;
-    $prev_candle_1day = $candle_1day;
+    if ($prev_candle_1m->t == $candle_1m->t)
+    {
+        continue;
+    }
 
-    CandleManager::getInstance()->addNewCandle($candle_1day);
+    $candle_1m->cp = $prev_candle_1m;
+    $prev_candle_1m->cn = $candle_1m;
+    $prev_candle_1m = $candle_1m;
+
+    CoinPrice::getInstance()->bit_price = $candle_1m->c;
+
+    CandleManager::getInstance()->addNewCandle($candle_1m);
 }
+
+
+$candle_mng = CandleManager::getInstance();
+$make_candle_min_list = [5, 15, 30, 60, 60*4, 60 * 24];
+for ($i=2; $i>0; $i--)
+{
+    foreach ($make_candle_min_list as $make_min)
+    {
+        $interval = $make_min;
+        if ($interval == 60 * 24)
+        {
+            $interval = "D";
+        }
+
+        // 일봉셋팅 (14일꺼 가져옴)
+        $candle_1day_list = $bybit->publics()->getKlineList([
+            'symbol'=>"BTCUSD",
+            'interval'=>$interval,
+            'from'=>time()-60*$make_min*180*$i
+        ]);
+        //var_dump($candle_1day_list);
+
+        // 1일봉 셋팅
+
+        $prev_candle = $candle_mng->getLastCandle($make_min);
+        foreach ($candle_1day_list['result'] as $candle_data)
+        {
+            $new_candle = new Candle($make_min);
+            $new_candle->t = $candle_data['open_time'];
+            $new_candle->o = $candle_data['open'];
+            $new_candle->h = $candle_data['high'];
+            $new_candle->l = $candle_data['low'];
+            $new_candle->c = $candle_data['close'];
+
+            if ($prev_candle != null)
+            {
+                $new_candle->cp = $prev_candle;
+                $prev_candle->cn = $new_candle;
+                $prev_candle = $new_candle;
+            }
+
+            CandleManager::getInstance()->addNewCandle($new_candle);
+        }
+        sleep(0.1);
+    }
+}
+
 // 계정 셋팅
 $account = Account::getInstance();
 $account->balance = 1;
@@ -266,45 +311,33 @@ try {
             $candle->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
         }
 
-
-        $time_day = time() % (3600 * 24);
-        if ((($time_day < 2 || $time_day > (3600 * 24) - 2 ) ))
-        {
-            $candle_day_api_result = $bybit->publics()->getKlineList([
-                'symbol' => "BTCUSD",
-                'interval' => "D",
-                'from' => time() - 3600*24,
-            ]);
-
-            if (isset($candle_day_api_result['result'][0])) {
-                $candle_day_data = $candle_day_api_result['result'][0];
-                $last_day_candle = CandleManager::getInstance()->getLastCandle(60*24);
-
-                if ($last_day_candle->t < $candle_day_api_result['result'][0])
-                {
-                    $candle_day = new Candle(60*24);
-                    $candle_day->t = $candle_day_data['open_time'];
-                    $candle_day->o = $candle_day_data['open'];
-                    $candle_day->h = $candle_day_data['high'];
-                    $candle_day->l = $candle_day_data['low'];
-                    $candle_day->c = $candle_day_data['close'];
-
-                    $last_day_candle->cn = $candle_day;
-                    $candle->cp = $last_day_candle;
-                    $candle_day = $last_day_candle;
-
-                    CandleManager::getInstance()->addNewCandle($candle_day);
-                    Notify::sendMsg("일봉 캔들 업데이트 발생했어.");
-                }
-            }
-        }
-        else
-        {
-            CandleManager::getInstance()->getLastCandle(60*24)->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
-        }
-
         if ($candle->t == $candle_1m->t) {
             continue;
+        }
+
+        foreach ($make_candle_min_list as $min)
+        {
+            if ($candle->t % (60 * $min) == 0)
+            {
+                $_last_candle = CandleManager::getInstance()->getLastCandle($min);
+                if ($_last_candle != null)
+                {
+                    $_last_candle->updateCandle($candle->h, $candle->l, $candle->c);
+                }
+
+                $_new_last_candle = new Candle($min);
+                $_new_last_candle->setData($candle->t, $candle->o, $candle->h, $candle->l, $candle->c);
+                CandleManager::getInstance()->addNewCandle($_new_last_candle);
+                $_new_last_candle->cp = $_last_candle;
+                if ($_last_candle != null)
+                {
+                    $_last_candle->cn = $_new_last_candle;
+                }
+            }
+            else
+            {
+                CandleManager::getInstance()->getLastCandle($min)->updateCandle($candle->h, $candle->l, $candle->c);
+            }
         }
 
         $order_count = count(OrderManager::getInstance()->getOrderList("BBS1"));
@@ -343,6 +376,13 @@ try {
         //StrategyTest::getInstance()->BBS($candle);
         StrategyBB::getInstance()->BBS($candle);
 
+
+        if ($candle->t % 1000)
+        {
+            $account = Account::getInstance();
+            $account->balance = GlobalVar::getInstance()->
+            getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
+        }
 
         $candle_1m->cp = $candle;
         $candle->cn = $candle_1m;

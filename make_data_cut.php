@@ -8,13 +8,13 @@ require_once('vendor/autoload.php');
 ini_set("display_errors", 1);
 ini_set('memory_limit','4G');
 
-if (!($fp = fopen(__DIR__.'/bitstampUSD_1-min_data_2016-01-01_to_2020-04-22.csv', 'r'))) {
+if (!($fp = fopen(__DIR__.'/bitstampUSD_1-min_data_2012-01-01_to_2020-04-22.csv', 'r'))) {
     echo "err";
     return;
 }
 
 
-$start_date = strtotime("2018-01-10 01:00:00");
+$start_date = strtotime("2018-09-10 01:00:00");
 
 
 

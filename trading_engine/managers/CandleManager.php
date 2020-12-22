@@ -49,11 +49,26 @@ class CandleManager extends Singleton
      */
     public function getCur1DayCandle($candle)
     {
-         $remainder = $candle->t % (3600 * 60);
-         $index = $candle->t - $remainder;
-         return isset($this->candle_data_list[24 * 60][$index]) ?
-             $this->candle_data_list[24 * 60][$index] :
-             new Candle(3600 * 60);
+        $remainder = $candle->t % (3600 * 60);
+        $index = $candle->t - $remainder;
+        return isset($this->candle_data_list[24 * 60][$index]) ?
+            $this->candle_data_list[24 * 60][$index] :
+            new Candle(3600 * 60);
+    }
+
+
+    /**
+     * @param $candle
+     * @param $target_min
+     * @return Candle
+     */
+    public function getCurOtherMinCandle($candle, $target_min)
+    {
+        $remainder = $candle->t % (60 * $target_min);
+        $index = $candle->t - $remainder;
+        return isset($this->candle_data_list[$target_min][$index]) ?
+            $this->candle_data_list[$target_min][$index] :
+            new Candle($target_min);
     }
 
     /**
@@ -71,6 +86,6 @@ class CandleManager extends Singleton
      */
     public function getLastCandle($min)
     {
-        return $this->candle_data_list[$min][$this->last_index[$min]];
+        return isset($this->candle_data_list[$min][$this->last_index[$min]]) ? $this->candle_data_list[$min][$this->last_index[$min]] : null;
     }
 }

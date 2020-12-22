@@ -26,5 +26,87 @@ use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
 use trading_engine\util\Notify;
 
+ini_set("display_errors", 1);
+ini_set('memory_limit','3G');
 
-echo date("y-m-d",1535485680);
+$bybit = new BybitInverse(
+    '40SdzxvYlqpA7p1kDi',
+    '8WjYoyTQritpVWZ9JN95upNmCLJdetg71Q5l',
+    'https://api.bybit.com/'
+);
+
+GlobalVar::getInstance()->setByBit($bybit);
+Config::getInstance()->setRealTrade();
+
+
+// 1분봉 셋팅
+$candle_1m_list = $bybit->publics()->getKlineList([
+    'symbol'=>"BTCUSD",
+    'interval'=>1,
+    'from'=>time()-60*180*2
+]);
+
+
+
+// 1분봉 셋팅
+$prev_candle_1m = new \trading_engine\objects\Candle(1);
+foreach ($candle_1m_list['result'] as $candle_data)
+{
+    $candle_1m = new \trading_engine\objects\Candle(1);
+    $candle_1m->t = $candle_data['open_time'];
+    $candle_1m->o = $candle_data['open'];
+    $candle_1m->h = $candle_data['high'];
+    $candle_1m->l = $candle_data['low'];
+    $candle_1m->c = $candle_data['close'];
+
+    $candle_1m->cp = $prev_candle_1m;
+    $prev_candle_1m->cn = $candle_1m;
+    $prev_candle_1m = $candle_1m;
+
+    CoinPrice::getInstance()->bit_price = $candle_1m->c;
+
+    CandleManager::getInstance()->addNewCandle($candle_1m);
+}
+var_dump(CandleManager::getInstance()->getFirstCandle(1));
+
+
+
+// 1분봉 셋팅
+$candle_1m_list = $bybit->publics()->getKlineList([
+    'symbol'=>"BTCUSD",
+    'interval'=>1,
+    'from'=>time()-60*180 - 60
+]);
+
+
+
+// 1분봉 셋팅
+$prev_candle_1m = CandleManager::getInstance()->getLastCandle(1);
+foreach ($candle_1m_list['result'] as $candle_data)
+{
+    $candle_1m = new \trading_engine\objects\Candle(1);
+    $candle_1m->t = $candle_data['open_time'];
+    $candle_1m->o = $candle_data['open'];
+    $candle_1m->h = $candle_data['high'];
+    $candle_1m->l = $candle_data['low'];
+    $candle_1m->c = $candle_data['close'];
+
+    if ($prev_candle_1m->t == $candle_1m->t)
+    {
+        continue;
+    }
+
+    $candle_1m->cp = $prev_candle_1m;
+    $prev_candle_1m->cn = $candle_1m;
+    $prev_candle_1m = $candle_1m;
+
+    CoinPrice::getInstance()->bit_price = $candle_1m->c;
+
+    CandleManager::getInstance()->addNewCandle($candle_1m);
+}
+
+var_dump(CandleManager::getInstance()->getLastCandle(1)->getEMA(20));
+var_dump(CandleManager::getInstance()->getLastCandle(1)->getEMA(60));
+var_dump(CandleManager::getInstance()->getLastCandle(1)->getEMA(120));
+var_dump(CandleManager::getInstance()->getLastCandle(1)->getEMA(200));
+var_dump(CandleManager::getInstance()->getLastCandle(1)->getEMA(300));

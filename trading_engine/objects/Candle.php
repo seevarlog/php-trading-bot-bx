@@ -39,6 +39,8 @@ class Candle
     public $av = 0;
     public $avDay = 0;
 
+    public $ema = [];
+
     public static $data = array();
 
     public function __construct($min_tick)
@@ -134,8 +136,8 @@ class Candle
         $candle = $this;
         for ($i=0; $i<$n; $i++)
         {
-            $now = $candle->getRsi(20);
-            $prev = $candle->getCandlePrev()->getRsi(20);
+            $now = $candle->getRsi(14);
+            $prev = $candle->getCandlePrev()->getRsi(14);
 
             $sum += $now - $prev;
 
@@ -281,7 +283,7 @@ class Candle
     {
         if ($this->cn == null)
         {
-            $this->cn = new Candle($this->tick);
+            return $this;
         }
         return $this->cn;
     }
@@ -293,15 +295,32 @@ class Candle
     {
         if ($this->cp == null)
         {
-            $this->cp = new Candle($this->tick);
+            return $this;
         }
         return $this->cp;
+    }
+
+    /*
+     * 캔들 중에 음봉과 양봉의 수를 세본다
+     */
+    public function getMinusPlusCandle($day)
+    {
+        $sum = 0;
+        $candle = $this;
+        for($i=0; $i<$day; $i++)
+        {
+            if ($this->c - $this->o > 0) $sum++;
+            else if ($this->c - $this->o < 0) $sum--;
+            $candle = $candle->getCandlePrev();
+        }
+
+        return $sum;
     }
 
     public function getMA($day)
     {
         $sum = 0;
-        $prev = $this->getCandlePrev();
+        $prev = $this;
         for ($i=0; $i<$day; $i++)
         {
              $sum += $prev->c;
@@ -309,6 +328,11 @@ class Candle
         }
 
         return $sum / $day;
+    }
+
+    public function getCressState()
+    {
+
     }
 
     // 평균 변동성 구하기
@@ -387,13 +411,6 @@ class Candle
     {
         $sum = 0;
         $prev = $this->getCandlePrev();
-
-        if ($prev->bd == $day && $this->n > $day)
-        {
-            $delta = abs($this->h - $this->l);
-
-            return $this->ba;
-        }
 
         if ($this->c == 0)
         {
@@ -489,6 +506,58 @@ class Candle
             }
         }
         return False;
+    }
+
+    public function calcEMA($length, $n)
+    {
+        if ($n == 0)
+        {
+            return $this->c;
+        }
+
+        if (isset($this->ema[$length]))
+        {
+            return $this->ema[$length];
+        }
+
+        $exp = 2 / ($length + 1);
+        $ema = ($this->c * $exp) + ($this->getCandlePrev()->calcEMA($length, $n-1) * (1 - $exp));
+        $this->ema[$length] = $ema;
+
+        return $ema;
+    }
+
+    public function getEMA($length)
+    {
+        $exp = 2 / ($length + 1);
+        $ema = ($this->c * $exp) + ($this->getCandlePrev()->calcEMA($length, $length) * (1 - $exp));
+
+        return $ema;
+    }
+
+    public function getGoldenDeadState()
+    {
+        $ma360 = $this->getEMA(360);
+        $ma240 = $this->getEMA(240);
+        $ma120 = $this->getEMA(120);
+        $ma60 = $this->getEMA(60);
+
+        $ma360to240per = abs(1 - $ma360 / $ma240);
+        $ma240to120per = abs(1 - $ma240 / $ma120);
+        $isCertainDistance = $ma360to240per >= 0.0003 && $ma240to120per >= 0.0003;
+
+        // 0.02 이상
+
+        if ($ma360 < $ma240 && $ma240 < $ma120 && $ma120 < $ma60 && $isCertainDistance)
+        {
+            return "gold";
+        }
+        else if ($ma360 > $ma240 && $ma240 > $ma120 && $ma120 > $ma60 &&  $isCertainDistance)
+        {
+            return "dead";
+        }
+
+        return "sideways";
     }
     
 }

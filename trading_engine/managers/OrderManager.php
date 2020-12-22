@@ -21,6 +21,7 @@ use trading_engine\util\Singleton;
  */
 class OrderManager extends Singleton
 {
+    public $last_order_id = 1;
     public $order_list = array();
 
     public function isExistPosition($strategy_key, $comment)
@@ -101,7 +102,7 @@ class OrderManager extends Singleton
      * @param $is_reduce_only
      * @param $comment
      */
-    public function updateOrder($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment, $log)
+    public function updateOrder($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment, $log, $action = "")
     {
         $order = $this->getOrder($st_key, $comment);
 
@@ -114,6 +115,7 @@ class OrderManager extends Singleton
         $order->is_reduce_only = $is_reduce_only;
         $order->comment = $comment;
         $order->log = $log;
+        $order->action = $action;
 
         if (!Config::getInstance()->is_real_trade)
         {

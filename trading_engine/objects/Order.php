@@ -20,9 +20,10 @@ class Order
     public $comment;
     public $stop_market_price; // 스탑된 가격
     public $log;
+    public $action;
 
 
-    public static function getNewOrderObj($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment, $log)
+    public static function getNewOrderObj($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment, $log, $action = "")
     {
         $order = new self();
 
@@ -35,6 +36,8 @@ class Order
         $order->is_reduce_only = $is_reduce_only;
         $order->comment = $comment;
         $order->log = $log;
+        $order->action = $action;
+
 
         return $order;
     }

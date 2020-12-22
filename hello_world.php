@@ -16,20 +16,21 @@ header('Content-Type: text/html; charset=UTF-8');
 
 ob_start();
 $time_start = time();
-if (!($fp = fopen(__DIR__.'/bitstampUSD_1-min_data_2012-01-01_to_2019-03-13.csv', 'r'))) {
+if (!($fp = fopen(__DIR__.'/output.csv', 'r'))) {
     echo "err";
     return;
 }
 
-// 1일봉 만듬
-$candle_new_1day = new Candle(60 * 24);
-$candle_1day_prev = new Candle(60 * 24);
+// m본
+$make_candle_min_list = [5, 15, 30, 60, 60*4, 60 * 24];
 
 // 30분봉 만들어봄
 $candleMng = CandleManager::getInstance();
 $prev_candle = new Candle(1);
 $candle_list = array();
-for ($i=0; $i<150000; $i++)
+$is_bybit_csv = false;
+$z = 0;
+for ($i=0; $i<15000000; $i++)
 {
     if (feof($fp))
     {
@@ -41,6 +42,11 @@ for ($i=0; $i<150000; $i++)
 
     if ($i<=0)
     {
+        if ($arr[1] == "symbol")
+        {
+            $is_bybit_csv = true;
+            $z = 2;
+        }
         continue;
     }
 
@@ -49,24 +55,40 @@ for ($i=0; $i<150000; $i++)
     $prev_candle->cn = $candle;
     if ($arr[1] == "NaN")
     {
-        $last_candle = CandleManager::getInstance()->getLastCandle(1);
+        $last_candle = $candleMng->getLastCandle(1);
         $candle->setData($arr[0], $last_candle->o, $last_candle->h, $last_candle->l, $last_candle->c);
     }
     else
     {
-        $candle->setData($arr[0], $arr[1], $arr[2], $arr[3], $arr[4]);
+        $candle->setData($arr[0], $arr[1 + $z], $arr[2 + $z], $arr[3 + $z], $arr[4 + $z]);
     }
 
-    if ($i == 1)
+    foreach ($make_candle_min_list as $min)
     {
-        $remainder = $candle->t % (3600 * 60);
-        $day_time = $candle->t - $remainder;
-        $candle_new_1day->setData($day_time, $candle->o, $candle->h, $candle->l, $candle->c);
+        if ($candle->t % (60 * $min) == 0)
+        {
+            $_last_candle = $candleMng->getLastCandle($min);
+            if ($_last_candle != null)
+            {
+                $_last_candle->updateCandle($candle->h, $candle->l, $candle->c);
+            }
 
-        CandleManager::getInstance()->addNewCandle($candle_new_1day);
-        CandleManager::getInstance()->addNewCandle($candle);
+            $_new_last_candle = new Candle($min);
+            $_new_last_candle->setData($candle->t, $candle->o, $candle->h, $candle->l, $candle->c);
+            $candleMng->addNewCandle($_new_last_candle);
+            $_new_last_candle->cp = $_last_candle;
+            if ($_last_candle != null)
+            {
+                $_last_candle->cn = $_new_last_candle;
+            }
+        }
+        else
+        {
+            $candleMng->getLastCandle($min)->updateCandle($candle->h, $candle->l, $candle->c);
+        }
     }
 
+    /*
     if ($candle->t % (3600*24) == 0)
     {
         $candle_new_1day->updateCandle($candle->h, $candle->l, $candle->c);
@@ -82,9 +104,10 @@ for ($i=0; $i<150000; $i++)
     {
         $candle_new_1day->updateCandle($candle->h, $candle->l, $candle->c);
     }
+    */
 
 
-    if ($i > 1)
+    if ($i >= 1)
     {
         CandleManager::getInstance()->addNewCandle($candle);
     }
@@ -93,7 +116,6 @@ for ($i=0; $i<150000; $i++)
 }
 
 
-var_dump("캔들");
 var_dump(count(CandleManager::getInstance()->candle_data_list[1]));
 
 // 계정 셋팅
@@ -101,11 +123,16 @@ $account = Account::getInstance();
 $account->balance = 1000;
 
 
-$candle = CandleManager::getInstance()->getFirstCandle(1)->getCandleNext();
+$candle = CandleManager::getInstance()->getFirstCandle(1);
 $prev_candle = $candle;
+
 var_dump($candle->getDateTime());
 for ($i=0; $i<500000000; $i++)
 {
+    if ($candle == null)
+    {
+        break;
+    }
     \trading_engine\util\CoinPrice::getInstance()->updateBitPrice($candle->c);
     \trading_engine\managers\OrderManager::getInstance()->update($candle);
 
@@ -113,9 +140,9 @@ for ($i=0; $i<500000000; $i++)
 
     $prev_candle = $candle;
     $candle = $candle->cn;
-
 }
 
+var_dump($prev_candle->getDateTime());
 
 // echo $money will output "123.1";
 //$len = fprintf($fp, '%01.2f', $money);

@@ -17,6 +17,7 @@ class Position
     public $entry = 0;
     public $amount = 0;
     public $log = [];
+    public $last_execition_time = 0;
 
     public function isValid()
     {
@@ -125,35 +126,11 @@ class Position
 
         if ($order->comment == "진입")
         {
-            $ma360 = $candle->getMA(360);
-            $ma240 = $candle->getMA(240);
-            $ma120 = $candle->getMA(120);
-
-            $ma360to240per = abs(1 - $ma360 / $ma240);
-            $ma240to120per = abs(1 - $ma240 / $ma120);
-            $isCertainDistance = $ma360to240per >= 0.0003 && $ma240to120per >= 0.0003;
-
-            // 0.02 이상
-
-            if ($ma360 < $ma240 && $ma240 < $ma120 && $isCertainDistance)
-            {
-                var_dump("골드");
-                StrategyBB::$last_last_entry = "gold";
-            }
-            else if ($ma360 > $ma240 && $ma240 > $ma120 && $isCertainDistance)
-            {
-                var_dump("데드");
-                StrategyBB::$last_last_entry = "dead";
-            }
-            else
-            {
-                StrategyBB::$last_last_entry = "sideways";
-            }
+            StrategyBB::$last_last_entry = $candle->getGoldenDeadState();
         }
 
         $account = Account::getInstance();
         $account->balance += $profit_balance + $fee;
-        $bit_price = CoinPrice::getInstance()->getBitPrice();
         $profit_balance_usd = round($exec_order_price * $profit_balance, 2);
         $profit_fee_usd = round($exec_order_price * $fee, 2);
 
@@ -181,6 +158,8 @@ MSG;
         $log->trade_fees = $fee;
         $log->log = StrategyBB::$last_last_entry.$order->log;
         TradeLogManager::getInstance()->addTradeLog($log);
+
+        echo $account->getUSDBalance()."\r\n";
     }
 
     public function getPositionMsg()
