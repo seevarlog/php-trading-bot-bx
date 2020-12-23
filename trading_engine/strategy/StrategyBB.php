@@ -171,7 +171,13 @@ class StrategyBB extends StrategyBase
 
         $candle_240min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 240);
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5);
-        if ($candle_5min->getRsiInclinationSum(3) < 0 || $candle_5min->getRsi(14) > 60)
+        if ($candle_5min->getRsiInclinationSum(2) < 0 || $candle_5min->getRsi(14) > 60)
+        {
+            return;
+        }
+
+        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
+        if ($candle_60min->getRsiInclinationSum(3) < 0)
         {
             return;
         }
@@ -206,7 +212,7 @@ class StrategyBB extends StrategyBase
 
         $log_plus="";
         self::$order_action = "";
-        if (CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getRsi(14) < 35)
+        if (CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getNewRsi(14) < 35)
         {
             $stop_per *= 3;
             $buy_per *= 12;

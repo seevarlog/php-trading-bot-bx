@@ -23,26 +23,6 @@ class CandleManager extends Singleton
         }
     }
 
-    public function getPrevCandle(Candle $candle)
-    {
-
-        return isset($this->candle_data_list[$candle->tick][$candle->t - $candle->tick * 60]) ?
-            $this->candle_data_list[$candle->tick][$candle->t - $candle->tick * 60] :
-            $candle;
-    }
-
-    public function getNextCandle(Candle $candle)
-    {
-        return isset($this->candle_data_list[$candle->tick][$candle->t + $candle->tick * 60]) ?
-            $this->candle_data_list[$candle->tick][$candle->t + $candle->tick * 60] :
-            null;
-    }
-
-    public function getSeekCandle($candle, $seek)
-    {
-
-    }
-
     /**
      * @param $candle
      * @return Candle
@@ -86,6 +66,11 @@ class CandleManager extends Singleton
      */
     public function getLastCandle($min)
     {
+        if (!isset($this->last_index[$min]))
+        {
+            return null;
+        }
+
         return isset($this->candle_data_list[$min][$this->last_index[$min]]) ? $this->candle_data_list[$min][$this->last_index[$min]] : null;
     }
 }

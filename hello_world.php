@@ -158,3 +158,4 @@ echo "end. time : ".$result_time;
 var_dump($account->getUSDBalanceFloat());
 var_dump($account->getBitBalance());
 var_dump($prev_candle->getDateTime());
+var_dump(\trading_engine\managers\OrderManager::getInstance());

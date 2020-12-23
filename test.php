@@ -29,10 +29,12 @@ use trading_engine\util\Notify;
 ini_set("display_errors", 1);
 ini_set('memory_limit','3G');
 
+$config = json_decode(file_get_contents(__DIR__."/config/config.json"), true);
+var_dump($config['test']);
 $bybit = new BybitInverse(
-    '40SdzxvYlqpA7p1kDi',
-    '8WjYoyTQritpVWZ9JN95upNmCLJdetg71Q5l',
-    'https://api.bybit.com/'
+    $config['test']['key'],
+    $config['test']['secret'],
+    'https://api-testnet.bybit.com/'
 );
 
 GlobalVar::getInstance()->setByBit($bybit);
@@ -110,3 +112,12 @@ var_dump(CandleManager::getInstance()->getLastCandle(1)->getEMA(60));
 var_dump(CandleManager::getInstance()->getLastCandle(1)->getEMA(120));
 var_dump(CandleManager::getInstance()->getLastCandle(1)->getEMA(200));
 var_dump(CandleManager::getInstance()->getLastCandle(1)->getEMA(300));
+
+$candle = CandleManager::getInstance()->getLastCandle(1);
+for ($i=0; $i<10; $i++)
+{
+    $candle = $candle->getCandlePrev();
+    var_dump($candle->getNewRsi(14));
+}
+
+var_dump(CandleManager::getInstance()->getLastCandle(1)->getRsi(14));

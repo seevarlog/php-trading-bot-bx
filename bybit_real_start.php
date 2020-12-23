@@ -22,7 +22,7 @@ use trading_engine\util\Notify;
 ini_set("display_errors", 1);
 ini_set('memory_limit','3G');
 
-$config = json_decode(file_get_contents(__DIR__."/config/config.json"));
+$config = json_decode(file_get_contents(__DIR__."/config/config.json"), true);
 
 $bybit = new BybitInverse(
     $config['real']['key'],
@@ -81,6 +81,7 @@ $order_list = $bybit->privates()->getOrderList(
 foreach ($order_list['result']['data'] as $data)
 {
     $order_data = $data;
+    $qty = $order_data["qty"];
     if ($order_data['symbol'] != "BTCUSD")
     {
         continue;
@@ -99,6 +100,7 @@ foreach ($order_list['result']['data'] as $data)
     else
     {
         $comment = "익절";
+        $qty *= -1;
     }
 
     var_dump($data);
@@ -107,7 +109,7 @@ foreach ($order_list['result']['data'] as $data)
     $order = Order::getNewOrderObj(
         strtotime($order_data["created_at"]),
         "BBS1",
-        $order_data["qty"],
+        $qty,
         $order_data["price"],
         $is_limit,
         0,
@@ -284,7 +286,7 @@ try {
 
         $time_second = time() % 60;
         // 55 ~ 05 초 사이에 갱신을 시도한다.
-        if (!($time_second < 5 || $time_second > 55)) {
+        if (!($time_second < 10 || $time_second > 50)) {
             continue;
         }
 

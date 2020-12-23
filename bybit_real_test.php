@@ -22,12 +22,12 @@ use trading_engine\util\Notify;
 ini_set("display_errors", 1);
 ini_set('memory_limit','3G');
 
-$config = json_decode(file_get_contents(__DIR__."/config/config.json"));
-
+$config = json_decode(file_get_contents(__DIR__."/config/config.json"), true);
+var_dump($config['test']);
 $bybit = new BybitInverse(
     $config['test']['key'],
     $config['test']['secret'],
-    'https://api.bybit.com/'
+    'https://api-testnet.bybit.com/'
 );
 
 GlobalVar::getInstance()->setByBit($bybit);
@@ -69,6 +69,7 @@ foreach ($position_list['result'] as $data)
     $position->amount = $position_result['side'] == "Buy" ? $position_result['size'] : -$position_result['size'];
     $position->strategy_key = "BBS1";
 }
+var_dump(PositionManager::getInstance());
 
 // 오더북 동기화
 $order_list = $bybit->privates()->getOrderList(
@@ -81,6 +82,7 @@ $order_list = $bybit->privates()->getOrderList(
 foreach ($order_list['result']['data'] as $data)
 {
     $order_data = $data;
+    $qty = $order_data["qty"];
     if ($order_data['symbol'] != "BTCUSD")
     {
         continue;
@@ -99,6 +101,7 @@ foreach ($order_list['result']['data'] as $data)
     else
     {
         $comment = "익절";
+        $qty *= 1;
     }
 
     var_dump($data);
@@ -107,7 +110,7 @@ foreach ($order_list['result']['data'] as $data)
     $order = Order::getNewOrderObj(
         strtotime($order_data["created_at"]),
         "BBS1",
-        $order_data["qty"],
+        $qty,
         $order_data["price"],
         $is_limit,
         0,
@@ -380,8 +383,7 @@ try {
         if ($candle->t % 1000)
         {
             $account = Account::getInstance();
-            $account->balance = GlobalVar::getInstance()->
-            getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
+            $account->balance = GlobalVar::getInstance()->getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
         }
 
         $candle_1m->cp = $candle;

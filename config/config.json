@@ -1,10 +1,10 @@
 {
   "test": {
-    "key": "15hbAEqxfbeEtnclzf",
-    "secret": "V5u1FFvdGXnC0th9KeC0xtOswbmG0DK0Toie"
+    "key": "",
+    "secret": ""
   },
   "real": {
-    "key": "40SdzxvYlqpA7p1kDi",
-    "secret": "8WjYoyTQritpVWZ9JN95upNmCLJdetg71Q5l"
+    "key": "",
+    "secret": ""
   }
 }

@@ -180,6 +180,67 @@ class Candle
         return false;
     }
 
+    public function calcRsi($length, $left=1)
+    {
+
+    }
+
+    public function getNewRsi($length)
+    {
+        return 100 * $this->getNewUpAvg($length, $length) / ($this->getNewUpAvg($length, $length) + $this->getNewDownAvg($length, $length));
+    }
+
+    public function getAU()
+    {
+        $up = $this->c - $this->getCandlePrev()->c;
+        $up = $up > 0 ? $up : 0;
+        return $up;
+    }
+    public function getDU()
+    {
+        $down = $this->c - $this->getCandlePrev()->c;
+        $down = $down < 0 ? $down : 0;
+        return -$down;
+    }
+
+    public function getNewUpAvg($length, $left)
+    {
+        if ($left == 0)
+        {
+            $sum = 0;
+            $candle = $this;
+            for ($i=0; $i<$length; $i++)
+            {
+                $sum += $candle->getAU();
+                $candle = $candle->getCandlePrev();
+            }
+            // 평균 구하고 리턴
+            return $sum / $length;
+        }
+
+        return (($this->getCandlePrev()->getNewUpAvg($length, $left - 1) * ($length - 1)) + $this->getAU()) / $length;
+    }
+
+    public function getNewDownAvg($length, $left)
+    {
+        if ($left == 0)
+        {
+            $sum = 0;
+            $candle = $this;
+            for ($i=0; $i<$length; $i++)
+            {
+                $sum += $candle->getDU();
+                $candle = $candle->getCandlePrev();
+            }
+            // 평균 구하고 리턴
+            return $sum / $length;
+        }
+
+        return (($this->getCandlePrev()->getNewDownAvg($length, $left - 1) * ($length - 1)) + $this->getDU()) / $length;
+    }
+
+
+
     public function getRsi($day)
     {
         if ($this->getCandlePrev()->r != -1 && $this->rd == $day)
@@ -189,8 +250,8 @@ class Candle
             $up = $delta > 0 ? $delta : 0;
             $down = $delta < 0 ? abs($delta) : 0;
 
-            $au = $prev->r * 13 + $up;
-            $du = $prev->r * 13 + $down;
+            $au = $prev->r * ($day - 1) + $up;
+            $du = $prev->r * ($day - 1) + $down;
 
             $this->r = 100 * $au / ($au + $du);
             $this->rd = $day;
@@ -199,7 +260,7 @@ class Candle
         }
 
         $first_candle = $this;
-        for ($i=0; $i<$day*5; $i++)
+        for ($i=0; $i<$day*3; $i++)
         {
             $first_candle = $first_candle->getCandlePrev();
         }

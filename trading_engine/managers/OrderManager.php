@@ -329,8 +329,6 @@ class OrderManager extends Singleton
                         break;
                     }
 
-                    var_dump("balance:".Account::getInstance()->getBitBalance());
-
                     unset($this->order_list[$strategy_key][$k]);
                 }
             }
