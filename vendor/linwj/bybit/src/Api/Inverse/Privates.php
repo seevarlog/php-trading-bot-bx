@@ -20,11 +20,11 @@ class Privates extends Request
     }
 
     /*
-     *GET /open-api/order/list
+     *GET //v2/private//order/list
      * */
     public function getOrderList(array $data=[]){
         $this->type='GET';
-        $this->path='/open-api/order/list';
+        $this->path='//v2/private//order/list';
         $this->data=$data;
         return $this->exec();
     }
@@ -50,11 +50,11 @@ class Privates extends Request
     }
 
     /*
-     *POST /open-api/order/replace
+     *POST //v2/private//order/replace
      * */
     public function postOrderReplace(array $data=[]){
         $this->type='POST';
-        $this->path='/open-api/order/replace';
+        $this->path='//v2/private//order/replace';
         $this->data=$data;
         return $this->exec();
     }
@@ -70,31 +70,31 @@ class Privates extends Request
     }
 
     /*
-     *POST /open-api/stop-order/create
+     *POST //v2/private//stop-order/create
      * */
     public function postStopOrderCreate(array $data=[]){
         $this->type='POST';
-        $this->path='/open-api/stop-order/create';
+        $this->path='/v2/private/stop-order/create';
         $this->data=$data;
         return $this->exec();
     }
 
     /*
-     *GET /open-api/stop-order/list
+     *GET //v2/private//stop-order/list
      * */
     public function getStopOrderList(array $data=[]){
         $this->type='GET';
-        $this->path='/open-api/stop-order/list';
+        $this->path='/v2/private/stop-order/list';
         $this->data=$data;
         return $this->exec();
     }
 
     /*
-     *POST /open-api/stop-order/cancel
+     *POST //v2/private//stop-order/cancel
      * */
     public function postStopOrderCancel(array $data=[]){
         $this->type='POST';
-        $this->path='/open-api/stop-order/cancel';
+        $this->path='/v2/private/stop-order/cancel';
         $this->data=$data;
         return $this->exec();
     }
@@ -110,11 +110,11 @@ class Privates extends Request
     }
 
     /*
-     *POST /open-api/stop-order/replace
+     *POST //v2/private//stop-order/replace
      * */
     public function postStopOrderReplace(array $data=[]){
         $this->type='POST';
-        $this->path='/open-api/stop-order/replace';
+        $this->path='/v2/private/stop-order/replace';
         $this->data=$data;
         return $this->exec();
     }
@@ -150,11 +150,11 @@ class Privates extends Request
     }
 
     /*
-     *POST /open-api/position/trading-stop
+     *POST //v2/private//position/trading-stop
      * */
     public function postPositionTradingStop(array $data=[]){
         $this->type='POST';
-        $this->path='/open-api/position/trading-stop';
+        $this->path='/v2/private/position/trading-stop';
         $this->data=$data;
         return $this->exec();
     }
@@ -200,60 +200,60 @@ class Privates extends Request
     }
 
     /*
-     *GET /open-api/wallet/risk-limit/list
+     *GET /v2/private/wallet/risk-limit/list
      * */
     public function getWalletRiskLimitList(array $data=[]){
         $this->type='GET';
-        $this->path='/open-api/wallet/risk-limit/list';
+        $this->path='/v2/private/wallet/risk-limit/list';
         $this->data=$data;
         return $this->exec();
     }
 
     /*
-     *POST /open-api/wallet/risk-limit
+     *POST /v2/private/wallet/risk-limit
      * */
     public function postWalletRiskLimit(array $data=[]){
         $this->type='POST';
-        $this->path='/open-api/wallet/risk-limit';
+        $this->path='/v2/private/wallet/risk-limit';
         $this->data=$data;
         return $this->exec();
     }
 
     /*
-     *GET /open-api/funding/prev-funding-rate
+     *GET /v2/private/funding/prev-funding-rate
      * */
     public function getFundingPrevRate(array $data=[]){
         $this->type='GET';
-        $this->path='/open-api/funding/prev-funding-rate';
+        $this->path='/v2/private/funding/prev-funding-rate';
         $this->data=$data;
         return $this->exec();
     }
 
     /*
-     *GET /open-api/funding/prev-funding
+     *GET /v2/private/funding/prev-funding
      * */
     public function getFundingPrev(array $data=[]){
         $this->type='GET';
-        $this->path='/open-api/funding/prev-funding';
+        $this->path='/v2/private/funding/prev-funding';
         $this->data=$data;
         return $this->exec();
     }
 
     /*
-     *GET /open-api/funding/predicted-funding
+     *GET /v2/private/funding/predicted-funding
      * */
     public function getFundingPredicted(array $data=[]){
         $this->type='GET';
-        $this->path='/open-api/funding/predicted-funding';
+        $this->path='/v2/private/funding/predicted-funding';
         $this->data=$data;
         return $this->exec();
     }
     /*
-     *GET /open-api/api-key
+     *GET //v2/private//api-key
      * */
     public function getApiKey(array $data=[]){
         $this->type='GET';
-        $this->path='/open-api/api-key';
+        $this->path='//v2/private//api-key';
         $this->data=$data;
         return $this->exec();
     }
@@ -278,21 +278,21 @@ class Privates extends Request
     }
 
     /*
-     *GET /open-api/wallet/fund/records
+     *GET //v2/private//wallet/fund/records
      * */
     public function getWalletFundRecords(array $data=[]){
         $this->type='GET';
-        $this->path='/open-api/wallet/fund/records';
+        $this->path='/v2/private/wallet/fund/records';
         $this->data=$data;
         return $this->exec();
     }
 
     /*
-     *GET /open-api/wallet/withdraw/list
+     *GET /v2/private/wallet/withdraw/list
      * */
     public function getWalletWithdrawList(array $data=[]){
         $this->type='GET';
-        $this->path='/open-api/wallet/withdraw/list';
+        $this->path='/v2/private/wallet/withdraw/list';
         $this->data=$data;
         return $this->exec();
     }

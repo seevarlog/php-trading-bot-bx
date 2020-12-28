@@ -283,6 +283,10 @@ try {
     $candle = CandleManager::getInstance()->getLastCandle(1);
     while (1) {
         sleep(1);
+        if (time() % 900 == 0)
+        {
+            Notify::sendMsg("살아있음.");
+        }
 
         $time_second = time() % 60;
         // 55 ~ 05 초 사이에 갱신을 시도한다.
@@ -346,8 +350,6 @@ try {
         $position_msg = PositionManager::getInstance()->getPosition("BBS1")->getPositionMsg();
         PositionManager::getInstance()->getPosition("BBS1");
 
-        Notify::sendMsg("업데이트 발생했어 c:{$candle->c}     h:{$candle->h}       l:{$candle->l}     o:{$candle->o}        order:{$order_count}   position:{$position_msg}");
-
         foreach (OrderManager::getInstance()->getOrderList("BBS1") as $order) {
             if ($order->is_stop == 1) {
                 $order_result_list = $bybit->privates()->getOrderList(
@@ -363,7 +365,7 @@ try {
                     }
 
                     if ($order->order_id == $order_result['order_id']) {
-                        $order->stop_market_price = $order_result['last_exec_price'];
+                        $order->execution_price = $order_result['last_exec_price'];
                     }
                 }
             }
@@ -382,8 +384,12 @@ try {
         if ($candle->t % 1000)
         {
             $account = Account::getInstance();
-            $account->balance = GlobalVar::getInstance()->
+            $result = GlobalVar::getInstance()->
             getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
+            if ($result !== null)
+            {
+                $account->balance = $result;
+            }
         }
 
         $candle_1m->cp = $candle;

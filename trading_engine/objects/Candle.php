@@ -185,9 +185,27 @@ class Candle
 
     }
 
+
+    public function getMinRealRsi($rsi_length, $range_day)
+    {
+        $min = 100;
+        $candle = $this;
+        for ($i=0; $i<$range_day; $i++)
+        {
+            $rsi = $candle->getNewRsi($rsi_length);
+            if ($rsi < $min)
+            {
+                $min = $rsi;
+            }
+        }
+
+        return $min;
+    }
+
+
     public function getNewRsi($length)
     {
-        return 100 * $this->getNewUpAvg($length, $length) / ($this->getNewUpAvg($length, $length) + $this->getNewDownAvg($length, $length));
+        return 100-(100/(1+$this->getNewUpAvg($length, $length) / $this->getNewDownAvg($length, $length)));
     }
 
     public function getAU()
@@ -199,13 +217,13 @@ class Candle
     public function getDU()
     {
         $down = $this->c - $this->getCandlePrev()->c;
-        $down = $down < 0 ? $down : 0;
-        return -$down;
+        $down = $down < 0 ? -$down : 0;
+        return $down;
     }
 
     public function getNewUpAvg($length, $left)
     {
-        if ($left == 0)
+        if ($left == -$length * 2)
         {
             $sum = 0;
             $candle = $this;
@@ -223,7 +241,7 @@ class Candle
 
     public function getNewDownAvg($length, $left)
     {
-        if ($left == 0)
+        if ($left == -$length * 2)
         {
             $sum = 0;
             $candle = $this;
@@ -238,6 +256,7 @@ class Candle
 
         return (($this->getCandlePrev()->getNewDownAvg($length, $left - 1) * ($length - 1)) + $this->getDU()) / $length;
     }
+
 
 
 
@@ -304,6 +323,7 @@ class Candle
 
         return $this->r;
     }
+
 
     public function setData($time, $open, $high, $low, $close)
     {
@@ -475,7 +495,7 @@ class Candle
 
         if ($this->c == 0)
         {
-            return 0.0546;
+            return 0.00546;
         }
 
         $sum_percent = 0;

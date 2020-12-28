@@ -7,6 +7,7 @@ namespace Lin\Bybit;
 
 use GuzzleHttp\Exception\RequestException;
 use Lin\Bybit\Exceptions\Exception;
+use trading_engine\util\Notify;
 
 class Request
 {
@@ -119,39 +120,23 @@ class Request
     /*
      *
      * */
-    protected function exec(){
-        for ($i=0; $i<10;$i++)
+    protected function exec($retry = 10){
+        if ($retry < 0)
         {
-            $this->auth();
-            try {
-                return json_decode($this->send(),true);
-                sleep(1);
-                break;
-            }catch (RequestException $e){
-                var_dump($e);
-
-                if(method_exists($e->getResponse(),'getBody')){
-                    $contents=$e->getResponse()->getBody()->getContents();
-
-                    $temp = empty($contents) ? [] : json_decode($contents,true);
-
-                    if(!empty($temp)) {
-                        $temp['_method']=$this->type;
-                        $temp['_url']=$this->host.$this->path;
-                    }else{
-                        $temp['_message']=$e->getMessage();
-                    }
-                }else{
-                    $temp['_message']=$e->getMessage();
-                }
-
-                $temp['_httpcode']=$e->getCode();
-                var_dump(new Exception(json_encode($temp)));
-
-                
-
-                //throw new Exception(json_encode($temp));
-            }
+            return -1;
         }
+
+        $this->auth();
+        try {
+            return json_decode($this->send(),true);
+        }catch (RequestException $e){
+            sleep(0.5);
+            $this->exec($retry - 1);
+
+            var_dump($e);
+            Notify::sendMsg("http 전송이슈 발생");
+        }
+
+        return -1;
     }
 }

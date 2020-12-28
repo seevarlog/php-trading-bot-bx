@@ -18,6 +18,7 @@ class Position
     public $amount = 0;
     public $log = [];
     public $last_execition_time = 0;
+    public $action = "";
 
     public function isValid()
     {
@@ -61,9 +62,14 @@ class Position
         {
             if (!Config::getInstance()->isRealTrade())
             {
-                $order->stop_market_price = $order->entry;
+                $order->execution_price = $order->entry;
             }
-            $exec_order_price = $order->stop_market_price;
+            $exec_order_price = $order->execution_price;
+            if ($exec_order_price == 0)
+            {
+                $exec_order_price = $order->entry;
+            }
+
         }
 
         // 포지션 손익 계산
@@ -127,6 +133,7 @@ class Position
         if ($order->comment == "진입")
         {
             StrategyBB::$last_last_entry = $candle->getGoldenDeadState();
+            $this->action = $order->action;
         }
 
         $account = Account::getInstance();
@@ -156,7 +163,7 @@ MSG;
         $log->profit_balance = $profit_balance;
         $log->total_balance = $account->getBitBalance();
         $log->trade_fees = $fee;
-        $log->log = StrategyBB::$last_last_entry.$order->log;
+        $log->log = StrategyBB::$last_last_entry.$order->log."action".$order->action;
         TradeLogManager::getInstance()->addTradeLog($log);
 
         echo $account->getUSDBalance()."\r\n";

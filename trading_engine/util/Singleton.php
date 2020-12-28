@@ -18,8 +18,4 @@ class Singleton
         return $instance;
     }
 
-    private function __construct()
-    {
-    }
-
 }

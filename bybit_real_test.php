@@ -364,7 +364,7 @@ try {
                     }
 
                     if ($order->order_id == $order_result['order_id']) {
-                        $order->stop_market_price = $order_result['last_exec_price'];
+                        $order->execution_price = $order_result['last_exec_price'];
                     }
                 }
             }

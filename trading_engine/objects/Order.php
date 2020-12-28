@@ -18,7 +18,7 @@ class Order
     public $is_limit;
     public $is_reduce_only;
     public $comment;
-    public $stop_market_price; // 스탑된 가격
+    public $execution_price; // 스탑된 가격
     public $log;
     public $action;
 

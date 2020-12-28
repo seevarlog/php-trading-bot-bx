@@ -16,13 +16,13 @@ header('Content-Type: text/html; charset=UTF-8');
 
 ob_start();
 $time_start = time();
-if (!($fp = fopen(__DIR__.'/output.csv', 'r'))) {
+if (!($fp = fopen(__DIR__.'/result_2013_to1515542400min.csv', 'r'))) {
     echo "err";
     return;
 }
 
 // m본
-$make_candle_min_list = [5, 15, 30, 60, 60*4, 60 * 24];
+$make_candle_min_list = [3, 5, 15, 30, 60, 60*4, 60 * 24];
 
 // 30분봉 만들어봄
 $candleMng = CandleManager::getInstance();
@@ -84,7 +84,11 @@ for ($i=0; $i<15000000; $i++)
         }
         else
         {
-            $candleMng->getLastCandle($min)->updateCandle($candle->h, $candle->l, $candle->c);
+            $_candle = $candleMng->getLastCandle($min);
+            if ($_candle != null)
+            {
+                $_candle->updateCandle($candle->h, $candle->l, $candle->c);
+            }
         }
     }
 
@@ -120,7 +124,7 @@ var_dump(count(CandleManager::getInstance()->candle_data_list[1]));
 
 // 계정 셋팅
 $account = Account::getInstance();
-$account->balance = 1000;
+$account->balance = 1;
 
 
 $candle = CandleManager::getInstance()->getFirstCandle(1);
@@ -145,7 +149,7 @@ for ($i=0; $i<500000000; $i++)
 var_dump($prev_candle->getDateTime());
 
 // echo $money will output "123.1";
-//$len = fprintf($fp, '%01.2f', $money);
+//$len = fprintf($fp, '%01.2f', $money);/
 // will write "123.10" to currency.txt
 
 //ob_end_clean();

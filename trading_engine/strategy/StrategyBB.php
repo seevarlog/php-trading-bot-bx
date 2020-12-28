@@ -16,12 +16,19 @@ class StrategyBB extends StrategyBase
 {
     public static $last_last_entry = "sideways";
     public static $order_action = "";
+    public $leverage = 13;
+
+    public function __construct()
+    {
+        if (!Config::getInstance()->isRealTrade())
+        {
+            $this->leverage = 1;
+        }
+    }
 
     public function BBS(Candle $candle)
     {
-        $per = log(exp(1)+$candle->tick);
-        $leverage = 10;
-        $dayCandle = CandleManager::getInstance()->getCur1DayCandle($candle);
+        $leverage = $this->leverage;
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
@@ -33,6 +40,7 @@ class StrategyBB extends StrategyBase
         $orderMng = OrderManager::getInstance();
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
         $positionMng = PositionManager::getInstance();
+        $myPosition = $positionMng->getPosition($this->getStrategyKey());
 
         // 오래된 주문은 취소한다
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
@@ -48,7 +56,7 @@ class StrategyBB extends StrategyBase
                 continue;
             }
 
-            if ($candle->getTime() - $order->date > 60 * 30)
+            if ($candle->getTime() - $order->date > 60 * 60)
             {
                 if ($order->comment == "진입")
                 {
@@ -58,7 +66,9 @@ class StrategyBB extends StrategyBase
                 $orderMng->cancelOrder($order);
             }
         }
-
+        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
+        $candle_3m = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3);
+        $candle_5m = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5);
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount > 0)
         {
             $sell_price = 0;
@@ -88,7 +98,65 @@ class StrategyBB extends StrategyBase
             }
             else if (StrategyBB::$last_last_entry == "gold")
             {
-                if ($candle->crossoverBBUpLine($day, $k_up) == true)
+                $candle_240h = CandleManager::getInstance()->getCurOtherMinCandle($candle, 240);
+                if ($candle_240h->getCandlePrev()->getBBUpLine($day, $k_up) < $candle->c && $candle_60min->getCandlePrev()->getBBUpLine($day, $k_up) < $candle->c)
+                {
+                    if (CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->crossoverBBUpLine($day, $k_up) == true)
+                    {
+                        [$max, $min] = $candle->getMaxMinValueInLength(5);
+                        // 골드 매도
+                        OrderManager::getInstance()->updateOrder(
+                            $candle->getTime(),
+                            $this->getStrategyKey(),
+                            $amount,
+                            ($max + $candle->getClose()) / 2,
+                            1,
+                            1,
+                            "익절",
+                            "골드 4시간봉"
+                        );
+                    }
+                }
+                else if ($myPosition->action = "5분")
+                {
+                    if ($candle_5m->crossoverBBUpLine($day, $k_up) == true)
+                    {
+                        [$max, $min] = $candle->getMaxMinValueInLength(5);
+                        // 골드 매도
+                        OrderManager::getInstance()->updateOrder(
+                            $candle->getTime(),
+                            $this->getStrategyKey(),
+                            $amount,
+                            ($max + $candle->getClose()) / 2,
+                            1,
+                            1,
+                            "익절",
+                            "골드"
+                        );
+                    }
+                }
+                else
+                {
+                    if ($candle->crossoverBBUpLine($day, $k_up) == true)
+                    {
+                        [$max, $min] = $candle->getMaxMinValueInLength(5);
+                        // 골드 매도
+                        OrderManager::getInstance()->updateOrder(
+                            $candle->getTime(),
+                            $this->getStrategyKey(),
+                            $amount,
+                            ($max + $candle->getClose()) / 2,
+                            1,
+                            1,
+                            "익절",
+                            "골드"
+                        );
+                    }
+                }
+            }
+            else if ($myPosition->action = "5분")
+            {
+                if ($candle_5m->crossoverBBUpLine($day, $k_up) == true)
                 {
                     [$max, $min] = $candle->getMaxMinValueInLength(5);
                     // 골드 매도
@@ -125,7 +193,7 @@ class StrategyBB extends StrategyBase
             {
                 if ($candle->crossoverBBUpLine($day, $k_up) == true)
                 {
-                    [$max, $min] = $candle->getMaxMinValueInLength(5);
+                    [$max, $min] = $candle->getMaxMinValueInLength(10);
                     // 골드 매도
                     OrderManager::getInstance()->updateOrder(
                         $candle->getTime(),
@@ -169,18 +237,18 @@ class StrategyBB extends StrategyBase
         }
 
 
-        $candle_240min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 240);
+        //$candle_240min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 240);
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5);
-        if ($candle_5min->getRsiInclinationSum(2) < 0 || $candle_5min->getRsi(14) > 60)
+        if ($candle_5min->getCandlePrev()->getRsiInclinationSum(2) < 0 || $candle_5min->getRsi(14) > 70)
         {
             return;
         }
 
-        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
         if ($candle_60min->getRsiInclinationSum(3) < 0)
         {
             return;
         }
+
 
         $stop_per = 0;
         $ma360 = $candle->getMA(360);
@@ -212,13 +280,21 @@ class StrategyBB extends StrategyBase
 
         $log_plus="";
         self::$order_action = "";
-        if (CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getNewRsi(14) < 35)
+        if (CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getRsi(14) < 30)
         {
             $stop_per *= 3;
-            $buy_per *= 12;
+            $buy_per *= 18;
             $log_plus = "15분";
             self::$order_action = "15분";
         }
+
+        // 과매도 였던 것을 기억시킴
+        if ($candle_5m->getMinRealRsi(14, 10) < 30)
+        {
+            self::$order_action = "5분";
+        }
+
+
 
         $buy_price = $candle->getClose() * (1 - $buy_per);
         $stop_price = $buy_price  * (1 - $stop_per);
