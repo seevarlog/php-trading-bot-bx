@@ -161,13 +161,45 @@ var_dump(OrderManager::getInstance()->order_list);
 $candle_1m_list = $bybit->publics()->getKlineList([
     'symbol'=>"BTCUSD",
     'interval'=>1,
-    'from'=>time()-60*188*2
+    'from'=>time()-60*188*3
 ]);
 
 
 
 // 1분봉 셋팅
 $prev_candle_1m = new \trading_engine\objects\Candle(1);
+foreach ($candle_1m_list['result'] as $candle_data)
+{
+    $candle_1m = new \trading_engine\objects\Candle(1);
+    $candle_1m->t = $candle_data['open_time'];
+    $candle_1m->o = $candle_data['open'];
+    $candle_1m->h = $candle_data['high'];
+    $candle_1m->l = $candle_data['low'];
+    $candle_1m->c = $candle_data['close'];
+
+    $candle_1m->cp = $prev_candle_1m;
+    $prev_candle_1m->cn = $candle_1m;
+    $prev_candle_1m = $candle_1m;
+
+    CoinPrice::getInstance()->bit_price = $candle_1m->c;
+
+    CandleManager::getInstance()->addNewCandle($candle_1m);
+}
+
+
+
+
+// 1분봉 셋팅
+$candle_1m_list = $bybit->publics()->getKlineList([
+    'symbol'=>"BTCUSD",
+    'interval'=>1,
+    'from'=>time()-60*188*2
+]);
+
+
+
+// 1분봉 셋팅
+$prev_candle_1m = CandleManager::getInstance()->getLastCandle(1);
 foreach ($candle_1m_list['result'] as $candle_data)
 {
     $candle_1m = new \trading_engine\objects\Candle(1);
@@ -377,8 +409,9 @@ try {
         // 오더북 체크크
 
         OrderManager::getInstance()->update($candle);
-        //StrategyTest::getInstance()->BBS($candle);
-        StrategyBB::getInstance()->BBS($candle);
+        //$msg = StrategyTest::getInstance()->BBS($candle);
+        $msg = StrategyBB::getInstance()->BBS($candle);
+        Notify::sendMsg("debug:".$msg);
 
 
         if ($candle->t % 1000)

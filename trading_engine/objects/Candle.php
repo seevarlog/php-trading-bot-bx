@@ -26,6 +26,11 @@ class Candle
     public $cn = null;
     public $cp = null;
 
+    // real rsi
+    public $r_rsi = [];
+    public $r_au = [];
+    public $r_du = [];
+
     //  rsi 용 멤버
     public $r = -1;
     public $rd = 0;
@@ -205,7 +210,16 @@ class Candle
 
     public function getNewRsi($length)
     {
-        return 100-(100/(1+$this->getNewUpAvg($length, $length) / $this->getNewDownAvg($length, $length)));
+        if (isset($this->r_rsi[$length]))
+        {
+            return $this->r_rsi[$length];
+        }
+
+
+        $rsi = 100-(100/(1+$this->getNewUpAvg($length, $length) / $this->getNewDownAvg($length, $length)));
+        $this->r_rsi[$length] = $rsi;
+
+        return $rsi;
     }
 
     public function getAU()
@@ -223,6 +237,11 @@ class Candle
 
     public function getNewUpAvg($length, $left)
     {
+        if (isset($this->r_au[$length]))
+        {
+            return $this->r_au[$length];
+        }
+
         if ($left == -$length * 2)
         {
             $sum = 0;
@@ -233,14 +252,21 @@ class Candle
                 $candle = $candle->getCandlePrev();
             }
             // 평균 구하고 리턴
-            return $sum / $length;
+            $this->r_au[$length] = $sum / $length;
+            return $this->r_au[$length];
         }
 
-        return (($this->getCandlePrev()->getNewUpAvg($length, $left - 1) * ($length - 1)) + $this->getAU()) / $length;
+        $this->r_au[$length] = (($this->getCandlePrev()->getNewUpAvg($length, $left - 1) * ($length - 1)) + $this->getAU()) / $length;
+        return $this->r_au[$length];
     }
 
     public function getNewDownAvg($length, $left)
     {
+        if (isset($this->r_du[$length]))
+        {
+            return $this->r_du[$length];
+        }
+
         if ($left == -$length * 2)
         {
             $sum = 0;
@@ -251,10 +277,12 @@ class Candle
                 $candle = $candle->getCandlePrev();
             }
             // 평균 구하고 리턴
-            return $sum / $length;
+            $this->r_du[$length] = $sum / $length;
+            return $this->r_du[$length];
         }
 
-        return (($this->getCandlePrev()->getNewDownAvg($length, $left - 1) * ($length - 1)) + $this->getDU()) / $length;
+        $this->r_du[$length] = (($this->getCandlePrev()->getNewDownAvg($length, $left - 1) * ($length - 1)) + $this->getDU()) / $length;
+        return $this->r_du[$length];
     }
 
 
@@ -507,7 +535,7 @@ class Candle
             }
             else
             {
-                $sum_percent += ($this->h - $this->l) / $this->c / ($this->o - $this->c) * abs($this->o - $this->c);
+                $sum_percent += abs(($this->h - $this->l) / $this->c);
             }
             $prev = $prev->getCandlePrev();
         }

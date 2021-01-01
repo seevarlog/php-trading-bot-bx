@@ -1,4 +1,3 @@
-
 <?php
 
 
@@ -9,16 +8,17 @@ require_once('vendor/autoload.php');
 ini_set("display_errors", 1);
 ini_set('memory_limit','4G');
 
-if (!($fp = fopen(__DIR__.'/rev', 'r'))) {
+if (!($fp = fopen(__DIR__.'/btc2020.csv', 'r'))) {
     echo "err";
     return;
 }
 
 
 $candle_min = 60*60*24; // 몇 분붕을 만들지 정함
-$cur_candle = new Candle();
-$last_candle = new Candle();
+$cur_candle = new Candle(1);
+$last_candle = new Candle(1);
 $candle_save_list = [];
+$z = 0;
 
 for ($i=0; $i<500000000; $i++)
 {
@@ -28,12 +28,23 @@ for ($i=0; $i<500000000; $i++)
         break;
     }
 
+
     if ($i % $candle_min == 0)
     {
-        $cur_candle = new \trading_engine\objects\Candle();
+        $cur_candle = new \trading_engine\objects\Candle(1);
     }
 
     $arr = explode(",", fgets($fp,1024));
+    if ($i<=0)
+    {
+        if ($arr[1] == "symbol")
+        {
+            $is_bybit_csv = true;
+            $z = 2;
+        }
+        continue;
+    }
+var_dump($arr);
     if ($arr[1] == "NaN")
     {
         if ($i % $candle_min == 0)
@@ -49,11 +60,11 @@ for ($i=0; $i<500000000; $i++)
     {
         if ($i % $candle_min == 0)
         {
-            $cur_candle->setData($arr[0], $arr[1], $arr[2], $arr[3], $arr[4]);
+            $cur_candle->setData($arr[0], $arr[1 + $z], $arr[2 + $z], $arr[3 + $z], $arr[4 + $z]);
         }
         else
         {
-            $cur_candle->sumCandle($arr[0], $arr[1], $arr[2], $arr[3], $arr[4]);
+            $cur_candle->sumCandle($arr[0], $arr[1 + $z], $arr[2 + $z], $arr[3 + $z], $arr[4 + $z]);
         }
     }
 

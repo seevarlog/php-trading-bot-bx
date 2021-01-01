@@ -16,7 +16,7 @@ header('Content-Type: text/html; charset=UTF-8');
 
 ob_start();
 $time_start = time();
-if (!($fp = fopen(__DIR__.'/result_2013_to1515542400min.csv', 'r'))) {
+if (!($fp = fopen(__DIR__.'/output.csv', 'r'))) {
     echo "err";
     return;
 }
@@ -30,7 +30,7 @@ $prev_candle = new Candle(1);
 $candle_list = array();
 $is_bybit_csv = false;
 $z = 0;
-for ($i=0; $i<15000000; $i++)
+for ($i=0; $i<35000000; $i++)
 {
     if (feof($fp))
     {
@@ -141,6 +141,7 @@ for ($i=0; $i<500000000; $i++)
     \trading_engine\managers\OrderManager::getInstance()->update($candle);
 
     \trading_engine\strategy\StrategyBB::getInstance()->BBS($candle);
+    //\trading_engine\strategy\StrategyTest::getInstance()->BBS($candle);
 
     $prev_candle = $candle;
     $candle = $candle->cn;

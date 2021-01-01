@@ -20,6 +20,16 @@ class Position
     public $last_execition_time = 0;
     public $action = "";
 
+    public function addLog($log)
+    {
+        $this->log[$log] = "";
+    }
+
+    public function resetLog()
+    {
+        $this->log = [];
+    }
+
     public function isValid()
     {
         return $this->amount === null ? false : true;
@@ -102,12 +112,8 @@ class Position
             if ($order->amount > 0)
             {
                 $profit_amount = $order->amount;
-                if ($profit_amount > 0)
-                {
-                    $profit_amount = $order->amount - $profit_amount;
-                }
 
-                $profit_balance = $profit_amount * (($exec_order_price / $this->entry) - 1);
+                $profit_balance = -$profit_amount * (($exec_order_price / $this->entry) - 1);
                 $this->amount += $order->amount;
                 if ($this->amount + $order->amount > 0)
                 {
@@ -116,7 +122,7 @@ class Position
             }
             else
             {
-                $this->entry = -(($this->entry * $this->amount) + ($exec_order_price * $this->amount)) / 2;
+                $this->entry = (($this->entry * $this->amount) + ($exec_order_price * $this->amount)) / 2;
                 $this->amount += $order->amount;
             }
         }
@@ -165,6 +171,8 @@ MSG;
         $log->trade_fees = $fee;
         $log->log = StrategyBB::$last_last_entry.$order->log."action".$order->action;
         TradeLogManager::getInstance()->addTradeLog($log);
+        $log->position_log = $this->log;
+        $this->resetLog();
 
         echo $account->getUSDBalance()."\r\n";
     }

@@ -139,7 +139,7 @@ class OrderManager extends Singleton
                         ]
                     );
                     $order->order_id = $result['result']['order_id'];
-                    Notify::sendMsg(sprintf("주문 넣었다. 진입가 : %f", $order->entry));
+                    Notify::sendMsg(sprintf("주문 넣었다. 진입가 : %f 로그 : %s 액션 : %s", $order->entry, $order->log, $order->action));
                 }
                 else if ($order->is_stop)
                 {

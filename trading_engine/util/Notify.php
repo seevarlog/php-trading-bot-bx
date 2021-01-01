@@ -12,6 +12,13 @@ class Notify
     {
         $token = "Bearer szcnCThNjSBfNqFE4xMCJIqYjmBONR4GcFwJbyxq0be";
         $content_type = "application/x-www-form-urlencoded";
+        $send_msg = "";
+
+        if (Config::getInstance()->isTestTrade())
+        {
+            $send_msg .= "[test]:";
+        }
+
 
         $client = new \GuzzleHttp\Client(
             [
@@ -22,7 +29,7 @@ class Notify
             ]
         );
         try {
-            $client->request('POST', 'https://notify-api.line.me/api/notify?message=' . $msg);
+            $client->request('POST', 'https://notify-api.line.me/api/notify?message=' . $send_msg.$msg);
         } catch (GuzzleException $e) {
         }
     }

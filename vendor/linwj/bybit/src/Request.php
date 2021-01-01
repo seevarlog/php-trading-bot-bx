@@ -120,7 +120,7 @@ class Request
     /*
      *
      * */
-    protected function exec($retry = 10){
+    protected function exec($retry = 50){
         if ($retry < 0)
         {
             return -1;

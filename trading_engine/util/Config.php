@@ -5,6 +5,7 @@ namespace trading_engine\util;
 class Config extends Singleton
 {
     public $is_real_trade = false;
+    public $is_test = false;
 
     public function setRealTrade()
     {
@@ -14,5 +15,10 @@ class Config extends Singleton
     public function isRealTrade()
     {
         return $this->is_real_trade;
+    }
+
+    public function isTestTrade()
+    {
+        return $this->is_test;
     }
 }

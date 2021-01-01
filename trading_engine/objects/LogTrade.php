@@ -15,4 +15,16 @@ class LogTrade
     public $total_balance;
     public $comment;
     public $log;
+    public $position_log = [];
+
+    public function getPositionLogMsg()
+    {
+        $msg = '';
+        foreach ($this->position_log as $key=>$v)
+        {
+            $msg .= $key;
+        }
+
+        return $msg;
+    }
 }

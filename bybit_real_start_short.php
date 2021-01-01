@@ -25,11 +25,12 @@ ini_set('memory_limit','3G');
 $config = json_decode(file_get_contents(__DIR__."/config/config.json"), true);
 
 $bybit = new BybitInverse(
-    $config['real']['key'],
-    $config['real']['secret'],
-    'https://api.bybit.com/'
+    $config['test']['key'],
+    $config['test']['secret'],
+    'https://api-testnet.bybit.com/'
 );
 
+Config::getInstance()->is_test = true;
 GlobalVar::getInstance()->setByBit($bybit);
 Config::getInstance()->setRealTrade();
 
@@ -89,18 +90,19 @@ foreach ($order_list['result']['data'] as $data)
 
     $is_limit = $order_data["order_type"] == "Limit" ? 1 : 0;
     $comment = "진입";
-    if ($order_data["order_type"] == "Limit" && $order_data["side"] == "Buy")
+    if ($order_data["order_type"] == "Limit" && $order_data["side"] == "Sell")
     {
         $comment = "진입";
+        $qty *= -1;
     }
-    else if ($order_data["order_type"] == "Market" && $order_data["side"] == "Sell")
+    else if ($order_data["order_type"] == "Market" && $order_data["side"] == "Buy")
     {
         $comment = "손절";
     }
     else
     {
         $comment = "익절";
-        $qty *= -1;
+        $qty *= 1;
     }
 
     var_dump($data);
@@ -137,12 +139,14 @@ foreach ($order_list['result']['data'] as $data)
         continue;
     }
 
+    $is_buy = $order_data["side"] == "Buy";
+
     $comment = "손절";
     var_dump($order_data);
     $order = Order::getNewOrderObj(
         strtotime($order_data["created_at"]),
         "BBS1",
-        -$order_data["qty"],
+        $is_buy ? $order_data["qty"] : -$order_data["qty"],
         $order_data["stop_px"],
         0,
         0,
@@ -409,8 +413,8 @@ try {
         // 오더북 체크크
 
         OrderManager::getInstance()->update($candle);
-        //StrategyTest::getInstance()->BBS($candle);
-        $msg = StrategyBB::getInstance()->BBS($candle);
+        $msg = StrategyTest::getInstance()->BBS($candle);
+        //$msg = StrategyBB::getInstance()->BBS($candle);
         Notify::sendMsg("debug:".$msg);
 
 

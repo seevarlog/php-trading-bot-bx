@@ -9,67 +9,203 @@ use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
-use trading_engine\util\CoinPrice;
+use trading_engine\objects\Order;
 use trading_engine\util\Config;
+use trading_engine\util\Notify;
 
 class StrategyTest extends StrategyBase
 {
+    public static $last_last_entry = "sideways";
+    public static $order_action = "";
+    public $leverage = 20;
+
+    public function __construct()
+    {
+        if (!Config::getInstance()->isRealTrade())
+        {
+            $this->leverage = 20;
+        }
+    }
+
     public function BBS(Candle $candle)
     {
-        $dayCandle = CandleManager::getInstance()->getCur1DayCandle($candle);
-        $positionMng = PositionManager::getInstance();
+        $loop_msg = '';
+        $leverage = $this->leverage;
+
+        //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
+        //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
+
+        $k_up = 1.3;
+        $k_down = 1.3;
+        $day = 40;
+
         $orderMng = OrderManager::getInstance();
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
-        $bit = CoinPrice::getInstance()->getBitPrice();
+        $positionMng = PositionManager::getInstance();
+        $myPosition = $positionMng->getPosition($this->getStrategyKey());
 
-        if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount > 0)
+        // 오래된 주문은 취소한다
+        $order_list = $orderMng->getOrderList($this->getStrategyKey());
+        foreach ($order_list as $order)
         {
-
-            $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
-            if (Config::getInstance()->is_real_trade)
+            if ($order->comment == "손절")
             {
-                $amount *= 1;
+                continue;
             }
-            echo "매도<br>";
-            $sell_price = $candle->getClose() + 1;
-            // 매도 주문
-            OrderManager::getInstance()->updateOrder(
-                $candle->getTime(),
-                $this->getStrategyKey(),
-                $amount,
-                $sell_price,
-                1,
-                1,
-                "익절",
-                "test"
-            );
-        }
-        else if ($position_count <= 0)
-        {
-            // 매수 시그널, 아래서 위로 BB를 뚫음
-            // 매수 주문
-            OrderManager::getInstance()->updateOrder(
-                $candle->getTime(),
-                $this->getStrategyKey(),
-                Account::getInstance()->getUSDBalance(),
-                $bit,
-                1,
-                0,
-                "진입",
-                "ss"
-            );
 
-            // 손절 주문
-            OrderManager::getInstance()->updateOrder(
-                $candle->getTime(),
-                $this->getStrategyKey(),
-                -Account::getInstance()->getUSDBalance(),
-                $bit - 5,
-                0,
-                1,
-                "손절",
-                "stop"
-            );
+            if ($order->log == "15분")
+            {
+                continue;
+            }
+
+            if ($candle->getTime() - $order->date > 60 * 60)
+            {
+                if ($order->comment == "진입")
+                {
+                    $orderMng->clearAllOrder($this->getStrategyKey());
+                    continue;
+                }
+                $orderMng->cancelOrder($order);
+            }
         }
+        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
+        $candle_3m = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3);
+        $candle_5m = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5);
+        if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount < 0)
+        {
+            $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
+            $loop_msg .= "나머지익절";
+            if ($candle->crossoverBBDownLine($day, $k_up) == true)
+            {
+                [$max, $min] = $candle->getMaxMinValueInLength(5);
+                // 골드 매도
+                OrderManager::getInstance()->updateOrder(
+                    $candle->getTime(),
+                    $this->getStrategyKey(),
+                    $amount,
+                    ($min + $candle->getClose()) / 2,
+                    1,
+                    1,
+                    "익절",
+                    "마지막else"
+                );
+            }
+        }
+
+        if ($positionMng->getPosition($this->getStrategyKey())->amount < 0)
+        {
+            return $loop_msg;
+        }
+
+
+        $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5);
+        if (Config::getInstance()->isRealTrade())
+        {
+            $rsi_sum_5m = $candle_5min->getCandlePrev()->getRsiInclinationSum(2);
+            $rsi_5m = $candle_5min->getRsi(14);
+            $loop_msg .= "rsi 5m 기울기 : ".$rsi_sum_5m."  버그rsi 5m : ".$rsi_5m. "  1시간 rsi 기울기 : ". $candle_60min->getRsiInclinationSum(3). " close : ".$candle->c. "  crossDown : ".$candle->crossoverBBDownLine($day, $k_down);
+        }
+
+
+        //$candle_240min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 240);
+        if ($candle_5min->getCandlePrev()->getRsiInclinationSum(2) > 0 || $candle_5min->getRsi(14) < 30)
+        {
+            $loop_msg .= "5분봉캔들이상";
+            return $loop_msg;
+        }
+
+        if ($candle_60min->getRsiInclinationSum(3) > 0)
+        {
+            $loop_msg .= "1시간봉이상";
+            return $loop_msg;
+        }
+
+        if ($candle->crossoverBBUpLine($day, $k_down) == false)
+        {
+            $loop_msg .= "크로스업아님";
+            return $loop_msg;
+        }
+
+
+
+        $lineState = $candle->getGoldenDeadState();
+
+        // 0.02 이상
+        if ($lineState == "gold")
+        {
+            //골드
+            $stop_per = 0.012;
+            $buy_per = 0.0003;
+        }
+        else if ($lineState == "dead")
+        {
+            //데드
+            $stop_per = 0.012;
+            $buy_per = 0.0004;
+        }
+        else
+        {
+            $stop_per = 0.012;
+            $buy_per = 0.0003;
+        }
+
+        $log_plus="";
+        self::$order_action = "";
+        if (CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getRsi(14) < 30)
+        {
+            $stop_per *= 3;
+            $buy_per *= 18;
+            $log_plus = "15분";
+            self::$order_action = "15분";
+        }
+        else if ($candle_5m->getMinRealRsi(14, 10) < 30)
+        {
+            self::$order_action = "5분";
+        }
+        else
+        {
+            self::$order_action = "";
+        }
+
+
+
+        $buy_price = $candle->getClose() * (1 + $buy_per);
+        $stop_price = $buy_price  * (1 + $stop_per);
+
+        $log = sprintf("sell_per:%f stop:%f".$log_plus, (1 + $buy_per), (1 + $stop_per));
+
+        // 매수 시그널, 아래서 위로 BB를 뚫음
+        // 매수 주문
+        OrderManager::getInstance()->updateOrder(
+            $candle->getTime(),
+            $this->getStrategyKey(),
+            -Account::getInstance()->getUSDBalance() * $leverage,
+            $buy_price,
+            1,
+            0,
+            "진입",
+            $log,
+            self::$order_action
+        );
+
+        // 손절 주문
+        OrderManager::getInstance()->updateOrder(
+            $candle->getTime(),
+            $this->getStrategyKey(),
+            Account::getInstance()->getUSDBalance() * $leverage,
+            $stop_price,
+            0,
+            1,
+            "손절",
+            $log,
+            self::$order_action
+        );
+
+        return $loop_msg;
+    }
+
+    public function getStrategyKey()
+    {
+        return "BBS1";
     }
 }
