@@ -259,7 +259,7 @@ class OrderManager extends Singleton
             if ($order->order_id == $_order->order_id)
             {
                 unset($this->order_list[$_order->strategy_key][$key]);
-                return ;
+                break;
             }
         }
 

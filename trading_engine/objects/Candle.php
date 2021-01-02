@@ -215,8 +215,13 @@ class Candle
             return $this->r_rsi[$length];
         }
 
+        $du = $this->getNewDownAvg($length, $length);
+        if ($du == 0)
+        {
+            return 50;
+        }
 
-        $rsi = 100-(100/(1+$this->getNewUpAvg($length, $length) / $this->getNewDownAvg($length, $length)));
+        $rsi = 100-(100/(1+$this->getNewUpAvg($length, $length) / $du));
         $this->r_rsi[$length] = $rsi;
 
         return $rsi;
@@ -265,6 +270,11 @@ class Candle
         if (isset($this->r_du[$length]))
         {
             return $this->r_du[$length];
+        }
+
+        if ($this->cp == null)
+        {
+            return 0;
         }
 
         if ($left == -$length * 2)

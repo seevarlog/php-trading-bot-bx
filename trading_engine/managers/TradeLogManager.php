@@ -32,8 +32,11 @@ class TradeLogManager extends Singleton
         $fp = fopen("result.htm", "w");
         foreach ($this->trade_log_list as $strategy_key => $trade_log_list)
         {
+            $real_win = 0;
             $win = 0;
             $lose = 0;
+            $trade_count = 0;
+            $real_lose = 0;
             $str = <<<HTML
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <table border="1">
@@ -53,7 +56,7 @@ HTML;
             fwrite($fp, $str);
 
             var_dump("카운트 : ". count($trade_log_list));
-
+            $prev_comment = "";
             foreach ($trade_log_list as $k=>$log)
             {
                 $time = strtotime($log->date_order);
@@ -74,11 +77,36 @@ HTML;
 HTML;
                 fwrite($fp, $str);
 
+                if ($log->comment == "익절")
+                {
+                    if ($trade_log_list[$k-1]->total_balance < $log->total_balance)
+                    {
+                        $real_win++;
+                        $win++;
+                    }
+                    else if ($trade_log_list[$k-1]->total_balance >= $log->total_balance)
+                    {
+                        $real_lose++;
+                        $win++;
+                    }
+                }
+                else if($log->comment == "진입")
+                {
+                    $trade_count++;
+                }
+                else if($log->comment == "손절")
+                {
+                    $lose++;
+                }
+
+                $prev_comment = $log->comment;
             }
             $trade_count = $win + $lose;
+            $real_trade_ratio = 0;
             if ($trade_count > 0)
             {
                 $trade_ratio = round($win / $trade_count * 100, 2) ;
+                $real_trade_ratio = round($real_win / $trade_count * 100, 2) ;
             }
             else
             {
@@ -90,8 +118,12 @@ HTML;
 </table>
 진입 : {$trade_count}
 승리 : {$win}
+찡승 : {$real_win}
 패배 : {$lose}
+찐패 : {$real_lose}
 승률 : {$trade_ratio}
+찐승률 : {$real_trade_ratio}
+
 HTML;
             echo $str;
             fwrite($fp, $str);

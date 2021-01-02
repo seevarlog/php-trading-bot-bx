@@ -23,11 +23,11 @@ ini_set("display_errors", 1);
 ini_set('memory_limit','3G');
 
 $config = json_decode(file_get_contents(__DIR__."/config/config.json"), true);
-var_dump($config['test']);
+
 $bybit = new BybitInverse(
-    $config['test']['key'],
-    $config['test']['secret'],
-    'https://api-testnet.bybit.com/'
+    $config['real']['key'],
+    $config['real']['secret'],
+    'https://api.bybit.com/'
 );
 
 GlobalVar::getInstance()->setByBit($bybit);
@@ -69,7 +69,6 @@ foreach ($position_list['result'] as $data)
     $position->amount = $position_result['side'] == "Buy" ? $position_result['size'] : -$position_result['size'];
     $position->strategy_key = "BBS1";
 }
-var_dump(PositionManager::getInstance());
 
 // 오더북 동기화
 $order_list = $bybit->privates()->getOrderList(
@@ -101,7 +100,7 @@ foreach ($order_list['result']['data'] as $data)
     else
     {
         $comment = "익절";
-        $qty *= 1;
+        $qty *= -1;
     }
 
     var_dump($data);
@@ -162,13 +161,45 @@ var_dump(OrderManager::getInstance()->order_list);
 $candle_1m_list = $bybit->publics()->getKlineList([
     'symbol'=>"BTCUSD",
     'interval'=>1,
-    'from'=>time()-60*188*2
+    'from'=>time()-60*188*3
 ]);
 
 
 
 // 1분봉 셋팅
 $prev_candle_1m = new \trading_engine\objects\Candle(1);
+foreach ($candle_1m_list['result'] as $candle_data)
+{
+    $candle_1m = new \trading_engine\objects\Candle(1);
+    $candle_1m->t = $candle_data['open_time'];
+    $candle_1m->o = $candle_data['open'];
+    $candle_1m->h = $candle_data['high'];
+    $candle_1m->l = $candle_data['low'];
+    $candle_1m->c = $candle_data['close'];
+
+    $candle_1m->cp = $prev_candle_1m;
+    $prev_candle_1m->cn = $candle_1m;
+    $prev_candle_1m = $candle_1m;
+
+    CoinPrice::getInstance()->bit_price = $candle_1m->c;
+
+    CandleManager::getInstance()->addNewCandle($candle_1m);
+}
+
+
+
+
+// 1분봉 셋팅
+$candle_1m_list = $bybit->publics()->getKlineList([
+    'symbol'=>"BTCUSD",
+    'interval'=>1,
+    'from'=>time()-60*188*2
+]);
+
+
+
+// 1분봉 셋팅
+$prev_candle_1m = CandleManager::getInstance()->getLastCandle(1);
 foreach ($candle_1m_list['result'] as $candle_data)
 {
     $candle_1m = new \trading_engine\objects\Candle(1);
@@ -280,17 +311,41 @@ $account->balance = $bybit->privates()->getWalletBalance()["result"]["BTC"]["wal
 
 Notify::sendMsg("봇을 시작합니다. 시작 잔액 usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
 
-var_dump(CandleManager::getInstance()->getLastCandle(60)->getNewRsi(14));
-var_dump(CandleManager::getInstance()->getLastCandle(60)->getCandlePrev()->getNewRsi(14));
-var_dump(CandleManager::getInstance()->getLastCandle(60)->getCandlePrev()->getCandlePrev()->getNewRsi(14));
 
 
-var_dump(CandleManager::getInstance()->getLastCandle(60)->getRsi(14));
-var_dump(CandleManager::getInstance()->getLastCandle(60)->getCandlePrev()->getRsi(14));
-var_dump(CandleManager::getInstance()->getLastCandle(60)->getCandlePrev()->getCandlePrev()->getRsi(14));
-$candle = CandleManager::getInstance()->getLastCandle(60);
-for ($i=0; $i<48;$i++)
-{
-    echo $candle->c."\r\n";
-    $candle = $candle->getCandlePrev();
-}
+
+
+OrderManager::getInstance()->updateOrder(
+    CandleManager::getInstance()->getLastCandle(1),
+    "BBS1",
+    -1,
+    33800,
+    1,
+    1,
+    "익절",
+    "골드"
+);
+
+sleep(5);
+
+
+
+OrderManager::getInstance()->updateOrder(
+    CandleManager::getInstance()->getLastCandle(1),
+    "BBS1",
+    -1,
+    32300,
+    0,
+    1,
+    "손절",
+    "골드"
+);
+sleep(3);
+$order = OrderManager::getInstance()->getOrder("BBS1", "익절");
+OrderManager::getInstance()->cancelOrder($order);
+
+sleep(3);
+
+$order = OrderManager::getInstance()->getOrder("BBS1", "손절");
+OrderManager::getInstance()->cancelOrder($order);
+//OrderManager::getInstance()->clearAllOrder("BBS1");
