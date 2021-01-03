@@ -60,10 +60,11 @@ HTML;
             foreach ($trade_log_list as $k=>$log)
             {
                 $time = strtotime($log->date_order);
+                $order = date("Y-m-d H:i:s", $time + 3600 * 9);
                 $str = <<<HTML
     <tr>
         <td>{$time}</td>
-        <td>{$log->date_order}</td>
+        <td>{$order}</td>
         <td>소요시간</td>
         <td>{$log->amount}</td>
         <td>{$log->entry}</td>

@@ -312,7 +312,7 @@ $account->balance = $bybit->privates()->getWalletBalance()["result"]["BTC"]["wal
 Notify::sendMsg("봇을 시작합니다. 시작 잔액 usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
 
 try {
-    $candle = CandleManager::getInstance()->getLastCandle(1);
+    $candle_prev_1m = CandleManager::getInstance()->getLastCandle(1);
     while (1) {
         sleep(1);
         if (time() % 900 == 0)
@@ -344,27 +344,33 @@ try {
         $candle_1m->h = $candle_data['high'];
         $candle_1m->l = $candle_data['low'];
         $candle_1m->c = $candle_data['close'];
-        if ($candle->t == $candle_data['open_time'])
+        if ($candle_prev_1m->t == $candle_data['open_time'])
         {
-            $candle->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
+            $candle_prev_1m->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
         }
 
-        if ($candle->t == $candle_1m->t) {
+        if ($candle_prev_1m->t == $candle_1m->t) {
             continue;
         }
 
+
+        $candle_1m->cp = $candle_prev_1m;
+        $candle_prev_1m->cn = $candle_1m;
+        $candle_prev_1m = $candle_1m;
+        CandleManager::getInstance()->addNewCandle($candle_1m);
+
         foreach ($make_candle_min_list as $min)
         {
-            if ($candle->t % (60 * $min) == 0)
+            if ($candle_1m->t % (60 * $min) == 0)
             {
                 $_last_candle = CandleManager::getInstance()->getLastCandle($min);
                 if ($_last_candle != null)
                 {
-                    $_last_candle->updateCandle($candle->h, $candle->l, $candle->c);
+                    $_last_candle->updateCandle($candle_1m->h, $candle_1m->l, $candle_1m->c);
                 }
 
                 $_new_last_candle = new Candle($min);
-                $_new_last_candle->setData($candle->t, $candle->o, $candle->h, $candle->l, $candle->c);
+                $_new_last_candle->setData($candle_1m->t, $candle_1m->o, $candle_1m->h, $candle_1m->l, $candle_1m->c);
                 CandleManager::getInstance()->addNewCandle($_new_last_candle);
                 $_new_last_candle->cp = $_last_candle;
                 if ($_last_candle != null)
@@ -374,7 +380,7 @@ try {
             }
             else
             {
-                CandleManager::getInstance()->getLastCandle($min)->updateCandle($candle->h, $candle->l, $candle->c);
+                CandleManager::getInstance()->getLastCandle($min)->updateCandle($candle_1m->h, $candle_1m->l, $candle_1m->c);
             }
         }
 
@@ -408,13 +414,13 @@ try {
 
         // 오더북 체크크
 
-        OrderManager::getInstance()->update($candle);
+        OrderManager::getInstance()->update($candle_1m);
         //$msg = StrategyTest::getInstance()->BBS($candle);
-        $msg = StrategyBB::getInstance()->BBS($candle);
+        $msg = StrategyBB::getInstance()->BBS($candle_1m);
         Notify::sendMsg("debug:".$msg);
 
 
-        if ($candle->t % 1000)
+        if ($candle_1m->t % 1000)
         {
             $account = Account::getInstance();
             $result = GlobalVar::getInstance()->
@@ -424,10 +430,6 @@ try {
                 $account->balance = $result;
             }
         }
-
-        $candle_1m->cp = $candle;
-        $candle->cn = $candle_1m;
-        $candle = $candle_1m;
     }
 }catch (\Exception $e)
 {
