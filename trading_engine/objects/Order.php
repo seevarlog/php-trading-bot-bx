@@ -100,6 +100,7 @@ class Order
         }
         else
         {
+            // 스탑인 경우
             if ($this->amount > 0)
             {
                 return $this->amount * 0.00075 * -1;

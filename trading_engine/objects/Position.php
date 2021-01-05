@@ -50,19 +50,13 @@ class Position
         $time = $candle->t;
 
         $this->strategy_key = $order->strategy_key;
-        $datetime = date('Y-m-d H:i:s', $time);
 
         if ($this->amount != 0 && $order->comment == "진입")
         {
             echo "error";
         }
 
-        $prev_balance = Account::getInstance()->getBitBalance();
-        $is_positive_num = $order->amount > 0;
-        $prev_amount = $this->amount;
         $prev_entry = $this->entry;
-        $add_balance = 0;
-        $profit_amount = 0;
         $profit_balance = 0;
 
         $fee = $order->getFee() * $leverage;
@@ -163,7 +157,7 @@ MSG;
         $log = new LogTrade();
         $log->strategy_name = $order->strategy_key;
         $log->comment = $order->comment;
-        $log->date_order = date('Y-m-d H:i:s', $order->date);
+        $log->date_order = date('Y-m-d H:i:s', $candle->t);
         $log->amount = $order->amount;
         $log->entry = Order::correctEntry($order->entry);
         $log->profit_balance = $profit_balance;
@@ -173,8 +167,6 @@ MSG;
         TradeLogManager::getInstance()->addTradeLog($log);
         $log->position_log = $this->log;
         $this->resetLog();
-
-        echo $account->getUSDBalance()."\r\n";
     }
 
     public function getPositionMsg()

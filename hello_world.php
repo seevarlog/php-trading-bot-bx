@@ -63,35 +63,6 @@ for ($i=0; $i<35000000; $i++)
         $candle->setData($arr[0], $arr[1 + $z], $arr[2 + $z], $arr[3 + $z], $arr[4 + $z]);
     }
 
-    foreach ($make_candle_min_list as $min)
-    {
-        if ($candle->t % (60 * $min) == 0)
-        {
-            $_last_candle = $candleMng->getLastCandle($min);
-            if ($_last_candle != null)
-            {
-                $_last_candle->updateCandle($candle->h, $candle->l, $candle->c);
-            }
-
-            $_new_last_candle = new Candle($min);
-            $_new_last_candle->setData($candle->t, $candle->o, $candle->h, $candle->l, $candle->c);
-            $candleMng->addNewCandle($_new_last_candle);
-            $_new_last_candle->cp = $_last_candle;
-            if ($_last_candle != null)
-            {
-                $_last_candle->cn = $_new_last_candle;
-            }
-        }
-        else
-        {
-            $_candle = $candleMng->getLastCandle($min);
-            if ($_candle != null)
-            {
-                $_candle->updateCandle($candle->h, $candle->l, $candle->c);
-            }
-        }
-    }
-
     /*
     if ($candle->t % (3600*24) == 0)
     {
@@ -133,15 +104,56 @@ $prev_candle = $candle;
 var_dump($candle->getDateTime());
 for ($i=0; $i<500000000; $i++)
 {
+
+    foreach ($make_candle_min_list as $min)
+    {
+        IF ($candle === null)
+        {
+            continue;
+        }
+
+        if ($candle->t % (60 * $min) == 0)
+        {
+            $_last_candle = $candleMng->getLastCandle($min);
+            if ($_last_candle != null)
+            {
+                $_last_candle->updateCandle($candle->h, $candle->l, $candle->c);
+            }
+
+            $_new_last_candle = new Candle($min);
+            $_new_last_candle->setData($candle->t, $candle->o, $candle->h, $candle->l, $candle->c);
+            $candleMng->addNewCandle($_new_last_candle);
+            $_new_last_candle->cp = $_last_candle;
+            if ($_last_candle != null)
+            {
+                $_last_candle->cn = $_new_last_candle;
+            }
+        }
+        else
+        {
+            $_candle = $candleMng->getLastCandle($min);
+            if ($_candle != null)
+            {
+                $_candle->updateCandle($candle->h, $candle->l, $candle->c);
+            }
+        }
+    }
+
+    if ($i < 30000)
+    {
+        continue;
+    }
+
     if ($candle == null)
     {
         break;
     }
+
     \trading_engine\util\CoinPrice::getInstance()->updateBitPrice($candle->c);
     \trading_engine\managers\OrderManager::getInstance()->update($candle);
 
-    \trading_engine\strategy\StrategyBB::getInstance()->BBS($candle);
-    //\trading_engine\strategy\StrategyTest::getInstance()->BBS($candle);
+    trading_engine\strategy\StrategyBB::getInstance()->BBS($candle->cp);
+    //trading_engine\strategy\StrategyTest::getInstance()->BBS($candle);
 
     $prev_candle = $candle;
     $candle = $candle->cn;
@@ -163,4 +175,4 @@ echo "end. time : ".$result_time;
 var_dump($account->getUSDBalanceFloat());
 var_dump($account->getBitBalance());
 var_dump($prev_candle->getDateTime());
-var_dump(\trading_engine\managers\OrderManager::getInstance());
+//var_dump(\trading_engine\managers\OrderManager::getInstance());

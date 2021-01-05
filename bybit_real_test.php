@@ -409,8 +409,8 @@ try {
         // 오더북 체크크
 
         OrderManager::getInstance()->update($candle);
-        //StrategyTest::getInstance()->BBS($candle);
-        $msg = StrategyBB::getInstance()->BBS($candle);
+        $msg = StrategyTest::getInstance()->BBS($candle);
+        //$msg = StrategyBB::getInstance()->BBS($candle);
         Notify::sendMsg("debug:".$msg);
 
 

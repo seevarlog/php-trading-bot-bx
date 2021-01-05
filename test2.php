@@ -1,19 +1,10 @@
 <?php
 
-//테스트넷
-//15hbAEqxfbeEtnclzf
-//V5u1FFvdGXnC0th9KeC0xtOswbmG0DK0Toie
-
-//리얼
-//40SdzxvYlqpA7p1kDi
-//8WjYoyTQritpVWZ9JN95upNmCLJdetg71Q5l
 
 include __DIR__."/vendor/autoload.php";
 
-use GuzzleHttp\Exception\RequestException;
 use Lin\Bybit\BybitInverse;
 use Lin\Bybit\BybitLinear;
-use Lin\Bybit\Exceptions\Exception;
 use trading_engine\managers\CandleManager;
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
@@ -28,5 +19,34 @@ use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
 use trading_engine\util\Notify;
 
+ini_set("display_errors", 1);
+ini_set('memory_limit','3G');
 
-echo date("y-m-d", 1515542400);
+$config = json_decode(file_get_contents(__DIR__."/config/config.json"), true);
+
+$bybit = new BybitInverse(
+    $config['short']['key'],
+    $config['short']['secret'],
+    'https://api.bybit.com/'
+);
+
+GlobalVar::getInstance()->setByBit($bybit);
+Config::getInstance()->setRealTrade();
+
+//You can set special needs
+$bybit->setOptions([
+    //Set the request timeout to 60 seconds by default
+    'timeout'=>10,
+
+    //If you are developing locally and need an agent, you can set this
+    //'proxy'=>true,
+    //More flexible Settings
+    /* 'proxy'=>[
+     'http'  => 'http://127.0.0.1:12333',
+     'https' => 'http://127.0.0.1:12333',
+     'no'    =>  ['.cn']
+     ], */
+    //Close the certificate
+    //'verify'=>false,
+]);
+

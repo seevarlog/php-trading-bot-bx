@@ -313,7 +313,6 @@ class OrderManager extends Singleton
                     //var_dump($position);
                     //var_dump($order);
 
-                    // 감소 전용 로직 ?
                     $position->addPositionByOrder($order, $last_candle);
                     if ($position->amount == 0)
                     {

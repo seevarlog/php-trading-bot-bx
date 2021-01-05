@@ -139,6 +139,19 @@ class Candle
         return [$max, $min];
     }
 
+    public function getRsiMA($rsi_length, $ma_length)
+    {
+        $sum = 0;
+        $candle = $this;
+        for ($i=0; $i<$ma_length; $i++)
+        {
+            $sum += $candle->getNewRsi($rsi_length);
+            $candle = $candle->getCandlePrev();
+        }
+
+        return $sum / $ma_length;
+    }
+
     // n 일동안의 기울기 합을 구함
     public function getRsiInclinationSum($n)
     {
@@ -146,8 +159,8 @@ class Candle
         $candle = $this;
         for ($i=0; $i<$n; $i++)
         {
-            $now = $candle->getRsi(14);
-            $prev = $candle->getCandlePrev()->getRsi(14);
+            $now = $candle->getNewRsi(14);
+            $prev = $candle->getCandlePrev()->getNewRsi(14);
 
             $sum += $now - $prev;
 
@@ -207,6 +220,7 @@ class Candle
             {
                 $min = $rsi;
             }
+            $candle = $this->getCandlePrev();
         }
 
         return $min;

@@ -46,8 +46,8 @@ class TradeLogManager extends Singleton
         <td>소요시간</td>
         <td>거래량</td>
         <td>진입가</td>
-        <td>수익</td>
         <td>진입수수료</td>
+        <td>수익</td>
         <td>총잔액</td>
         <td>로그</td>
         <td>포지션로그</td>

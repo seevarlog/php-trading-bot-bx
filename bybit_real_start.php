@@ -63,7 +63,7 @@ foreach ($position_list['result'] as $data)
     {
         continue;
     }
-    
+
     $position = PositionManager::getInstance()->getPosition("BBS1");
     $position->entry = $position_result['entry_price'];
     $position->amount = $position_result['side'] == "Buy" ? $position_result['size'] : -$position_result['size'];
@@ -314,7 +314,7 @@ Notify::sendMsg("봇을 시작합니다. 시작 잔액 usd:".$account->getUSDBal
 try {
     $candle_prev_1m = CandleManager::getInstance()->getLastCandle(1);
     while (1) {
-        sleep(1);
+        sleep(0.5);
         if (time() % 900 == 0)
         {
             Notify::sendMsg("살아있음.");
@@ -354,10 +354,6 @@ try {
         }
 
 
-        $candle_1m->cp = $candle_prev_1m;
-        $candle_prev_1m->cn = $candle_1m;
-        $candle_prev_1m = $candle_1m;
-        CandleManager::getInstance()->addNewCandle($candle_1m);
 
         foreach ($make_candle_min_list as $min)
         {
@@ -414,10 +410,10 @@ try {
 
         // 오더북 체크크
 
-        OrderManager::getInstance()->update($candle_1m);
+        OrderManager::getInstance()->update($candle_prev_1m);
         //$msg = StrategyTest::getInstance()->BBS($candle);
-        $msg = StrategyBB::getInstance()->BBS($candle_1m);
-        Notify::sendMsg("debug:".$msg);
+        $msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
+        Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()." debug:".$msg);
 
 
         if ($candle_1m->t % 1000)
@@ -430,6 +426,11 @@ try {
                 $account->balance = $result;
             }
         }
+
+        $candle_1m->cp = $candle_prev_1m;
+        $candle_prev_1m->cn = $candle_1m;
+        $candle_prev_1m = $candle_1m;
+        CandleManager::getInstance()->addNewCandle($candle_1m);
     }
 }catch (\Exception $e)
 {
