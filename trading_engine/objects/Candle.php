@@ -57,6 +57,11 @@ class Candle
         return $datetime = date('Y-m-d H:i:s', $this->t);
     }
 
+    public function displayCandle()
+    {
+        return "t:".$this->getDateTime()."  h:".$this->h." l:".$this->l." c:".$this->c." o:".$this->o;
+    }
+
     public function getTime()
     {
         return $this->t;
@@ -419,6 +424,19 @@ class Candle
         return $this->cp;
     }
 
+    public function getVolatilityValue($length)
+    {
+        $candle = $this;
+        $sum = 0;
+        for ($i=0; $i<$length; $i++)
+        {
+            $sum += $candle->h - $candle->l;
+            $candle = $candle->getCandlePrev();
+        }
+
+        return $sum;
+    }
+
     /*
      * 캔들 중에 음봉과 양봉의 수를 세본다
      */
@@ -533,25 +551,11 @@ class Candle
 
         if ($this->c == 0)
         {
-            return 0.00546;
+            return 0.074;
         }
 
-        $sum_percent = 0;
-        for ($i=0; $i<$day; $i++)
-        {
-            if ($this->o == $this->c)
-            {
-                $sum_percent = 0;
-            }
-            else
-            {
-                $sum_percent += abs(($this->h - $this->l) / $this->c);
-            }
-            $prev = $prev->getCandlePrev();
-        }
-        $sum_percent /= $day;
 
-        return $sum_percent;
+        return $this->getVolatilityValue($day) / $this->c;
     }
 
     public function getAvgVolatilityPercentForStop($day)
