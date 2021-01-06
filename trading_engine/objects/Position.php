@@ -66,7 +66,7 @@ class Position
         {
             if (!Config::getInstance()->isRealTrade())
             {
-                $order->execution_price = $order->entry;
+                $order->execution_price = $order->entry * 0.9998;
             }
             $exec_order_price = $order->execution_price;
             if ($exec_order_price == 0)

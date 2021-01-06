@@ -59,7 +59,7 @@ class Candle
 
     public function displayCandle()
     {
-        return "t:".$this->getDateTime()."  h:".$this->h." l:".$this->l." c:".$this->c." o:".$this->o;
+        return "t:".$this->getDateTime()."  h:".$this->h." l:".$this->l." c:".$this->c." o:".$this->o." upbb:".$this->getBBUpLine(40, 1.3);
     }
 
     public function getTime()
@@ -689,15 +689,6 @@ class Candle
 
     public function calcEMA($length, $n)
     {
-        if ($n == 0)
-        {
-            return $this->c;
-        }
-
-        if (isset($this->ema[$length]))
-        {
-            return $this->ema[$length];
-        }
 
         $exp = 2 / ($length + 1);
         $ema = ($this->c * $exp) + ($this->getCandlePrev()->calcEMA($length, $n-1) * (1 - $exp));
@@ -706,10 +697,26 @@ class Candle
         return $ema;
     }
 
-    public function getEMA($length)
+    public function getEMA($length, $n = -1)
     {
+        if ($n == -1)
+        {
+            $n = $length;
+        }
+
+        if ($n == 0)
+        {
+            return $this->getMA($length);
+        }
+
+        if (isset($this->ema[$length]))
+        {
+            return $this->ema[$length];
+        }
+
         $exp = 2 / ($length + 1);
-        $ema = ($this->c * $exp) + ($this->getCandlePrev()->calcEMA($length, $length) * (1 - $exp));
+        $ema = ($this->c * $exp) + ($this->getCandlePrev()->getEMA($length, $n - 1) * (1 - $exp));
+        $this->ema[$length] = $ema;
 
         return $ema;
     }

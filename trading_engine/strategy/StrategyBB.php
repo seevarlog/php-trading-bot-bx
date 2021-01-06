@@ -21,7 +21,7 @@ class StrategyBB extends StrategyBase
     public function BBS(Candle $candle)
     {
         $per = log(exp(1)+$candle->tick);
-        $leverage = 12;
+        $leverage = 13;
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24);
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
@@ -127,7 +127,24 @@ class StrategyBB extends StrategyBase
                         "익절",
                         "골드"
                     );
+
+
+                    // 손절 주문
+                    OrderManager::getInstance()->updateOrder(
+                        $candle->getTime(),
+                        $this->getStrategyKey(),
+                        $amount,
+                        $curPosition->entry,
+                        0,
+                        1,
+                        "손절",
+                        "손절 본절가 수정",
+                        "본절가수정",
+                        30
+                    );
+
                 }
+
             }
         }
 
@@ -145,7 +162,7 @@ class StrategyBB extends StrategyBase
         // 1차 합격
         $action = "";
         $stop_per = 0.012;
-        $buy_per = 0.0004;
+        $buy_per = 0.0002;
         $candle_240min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 240);
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
 
@@ -224,6 +241,25 @@ class StrategyBB extends StrategyBase
                 return ;
             }
         }
+
+        // 마지막 1분봉 저항선 근처라면 거래금지
+        $state = $candle->getGoldenDeadState();
+        if ($state == "dead")
+        {
+            $ema240 = $candle->getEMA(240);
+            $ema300 = $candle->getEMA(300);
+            $ema300_min = $ema300 * 0.9975;
+            $ema300_max = $ema300 * 1.0025;
+
+            // 혹시라도 진입했는데 저항선 근처라면 패스
+            if ($ema300 < $candle->c)
+            {
+                return;
+            }
+        }
+
+        $log .= $state;
+
 
         // 매수 시그널, 아래서 위로 BB를 뚫음
         // 매수 주문
