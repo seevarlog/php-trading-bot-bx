@@ -83,10 +83,11 @@ class StrategyBB extends StrategyBase
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount > 0)
         {
             $sell_price = 0;
+            $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
             $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
             if ($positionMng->getPosition($this->getStrategyKey())->action == "1시간봉")
             {
-                if (CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getNewRsi(14) > 65)
+                if ($candle_15min->getNewRsi(14) > 65)
                 {
                     [$max, $min] = $candle->getMaxMinValueInLength(5);
                     // 골드 매도
@@ -161,13 +162,13 @@ class StrategyBB extends StrategyBase
 
 
         // 거래 중지 1시간
-        if ($candle_60min->getCandlePrev()->getCandlePrev()->getCandlePrev()->getRsiMA(14, 14) - $candle_60min->getRsiMA(14, 14) > 0)
+        if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 14) - $candle_60min->getRsiMA(14, 14) > 0)
         {
             // 하락 추세에서 반전의 냄새가 느껴지면 거래진입해서 큰 익절을 노림
-            if ($candle_60min->getMinRealRsi(14, 7) < 33 && $candle_60min->getRsiInclinationSum(3) > 0)
+            if ($candle_60min->getMinRealRsi(14, 7) < 34 && $candle_60min->getRsiInclinationSum(1) > 0)
             {
                 $stop_per = 0.023;
-                $buy_per = 0.03;
+                $buy_per = 0.02;
 
                 $action = "1시간봉";
             }
@@ -192,8 +193,12 @@ class StrategyBB extends StrategyBase
             $stop_per += 0.005;
             [$max_5min, $min_5min] = $candle_5min->getMaxMinValueInLength(10);
             $buy_price = $min_5min;
-            $stop_price = $buy_price * $stop_per;
+            $stop_price = $buy_price * (1 - $stop_per);
             $action = "5분";
+        }
+        else if ($candle_5min->getBBDownCount($day, $k_down, 4) > 1)
+        {
+            return ;
         }
 
         // 매수 시그널, 아래서 위로 BB를 뚫음

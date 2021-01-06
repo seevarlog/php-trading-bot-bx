@@ -139,6 +139,30 @@ class Candle
         return [$max, $min];
     }
 
+    /**
+     * BB down 밑에 몇 개의 캔들이 있나 체크
+     *
+     * @param $bb_day
+     * @param $k
+     * @param $length
+     * @return int
+     */
+    public function getBBDownCount($bb_day, $k, $length)
+    {
+        $count = 0;
+        $candle = $this;
+        for ($i=0; $i<$length; $i++)
+        {
+            if ($candle->getBBDownLine($bb_day, $k) > $candle->c)
+            {
+                $count += 1;
+            }
+            $candle = $this->getCandlePrev();
+        }
+
+        return $count;
+    }
+
     public function getRsiMA($rsi_length, $ma_length)
     {
         $sum = 0;
@@ -224,6 +248,24 @@ class Candle
         }
 
         return $min;
+    }
+
+
+    public function getMaxRealRsi($rsi_length, $range_day)
+    {
+        $max = 0;
+        $candle = $this;
+        for ($i=0; $i<$range_day; $i++)
+        {
+            $rsi = $candle->getNewRsi($rsi_length);
+            if ($rsi > $max)
+            {
+                $max = $rsi;
+            }
+            $candle = $this->getCandlePrev();
+        }
+
+        return $max;
     }
 
 
