@@ -102,7 +102,7 @@ class OrderManager extends Singleton
      * @param $is_reduce_only
      * @param $comment
      */
-    public function updateOrder($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment, $log, $action = "")
+    public function updateOrder($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment, $log, $action = "", $wait_min = 30)
     {
         $order = $this->getOrder($st_key, $comment);
 
@@ -116,6 +116,7 @@ class OrderManager extends Singleton
         $order->comment = $comment;
         $order->log = $log;
         $order->action = $action;
+        $order->wait_min = $wait_min;
 
         if (!Config::getInstance()->is_real_trade)
         {

@@ -716,22 +716,21 @@ class Candle
 
     public function getGoldenDeadState()
     {
-        $ma360 = $this->getEMA(360);
+        $ma300 = $this->getEMA(300);
         $ma240 = $this->getEMA(240);
         $ma120 = $this->getEMA(120);
-        $ma60 = $this->getEMA(60);
 
-        $ma360to240per = abs(1 - $ma360 / $ma240);
+        $ma360to240per = abs(1 - $ma300 / $ma240);
         $ma240to120per = abs(1 - $ma240 / $ma120);
         $isCertainDistance = $ma360to240per >= 0.0003 && $ma240to120per >= 0.0003;
 
         // 0.02 이상
 
-        if ($ma360 < $ma240 && $ma240 < $ma120 && $ma120 < $ma60 && $isCertainDistance)
+        if ($ma300 < $ma240 && $ma240 < $ma120 && $isCertainDistance)
         {
             return "gold";
         }
-        else if ($ma360 > $ma240 && $ma240 > $ma120 && $ma120 > $ma60 &&  $isCertainDistance)
+        else if ($ma300 > $ma240 && $ma240 > $ma120 &&  $isCertainDistance)
         {
             return "dead";
         }

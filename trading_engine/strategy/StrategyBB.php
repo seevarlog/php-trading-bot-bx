@@ -21,7 +21,7 @@ class StrategyBB extends StrategyBase
     public function BBS(Candle $candle)
     {
         $per = log(exp(1)+$candle->tick);
-        $leverage = 1;
+        $leverage = 12;
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24);
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
@@ -44,39 +44,9 @@ class StrategyBB extends StrategyBase
                 continue;
             }
 
-            if ($order->log == "15분")
+            if ($candle->getTime() - $order->date > $order->wait_min * 60)
             {
                 continue;
-            }
-
-            if ($curPosition->action == "1시간봉" && $order->comment == "익절")
-            {
-                continue;
-            }
-
-            if ($curPosition->action == "5분" && ($order->comment == "손절" ||  $order->comment == "진입"))
-            {
-                if ($candle->getTime() - $order->date > 60 * 120)
-                {
-                    if ($order->comment == "진입")
-                    {
-                        $orderMng->clearAllOrder($this->getStrategyKey());
-                        continue;
-                    }
-                    $orderMng->cancelOrder($order);
-                }
-            }
-
-
-
-            if ($candle->getTime() - $order->date > 60 * 30)
-            {
-                if ($order->comment == "진입")
-                {
-                    $orderMng->clearAllOrder($this->getStrategyKey());
-                    continue;
-                }
-                $orderMng->cancelOrder($order);
             }
         }
 
@@ -99,7 +69,45 @@ class StrategyBB extends StrategyBase
                         1,
                         1,
                         "익절",
-                        "1시간슈퍼익절"
+                        "1시간슈퍼익절",
+                        10000
+                    );
+                }
+            }
+            else if ($positionMng->getPosition($this->getStrategyKey())->action == "5분EMA")
+            {
+                $min5 = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
+
+                $sell_price = $min5->getMA(240) + $min5->getEMA(120) - $min5->getMA(300);
+
+                OrderManager::getInstance()->updateOrder(
+                    $candle->getTime(),
+                    $this->getStrategyKey(),
+                    $amount,
+                    $sell_price,
+                    1,
+                    1,
+                    "익절",
+                    "5분익절",
+                    1000
+                );
+            }
+            else if ($positionMng->getPosition($this->getStrategyKey())->action == "5분")
+            {
+                if ($candle->getNewRsi(14) > 60)
+                {
+                    [$max, $min] = $candle->getMaxMinValueInLength(5);
+                    // 골드 매도
+                    OrderManager::getInstance()->updateOrder(
+                        $candle->getTime(),
+                        $this->getStrategyKey(),
+                        $amount,
+                        ($max + $candle->getClose()) / 2,
+                        1,
+                        1,
+                        "익절",
+                        "5분익절",
+                        1000
                     );
                 }
             }
@@ -185,6 +193,7 @@ class StrategyBB extends StrategyBase
 
         $buy_price = $candle->getClose() * (1 - $buy_per);
         $stop_price = $buy_price  * (1 - $stop_per);
+        $wait_min = 30;
 
 
         // 5분봉 예외처리
@@ -198,7 +207,22 @@ class StrategyBB extends StrategyBase
         }
         else if ($candle_5min->getBBDownCount($day, $k_down, 4) > 1)
         {
-            return ;
+            // BB 밑이면 이미 하락 크게 진행 중
+            if ($candle_5min->getGoldenDeadState() == "gold" && $candle_5min->getBBDownLine($day, $k_up) > $candle->c &&
+                $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA(200) )
+            {
+                var_dump("여기들어옴");
+                // 골크에 200일선과 300일선 사이라서 도박해본다
+                $stop_per = 0.015;
+                $buy_price = $candle_5min->getEMA(300);
+                $stop_price = $buy_price * (1 - $stop_per);
+                $action = "5분EMA";
+                $wait_min = 120;
+            }
+            else
+            {
+                return ;
+            }
         }
 
         // 매수 시그널, 아래서 위로 BB를 뚫음
@@ -212,7 +236,8 @@ class StrategyBB extends StrategyBase
             0,
             "진입",
             $log,
-            $action
+            $action,
+            $wait_min
         );
 
         // 손절 주문
@@ -225,7 +250,8 @@ class StrategyBB extends StrategyBase
             1,
             "손절",
             $log,
-            $action
+            $action,
+            $wait_min
         );
 
         return "";

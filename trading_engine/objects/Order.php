@@ -21,9 +21,10 @@ class Order
     public $execution_price; // 스탑된 가격
     public $log;
     public $action;
+    public $wait_min;
 
 
-    public static function getNewOrderObj($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment, $log, $action = "")
+    public static function getNewOrderObj($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment, $log, $action = "", $wait_min =30)
     {
         $order = new self();
 
