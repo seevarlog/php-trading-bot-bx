@@ -704,14 +704,20 @@ class Candle
             $n = $length;
         }
 
-        if ($n == 0)
-        {
-            return $this->getMA($length);
-        }
-
         if (isset($this->ema[$length]))
         {
             return $this->ema[$length];
+        }
+
+        if ($n == 0)
+        {
+            $ma = $this->getMA($length);
+            if ($ma == 0)
+            {
+                return $this->c;
+            }
+
+            return $this->getMA($length);
         }
 
         $exp = 2 / ($length + 1);
@@ -726,6 +732,12 @@ class Candle
         $ma300 = $this->getEMA(300);
         $ma240 = $this->getEMA(240);
         $ma120 = $this->getEMA(120);
+
+        if($ma240 == 0)
+        {
+            var_dump($this);
+            echo 'test';
+        }
 
         $ma360to240per = abs(1 - $ma300 / $ma240);
         $ma240to120per = abs(1 - $ma240 / $ma120);

@@ -153,10 +153,24 @@ class StrategyBB extends StrategyBase
             return ;
         }
 
+        $log = "";
+        $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
+        // BB 밑이면 이미 하락 크게 진행 중
+        if ($candle_5min->getGoldenDeadState() == "gold" && $candle_5min->getBBDownLine($day, $k_up) > $candle->c &&
+            $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA(200) )
+        {
+            // 골크에 200일선과 300일선 사이라서 도박해본다
+            $stop_per = 0.03;
+            $buy_price = $candle_5min->getEMA(300);
+            $stop_price = $buy_price * (1 - $stop_per);
+            $action = "필살5분EMA";
+            $wait_min = 120;
+            GOTO ENTRY;
+        }
 
         if ($candle->crossoverBBDownLine($day, $k_down) == false)
         {
-            return ;
+            return "크로스안함";
         }
 
         // 1차 합격
@@ -164,7 +178,7 @@ class StrategyBB extends StrategyBase
         $stop_per = 0.012;
         $buy_per = 0.0002;
         $candle_240min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 240);
-        $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
+
 
         $cur_5min_rsi_ma = $candle_5min->getRsiMA(14, 14);
 
@@ -182,7 +196,7 @@ class StrategyBB extends StrategyBase
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         if ($candle_60min->getNewRsi(14) > 70)
         {
-            return ;
+            return "1시간 RSI 에러";
         }
 
 
@@ -199,7 +213,7 @@ class StrategyBB extends StrategyBase
             }
             else
             {
-                return;
+                return "1시간반전 기회없음";
             }
         }
 
@@ -238,7 +252,7 @@ class StrategyBB extends StrategyBase
             }
             else
             {
-                return ;
+                return "5분봉 반전 노리기 실패";
             }
         }
 
@@ -254,13 +268,14 @@ class StrategyBB extends StrategyBase
             // 혹시라도 진입했는데 저항선 근처라면 패스
             if ($ema300 < $candle->c)
             {
-                return;
+                return "저항선 근처라 패스";
             }
         }
 
         $log .= $state;
 
 
+ENTRY:
         // 매수 시그널, 아래서 위로 BB를 뚫음
         // 매수 주문
         OrderManager::getInstance()->updateOrder(

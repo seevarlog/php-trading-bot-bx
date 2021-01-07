@@ -21,7 +21,6 @@ class StrategyBBC extends StrategyBase
     {
         $per = log(exp(1)+$candle->tick);
         $leverage = 1;
-        $dayCandle = CandleManager::getInstance()->getCur1DayCandle($candle);
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;

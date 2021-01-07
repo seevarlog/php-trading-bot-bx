@@ -40,7 +40,7 @@ for ($i=0; $i<35000000; $i++)
 
     $arr = explode(",", fgets($fp,1024));
 
-    if ($i<=0)
+    if ($i==0)
     {
         if ($arr[1] == "symbol")
         {
@@ -53,6 +53,12 @@ for ($i=0; $i<35000000; $i++)
     $candle = new Candle(1);
     $candle->cp = $prev_candle;
     $prev_candle->cn = $candle;
+
+    if (!isset($arr[1]))
+    {
+        continue;
+    }
+
     if ($arr[1] == "NaN")
     {
         $last_candle = $candleMng->getLastCandle(1);
@@ -104,13 +110,14 @@ $prev_candle = $candle;
 var_dump($candle->getDateTime());
 for ($i=0; $i<500000000; $i++)
 {
-
+    $prev_candle = $candle;
     foreach ($make_candle_min_list as $min)
     {
         IF ($candle === null)
         {
             continue;
         }
+
 
         if ($candle->t % (60 * $min) == 0)
         {
@@ -139,7 +146,9 @@ for ($i=0; $i<500000000; $i++)
         }
     }
 
-    if ($i < 30000)
+
+    $candle = $candle->cn;
+    if ($i < 60000)
     {
         continue;
     }
@@ -150,13 +159,10 @@ for ($i=0; $i<500000000; $i++)
     }
 
     \trading_engine\util\CoinPrice::getInstance()->updateBitPrice($candle->c);
-    \trading_engine\managers\OrderManager::getInstance()->update($candle);
+    \trading_engine\managers\OrderManager::getInstance()->update($prev_candle->getCandlePrev());
 
-    trading_engine\strategy\StrategyBB::getInstance()->BBS($candle->cp);
+    trading_engine\strategy\StrategyBB::getInstance()->BBS($prev_candle->getCandlePrev());
     //trading_engine\strategy\StrategyTest::getInstance()->BBS($candle);
-
-    $prev_candle = $candle;
-    $candle = $candle->cn;
 }
 
 var_dump($prev_candle->getDateTime());
