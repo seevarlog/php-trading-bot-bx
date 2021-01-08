@@ -12,12 +12,10 @@ class CandleManager extends Singleton
     public $candle_data_list = [];
     public $last_index = [];
     public $first_index = [];
-    public $last_prev_link = [];
 
     public function addNewCandle(Candle $candle)
     {
         $this->candle_data_list[$candle->tick][$candle->t] = $candle;
-        $this->last_prev_link[$candle->tick][$candle->t] = $this->last_index[$candle->tick];
         $this->last_index[$candle->tick] = $candle->t;
         if (!isset($this->first_index[$candle->tick]))
         {
