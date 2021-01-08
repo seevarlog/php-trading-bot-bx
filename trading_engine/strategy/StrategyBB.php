@@ -21,7 +21,7 @@ class StrategyBB extends StrategyBase
     public function BBS(Candle $candle)
     {
         $per = log(exp(1)+$candle->tick);
-        $leverage = 13;
+        $leverage = 12;
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24);
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
@@ -156,15 +156,26 @@ class StrategyBB extends StrategyBase
         $log = "";
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         // BB 밑이면 이미 하락 크게 진행 중
-        if ($candle_5min->getGoldenDeadState() == "gold" && $candle_5min->getBBDownLine($day, $k_up) > $candle->c &&
+        if ($candle_5min->getGoldenDeadState() == "gold" &&
             $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA(200) )
         {
             // 골크에 200일선과 300일선 사이라서 도박해본다
-            $stop_per = 0.03;
-            $buy_price = $candle_5min->getEMA(300);
-            $stop_price = $buy_price * (1 - $stop_per);
-            $action = "필살5분EMA";
-            $wait_min = 120;
+            if ($candle_5min->getBBDownLine($day, $k_up) > $candle->c )
+            {
+                $stop_per = 0.03;
+                $buy_price = $candle_5min->getEMA(300);
+                $stop_price = $buy_price * (1 - $stop_per);
+                $action = "필살5분EMA";
+                $wait_min = 120;
+            }
+            else
+            {
+                $stop_per = 0.03;
+                $buy_price = $candle_5min->getEMA(300);
+                $stop_price = $buy_price * (1 - $stop_per);
+                $action = "필살5분EMA";
+                $wait_min = 120;
+            }
             GOTO ENTRY;
         }
 
@@ -208,6 +219,7 @@ class StrategyBB extends StrategyBase
             {
                 $stop_per = 0.023;
                 $buy_per = 0.02;
+                $wait_min = 60;
 
                 $action = "1시간봉";
             }
@@ -242,7 +254,6 @@ class StrategyBB extends StrategyBase
             if ($candle_5min->getGoldenDeadState() == "gold" && $candle_5min->getBBDownLine($day, $k_up) > $candle->c &&
                 $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA(200) )
             {
-                var_dump("여기들어옴");
                 // 골크에 200일선과 300일선 사이라서 도박해본다
                 $stop_per = 0.015;
                 $buy_price = $candle_5min->getEMA(300);
