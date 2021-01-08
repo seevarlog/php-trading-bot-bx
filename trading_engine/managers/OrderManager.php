@@ -171,7 +171,8 @@ class OrderManager extends Singleton
                         [
                             'order_id'=>$order->order_id,
                             'symbol'=>"BTCUSD",
-                            'p_r_price'=>$order->entry
+                            'p_r_price'=>$order->entry,
+                            'p_r_qty'=>$order->amount
                         ]
                     );
                     var_dump($result);
@@ -183,7 +184,8 @@ class OrderManager extends Singleton
                         [
                             'stop_order_id'=>$order->order_id,
                             'symbol'=>"BTCUSD",
-                            'p_r_trigger_price'=>$order->entry
+                            'p_r_trigger_price'=>$order->entry,
+                            'p_r_qty'=>$order->amount
                         ]
                     );
                     var_dump($result);

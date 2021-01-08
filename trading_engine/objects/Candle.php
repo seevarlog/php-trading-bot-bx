@@ -607,11 +607,17 @@ class Candle
 
         if ($this->c == 0)
         {
-            return 0.074;
+            return 0.04;
         }
 
+        $candle = $this;
+        $sum = 0;
+        for ($i=0; $i<$day; $i++)
+        {
+            $sum += abs(($candle->h / $candle->l) - 1);
+        }
 
-        return $this->getVolatilityValue($day) / $this->c;
+        return $sum / $day;
     }
 
     public function getAvgVolatilityPercentForStop($day)
