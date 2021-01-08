@@ -69,7 +69,7 @@ class OrderManager extends Singleton
                     ]
                 );
                 $order->order_id = $result['result']['order_id'];
-                Notify::sendMsg(sprintf("%s 주문 넣었다. 진입가 : %f", $order->amount > 0 ? "매수" : "매도", $order->entry));
+                Notify::sendTradeMsg(sprintf("%s 주문 넣었다. 진입가 : %f", $order->amount > 0 ? "매수" : "매도", $order->entry));
             }
             else if ($order->is_stop)
             {
@@ -84,7 +84,7 @@ class OrderManager extends Singleton
                     ]
                 );
                 $order->order_id = $result['result']['order_id'];
-                Notify::sendMsg(sprintf("스탑 %s 주문 넣었다. 진입가 : %f", $order->amount > 0 ? "매수" : "매도", $order->entry));
+                Notify::sendTradeMsg(sprintf("스탑 %s 주문 넣었다. 진입가 : %f", $order->amount > 0 ? "매수" : "매도", $order->entry));
             }
         }
 
@@ -129,6 +129,8 @@ class OrderManager extends Singleton
             {
                 if ($order->is_limit)
                 {
+                    $bool_reduce_only = $order->is_reduce_only ? true : false;
+
                     $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderCreate(
                         [
                             'side'=>$order->amount > 0 ? "Buy" : "Sell",
@@ -136,15 +138,15 @@ class OrderManager extends Singleton
                             'order_type'=> $order->is_limit == 1 ? "Limit" : "Market",
                             'qty' => abs($order->amount),
                             'price'=> $order->entry,
-                            'time_in_force'=>'GoodTillCancel',
+                            'time_in_force'=>'GoodTillCancel'
                         ]
                     );
                     $order->order_id = $result['result']['order_id'];
-                    Notify::sendMsg(sprintf("주문 넣었다. 진입가 : %f 로그 : %s 액션 : %s", $order->entry, $order->log, $order->action));
+                    Notify::sendTradeMsg(sprintf("주문 넣었다. 진입가 : %f 로그 : %s 액션 : %s", $order->entry, $order->log, $order->action));
                 }
                 else if ($order->is_stop)
                 {
-                    var_dump($order);
+                    $bool_reduce_only = $order->is_reduce_only ? true : false;
                     $result = GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCreate(
                         [
                             'side'=>$order->amount < 0 ? "Sell" : "Buy",
@@ -153,12 +155,12 @@ class OrderManager extends Singleton
                             'qty' => abs($order->amount),
                             'stop_px'=> $order->entry,
                             'base_price'=> $order->entry,
-                            'time_in_force'=>'GoodTillCancel',
+                            'time_in_force'=>'GoodTillCancel'
                         ]
                     );
                     var_dump($result);
                     $order->order_id = $result['result']['stop_order_id'];
-                    Notify::sendMsg(sprintf("손절도 넣었다. 진입가 : %f", $order->entry));
+                    Notify::sendTradeMsg(sprintf("손절도 넣었다. 진입가 : %f", $order->entry));
                 }
             }
             else
@@ -173,7 +175,7 @@ class OrderManager extends Singleton
                         ]
                     );
                     var_dump($result);
-                    Notify::sendMsg(sprintf("주문 수정했다. 진입가 : %f", $order->entry));
+                    Notify::sendTradeMsg(sprintf("주문 수정했다. 진입가 : %f", $order->entry));
                 }
                 else if ($order->is_stop)
                 {
@@ -185,7 +187,7 @@ class OrderManager extends Singleton
                         ]
                     );
                     var_dump($result);
-                    Notify::sendMsg(sprintf("주문 수정했다. 이건 손절가 : %f", $order->entry));
+                    Notify::sendTradeMsg(sprintf("주문 수정했다. 이건 손절가 : %f", $order->entry));
                 }
             }
         }
@@ -244,7 +246,7 @@ class OrderManager extends Singleton
                 ['symbol'=>"BTCUSD"]
             );
 
-            Notify::sendMsg("모든 주문을 취소했다.");
+            Notify::sendTradeMsg("모든 주문을 취소했다.");
         }
     }
 
@@ -284,7 +286,7 @@ class OrderManager extends Singleton
                     ]
                 );
             }
-            Notify::sendMsg(sprintf("주문 취소했다. order_id : %s, 진입가 : %f", $_order->order_id, $_order->entry));
+            Notify::sendTradeMsg(sprintf("주문 취소했다. order_id : %s, 진입가 : %f", $_order->order_id, $_order->entry));
         }
     }
 
@@ -324,7 +326,7 @@ class OrderManager extends Singleton
                             $account = Account::getInstance();
                             $account->balance = GlobalVar::getInstance()->
                                                 getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
-                            Notify::sendMsg("지갑 동기화했다. usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
+                            Notify::sendTradeMsg("지갑 동기화했다. usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
                         }
                         break;
                     }

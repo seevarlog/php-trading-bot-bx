@@ -149,9 +149,17 @@ class Position
     결과 : {$profit_balance_usd} USD ({$profit_balance} btc) 
     수수료 : {$profit_fee_usd} USD ({$fee} btc)
     
-숭배하라"
 MSG;
-            Notify::sendMsg($msg);
+            if ($order->comment == "익절" || $order->comment == "손절")
+            {
+                $last_msg_profit = $profit_balance_usd + $profit_fee_usd;
+                $profit_per = round((($exec_order_price / $prev_entry) - 1) * 100, 2);
+                $msg .= "수익 : ".$last_msg_profit."(".$profit_per.")";
+            }
+
+
+
+            Notify::sendTradeMsg($msg);
         }
 
         $log = new LogTrade();
