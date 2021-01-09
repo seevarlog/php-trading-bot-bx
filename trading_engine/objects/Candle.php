@@ -703,6 +703,28 @@ class Candle
         return $ema;
     }
 
+    /**
+     * EMA 보다 내려간 값 중 가장 밑까지 내려간 최소값을 리턴
+     * @param $ema
+     * @param $length_day
+     */
+    public function getMaxIntervalEMA($ema, $length_day)
+    {
+        $min = 1;
+        $candle = $this;
+        for ($i=0; $i<$length_day; $i++)
+        {
+            $val = $candle->getEMA($ema) / $this->l - 1;
+            if ($val < $min && $val > 0)
+            {
+                $min = $val;
+            }
+            $candle = $candle->getCandlePrev();
+        }
+
+        return $min;
+    }
+
     public function getEMA($length, $n = -1)
     {
         if ($n == -1)

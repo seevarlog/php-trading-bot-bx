@@ -4,6 +4,7 @@
 namespace trading_engine\strategy;
 
 
+use Cassandra\Varint;
 use trading_engine\managers\CandleManager;
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
@@ -21,8 +22,8 @@ class StrategyBB extends StrategyBase
     public function BBS(Candle $candle)
     {
         $per = log(exp(1)+$candle->tick);
-        $leverage = 12;
-        $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24);
+        $leverage = 1;
+        $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
@@ -128,7 +129,6 @@ class StrategyBB extends StrategyBase
                         "골드"
                     );
                 }
-
             }
         }
 
