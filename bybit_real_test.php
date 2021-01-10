@@ -27,7 +27,7 @@ $config = json_decode(file_get_contents(__DIR__."/config/config.json"), true);
 $bybit = new BybitInverse(
     $config['real']['key'],
     $config['real']['secret'],
-    'https://api.bybit.com/'
+    'https://api-testnet.bybit.com/'
 );
 
 GlobalVar::getInstance()->setByBit($bybit);

@@ -30,7 +30,7 @@ $prev_candle = new Candle(1);
 $candle_list = array();
 $is_bybit_csv = false;
 $z = 0;
-for ($i=0; $i<35000000; $i++)
+for ($i=0; $i<10000000; $i++)
 {
     if (feof($fp))
     {

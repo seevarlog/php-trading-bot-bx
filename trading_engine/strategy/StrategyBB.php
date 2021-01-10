@@ -22,14 +22,18 @@ class StrategyBB extends StrategyBase
     public function BBS(Candle $candle)
     {
         $per = log(exp(1)+$candle->tick);
-        $leverage = 1;
+        $leverage = 14;
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
+        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
+        $per_1hour = $candle_60min->getAvgVolatilityPercent();
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
 
+        //$k_up = 1.3;
         $k_up = 1.3;
-        $k_down = 1.3;
+        $stop_per = $per_1hour * 2.5;
+        $k_down = $k_up;
         $day = 40;
         $orderMng = OrderManager::getInstance();
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
@@ -137,38 +141,38 @@ class StrategyBB extends StrategyBase
             return ;
         }
 
+        $action = "";
         $log = "";
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         // BB 밑이면 이미 하락 크게 진행 중
         if ($candle_5min->getGoldenDeadState() == "gold" &&
             $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA(200) )
         {
-            $stop_per = 0.03;
             // 골크에 200일선과 300일선 사이라서 도박해본다
             if ($dayCandle->getAvgVolatilityPercent(3) > 0.12)
             {
                 $stop_per = 0.08;
-                $leverage *= 0.4;
             }
             else if ($dayCandle->getAvgVolatilityPercent(3) > 0.09)
             {
                 $stop_per = 0.06;
-                $leverage *= 0.5;
-            } else if ($dayCandle->getAvgVolatilityPercent(3) > 0.075)
+            }
+            else if ($dayCandle->getAvgVolatilityPercent(3) > 0.075)
             {
                 $stop_per = 0.045;
-                $leverage *= 0.75;
             }
             else if ($dayCandle->getAvgVolatilityPercent(3) > 0.05)
             {
                 $stop_per = 0.035;
-                $leverage *= 0.9;
             }
 
-            $buy_price = $candle_5min->getEMA(300);
+            $max_per = $candle_5min->getMaxIntervalEMA(300, 200);
+            $stop_per = 0.03;
+
+            $buy_price = $candle_5min->getEMA(300) * (1 - ($max_per * 0.5));
             $stop_price = $buy_price * (1 - $stop_per);
             $action = "필살5분EMA";
-            $wait_min = 120;
+            $wait_min = 60;
             GOTO ENTRY;
         }
 
@@ -178,8 +182,6 @@ class StrategyBB extends StrategyBase
         }
 
         // 1차 합격
-        $action = "";
-        $stop_per = 0.012;
         $buy_per = 0.0002;
         $candle_240min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 240);
 
@@ -236,7 +238,7 @@ class StrategyBB extends StrategyBase
         if ($candle_5min->getMinRealRsi(14, 5) < 30)
         {
             $stop_per += 0.005;
-            [$max_5min, $min_5min] = $candle_5min->getMaxMinValueInLength(10);
+            [$max_5min, $min_5min] = $candle_5min->getMaxMinValueInLength(20);
             $buy_price = $min_5min;
             $stop_price = $buy_price * (1 - $stop_per);
             $action = "5분";
@@ -277,15 +279,42 @@ class StrategyBB extends StrategyBase
         }
 
         $log .= $state;
-
+        if ($buy_price > $candle->c)
+        {
+            $buy_price = $candle->c - 1;
+            var_dump("buy 사탄".$buy_price."-".$candle->c);
+        }
+        if ($stop_price > $candle->c)
+        {
+            $stop_price = $candle->c - 1;
+            var_dump("stop 사탄".$stop_price."-".$candle->c);
+        }
 
         ENTRY:
         // 매수 시그널, 아래서 위로 BB를 뚫음
         // 매수 주문
+
+
+        $leverage_per = 1;
+        if ($leverage > 1)
+        {
+            $leverage_standard_stop_per = 0.013;
+            $leverage_per = $leverage_standard_stop_per / ($buy_price / $stop_price) * $leverage;
+            if ($leverage_per < $leverage)
+            {
+                $leverage_per = $leverage;
+            }
+            else
+            {
+                $leverage_per = $leverage - ($leverage - $leverage_per) / 1.7;
+            }
+        }
+
+
         OrderManager::getInstance()->updateOrder(
             $candle->getTime(),
             $this->getStrategyKey(),
-            Account::getInstance()->getUSDBalance() * $leverage,
+            Account::getInstance()->getUSDBalance() * $leverage_per,
             $buy_price,
             1,
             0,
@@ -299,7 +328,7 @@ class StrategyBB extends StrategyBase
         OrderManager::getInstance()->updateOrder(
             $candle->getTime(),
             $this->getStrategyKey(),
-            -Account::getInstance()->getUSDBalance() * $leverage,
+            -Account::getInstance()->getUSDBalance() * $leverage_per,
             $stop_price,
             0,
             1,

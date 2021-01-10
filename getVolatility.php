@@ -127,7 +127,7 @@ $account = Account::getInstance();
 $account->balance = 1;
 
 
-$candle = CandleManager::getInstance()->getFirstCandle(240)->getCandleNext();
+$candle = CandleManager::getInstance()->getFirstCandle(60)->getCandleNext();
 $prev_candle = $candle;
 
 
@@ -162,7 +162,7 @@ for ($i=0; $i<500000000; $i++)
 
     $volPrice = $candle->getVolatilityValue(4);
     $cPrice = $candle->c;
-    $per = $volPrice / $cPrice * 100;
+    $per = $candle->getAvgVolatilityPercent(12);
     $str = <<<HTML
     <tr>
         <td>{$candle->getDateTime()}</td>

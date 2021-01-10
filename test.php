@@ -25,11 +25,12 @@ ini_set('memory_limit','3G');
 $config = json_decode(file_get_contents(__DIR__."/config/config.json"), true);
 
 $bybit = new BybitInverse(
-    $config['real']['key'],
-    $config['real']['secret'],
+    $config['short']['key'],
+    $config['short']['secret'],
     'https://api.bybit.com/'
 );
 
+Config::getInstance()->is_test = true;
 GlobalVar::getInstance()->setByBit($bybit);
 Config::getInstance()->setRealTrade();
 
@@ -89,18 +90,19 @@ foreach ($order_list['result']['data'] as $data)
 
     $is_limit = $order_data["order_type"] == "Limit" ? 1 : 0;
     $comment = "진입";
-    if ($order_data["order_type"] == "Limit" && $order_data["side"] == "Buy")
+    if ($order_data["order_type"] == "Limit" && $order_data["side"] == "Sell")
     {
         $comment = "진입";
+        $qty *= -1;
     }
-    else if ($order_data["order_type"] == "Market" && $order_data["side"] == "Sell")
+    else if ($order_data["order_type"] == "Market" && $order_data["side"] == "Buy")
     {
         $comment = "손절";
     }
     else
     {
         $comment = "익절";
-        $qty *= -1;
+        $qty *= 1;
     }
 
     var_dump($data);
@@ -137,12 +139,14 @@ foreach ($order_list['result']['data'] as $data)
         continue;
     }
 
+    $is_buy = $order_data["side"] == "Buy";
+
     $comment = "손절";
     var_dump($order_data);
     $order = Order::getNewOrderObj(
         strtotime($order_data["created_at"]),
         "BBS1",
-        -$order_data["qty"],
+        $is_buy ? $order_data["qty"] : -$order_data["qty"],
         $order_data["stop_px"],
         0,
         0,
@@ -257,7 +261,7 @@ foreach ($candle_1m_list['result'] as $candle_data)
 
 $candle_mng = CandleManager::getInstance();
 $make_candle_min_list = [5, 15, 30, 60, 60*4, 60 * 24];
-for ($i=2; $i>0; $i--)
+for ($i=5; $i>0; $i--)
 {
     foreach ($make_candle_min_list as $make_min)
     {
@@ -265,6 +269,11 @@ for ($i=2; $i>0; $i--)
         if ($interval == 60 * 24)
         {
             $interval = "D";
+        }
+
+        if ($interval =="D" && $i >= 3)
+        {
+            continue;
         }
 
         // 일봉셋팅 (14일꺼 가져옴)
@@ -311,41 +320,5 @@ $account->balance = $bybit->privates()->getWalletBalance()["result"]["BTC"]["wal
 
 Notify::sendMsg("봇을 시작합니다. 시작 잔액 usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
 
-
-
-
-
-OrderManager::getInstance()->updateOrder(
-    CandleManager::getInstance()->getLastCandle(1),
-    "BBS1",
-    -1,
-    33800,
-    1,
-    1,
-    "익절",
-    "골드"
-);
-
-sleep(5);
-
-
-
-OrderManager::getInstance()->updateOrder(
-    CandleManager::getInstance()->getLastCandle(1),
-    "BBS1",
-    -1,
-    32300,
-    0,
-    1,
-    "손절",
-    "골드"
-);
-sleep(3);
-$order = OrderManager::getInstance()->getOrder("BBS1", "익절");
-OrderManager::getInstance()->cancelOrder($order);
-
-sleep(3);
-
-$order = OrderManager::getInstance()->getOrder("BBS1", "손절");
-OrderManager::getInstance()->cancelOrder($order);
-//OrderManager::getInstance()->clearAllOrder("BBS1");
+$candle_1m = CandleManager::getInstance()->getLastCandle(60*24);
+var_dump($candle_1m->getCandlePrev()->getAvgVolatilityPercent(3));
