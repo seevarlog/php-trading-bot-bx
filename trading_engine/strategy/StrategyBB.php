@@ -22,7 +22,7 @@ class StrategyBB extends StrategyBase
     public function BBS(Candle $candle)
     {
         $per = log(exp(1)+$candle->tick);
-        $leverage = 14;
+        $leverage = 13;
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         $per_1hour = $candle_60min->getAvgVolatilityPercent();
@@ -31,9 +31,9 @@ class StrategyBB extends StrategyBase
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
 
         //$k_up = 1.3;
-        $k_up = 1.3;
+        $k_up = 1.1 + ($per_1hour - 0.02) * 10;
         $stop_per = $per_1hour * 2.5;
-        $k_down = $k_up;
+        $k_down = 1.3;
         $day = 40;
         $orderMng = OrderManager::getInstance();
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
@@ -238,10 +238,11 @@ class StrategyBB extends StrategyBase
         if ($candle_5min->getMinRealRsi(14, 5) < 30)
         {
             $stop_per += 0.005;
-            [$max_5min, $min_5min] = $candle_5min->getMaxMinValueInLength(20);
+            [$max_5min, $min_5min] = $candle_5min->getMaxMinValueInLength(90);
             $buy_price = $min_5min;
             $stop_price = $buy_price * (1 - $stop_per);
             $action = "5분";
+            $wait_min = 60;
         }
         else if ($candle_5min->getBBDownCount($day, $k_down, 4) > 1)
         {
@@ -309,6 +310,7 @@ class StrategyBB extends StrategyBase
                 $leverage_per = $leverage - ($leverage - $leverage_per) / 1.7;
             }
         }
+        $log .= "k = ".$k_up;
 
 
         OrderManager::getInstance()->updateOrder(
