@@ -22,7 +22,7 @@ class StrategyBB extends StrategyBase
     public function BBS(Candle $candle)
     {
         $per = log(exp(1)+$candle->tick);
-        $leverage = 17;
+        $leverage = 14;
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         $per_1hour = $candle_60min->getAvgVolatilityPercent();
@@ -60,26 +60,7 @@ class StrategyBB extends StrategyBase
             $sell_price = 0;
             $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
             $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
-            if ($positionMng->getPosition($this->getStrategyKey())->action == "1시간봉")
-            {
-                if ($candle_15min->getNewRsi(14) > 65)
-                {
-                    [$max, $min] = $candle->getMaxMinValueInLength(5);
-                    // 골드 매도
-                    OrderManager::getInstance()->updateOrder(
-                        $candle->getTime(),
-                        $this->getStrategyKey(),
-                        $amount,
-                        ($max + $candle->getClose()) / 2,
-                        1,
-                        1,
-                        "익절",
-                        "1시간슈퍼익절",
-                        10000
-                    );
-                }
-            }
-            else if ($positionMng->getPosition($this->getStrategyKey())->action == "5분EMA")
+            if ($positionMng->getPosition($this->getStrategyKey())->action == "5분EMA")
             {
                 $min5 = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
 
@@ -210,10 +191,10 @@ class StrategyBB extends StrategyBase
         if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 14) - $candle_60min->getRsiMA(14, 14) > 0)
         {
             // 하락 추세에서 반전의 냄새가 느껴지면 거래진입해서 큰 익절을 노림
-            if ($candle_60min->getMinRealRsi(14, 7) < 34 && $candle_60min->getRsiInclinationSum(1) > 0)
+            if ($candle_60min->getMinRealRsi(14, 7) < 30 && $candle_60min->getRsiInclinationSum(3) > 0)
             {
-                $stop_per = 0.023;
-                $buy_per = 0.02;
+                $stop_per = $per_1hour;
+                $buy_per = $per_1hour;
                 $wait_min = 60;
 
                 $action = "1시간봉";
@@ -278,6 +259,8 @@ class StrategyBB extends StrategyBase
                 return "저항선 근처라 패스";
             }
         }
+
+
 
         $log .= $state;
         if ($buy_price > $candle->c)
