@@ -22,9 +22,10 @@ class StrategyBB extends StrategyBase
     public function BBS(Candle $candle)
     {
         $per = log(exp(1)+$candle->tick);
-        $leverage = 14;
+        $leverage = 15;
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
+        $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
         $per_1hour = $candle_60min->getAvgVolatilityPercent();
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
@@ -32,7 +33,7 @@ class StrategyBB extends StrategyBase
 
         //$k_up = 1.3;
         $k_up = 1.1 + ($per_1hour - 0.02) * 10;
-        $stop_per = $per_1hour * 2;
+        $stop_per = $per_1hour * 2.5;
         $k_down = 1.3;
         $day = 40;
         $orderMng = OrderManager::getInstance();
@@ -58,7 +59,6 @@ class StrategyBB extends StrategyBase
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount > 0)
         {
             $sell_price = 0;
-            $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
             $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
             if ($positionMng->getPosition($this->getStrategyKey())->action == "5분EMA")
             {
@@ -272,6 +272,18 @@ class StrategyBB extends StrategyBase
         {
             $stop_price = $candle->c - 1;
             var_dump("stop 사탄".$stop_price."-".$candle->c);
+        }
+
+
+        if ($candle_15min->getGoldenDeadState() == "dead" && $candle_60min->getGoldenDeadState() == "gold")
+        {
+            $ema240 = $candle_15min->getEMA(240);
+
+            // 혹시라도 진입했는데 저항선 근처라면 패스
+            if ($ema240 < $candle->c)
+            {
+                return "저항선 근처라 패스";
+            }
         }
 
         ENTRY:
