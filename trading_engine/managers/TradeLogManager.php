@@ -29,6 +29,7 @@ class TradeLogManager extends Singleton
 
     public function showResultHtml()
     {
+        $month_account = [];
         $fp = fopen("result.htm", "w");
         foreach ($this->trade_log_list as $strategy_key => $trade_log_list)
         {
@@ -59,6 +60,10 @@ HTML;
             $prev_comment = "";
             foreach ($trade_log_list as $k=>$log)
             {
+                if (isset($month_account))
+                {
+                    $month_account[date("Y-m", strtotime($log->date_order))] = $log->total_balance;
+                }
                 $time = strtotime($log->date_order);
                 $order = date("Y-m-d H:i:s", $time + 3600 * 9);
                 $str = <<<HTML
@@ -130,6 +135,7 @@ HTML;
             fwrite($fp, $str);
 
         }
+        var_dump($month_account);
 
         fclose($fp);
     }

@@ -22,7 +22,7 @@ class StrategyBB extends StrategyBase
     public function BBS(Candle $candle)
     {
         $per = log(exp(1)+$candle->tick);
-        $leverage = 13;
+        $leverage = 17;
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         $per_1hour = $candle_60min->getAvgVolatilityPercent();
@@ -32,7 +32,7 @@ class StrategyBB extends StrategyBase
 
         //$k_up = 1.3;
         $k_up = 1.1 + ($per_1hour - 0.02) * 10;
-        $stop_per = $per_1hour * 2.5;
+        $stop_per = $per_1hour * 2;
         $k_down = 1.3;
         $day = 40;
         $orderMng = OrderManager::getInstance();
@@ -296,27 +296,28 @@ class StrategyBB extends StrategyBase
         // 매수 주문
 
 
-        $leverage_per = 1;
+        $leverage_correct = $leverage;
         if ($leverage > 1)
         {
             $leverage_standard_stop_per = 0.013;
-            $leverage_per = $leverage_standard_stop_per / ($buy_price / $stop_price) * $leverage;
-            if ($leverage_per < $leverage)
+            $leverage_stop_per = $buy_price / $stop_price - 1;
+            if ($leverage_stop_per < $leverage_standard_stop_per)
             {
-                $leverage_per = $leverage;
+                $leverage_correct = $leverage;
             }
             else
             {
-                $leverage_per = $leverage - ($leverage - $leverage_per) / 1.7;
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.8;
             }
         }
+
         $log .= "k = ".$k_up;
 
 
         OrderManager::getInstance()->updateOrder(
             $candle->getTime(),
             $this->getStrategyKey(),
-            Account::getInstance()->getUSDBalance() * $leverage_per,
+            Account::getInstance()->getUSDBalance() * $leverage_correct,
             $buy_price,
             1,
             0,
@@ -330,7 +331,7 @@ class StrategyBB extends StrategyBase
         OrderManager::getInstance()->updateOrder(
             $candle->getTime(),
             $this->getStrategyKey(),
-            -Account::getInstance()->getUSDBalance() * $leverage_per,
+            -Account::getInstance()->getUSDBalance() * $leverage_correct,
             $stop_price,
             0,
             1,

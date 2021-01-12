@@ -523,11 +523,6 @@ class Candle
         return $sum / $day;
     }
 
-    public function getCressState()
-    {
-
-    }
-
     // 평균 변동성 구하기
     public function getAvgVolatility($day)
     {
@@ -725,6 +720,22 @@ class Candle
         return $max;
     }
 
+    public function getEMA300()
+    {
+        return $this->getEMA(300);
+    }
+
+    public function getEMA240()
+    {
+        return $this->getEMA(240);
+    }
+
+    public function getEMA120()
+    {
+        return $this->getEMA(120);
+    }
+
+
     public function getEMA($length, $n = -1)
     {
         if ($n == -1)
@@ -753,6 +764,25 @@ class Candle
         $this->ema[$length] = $ema;
 
         return $ema;
+    }
+
+    /**
+     * 양수면 위로향하는 중
+     * RSI 의 MA 기울기로 추세를 측정한다.
+     * @param $interval
+     * @param $rsi_length
+     * @param $ma_length
+     * @return float|int
+     */
+    public function getRsiMaInclination($interval, $rsi_length, $ma_length)
+    {
+        $candle = $this;
+        $cur = $candle->getRsiMA($rsi_length, $ma_length);
+        for ($i=0; $i<$interval; $i++)
+        {
+            $candle = $candle->getCandlePrev();
+        }
+        return $cur - $candle->getRsiMA($rsi_length, $ma_length);
     }
 
     public function getGoldenDeadState()
