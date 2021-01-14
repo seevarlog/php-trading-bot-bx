@@ -799,10 +799,34 @@ class Candle
 
         if ($ma300 < $ma240 && $ma240 < $ma120 && $isCertainDistance)
         {
+            $candle = $this;
+            for ($i=0; $i<15; $i++)
+            {
+                $interval_price = $candle->getEMA120() - $candle->getEMA300();
+                if ($candle->getEMA120() - $interval_price > $candle->c)
+                {
+                    var_dump("골드예외리턴");
+                    return "sideways";
+                }
+                $candle = $candle->getCandlePrev();
+            }
+
             return "gold";
         }
         else if ($ma300 > $ma240 && $ma240 > $ma120 &&  $isCertainDistance)
         {
+            $candle = $this;
+            for ($i=0; $i<15; $i++)
+            {
+                $interval_price = $candle->getEMA300() - $candle->getEMA120();
+                if ($candle->getEMA300() + $interval_price < $candle->c)
+                {
+                    var_dump("데드예외리턴");
+                    return "sideways";
+                }
+                $candle = $candle->getCandlePrev();
+            }
+
             return "dead";
         }
 
