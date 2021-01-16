@@ -125,10 +125,31 @@ class Request
         {
             return -1;
         }
-
-        $this->auth();
         try {
-            return json_decode($this->send(),true);
+            $ret = ['result'=>[]];
+            $count = 0;
+            while(1)
+            {
+                $this->auth();
+                if ($count > 10)
+                {
+                    return json_decode($this->send(), true);
+                }
+
+                $body = $this->send();
+                $ret = json_decode($body, true);
+                $count += 1;
+
+                if ($ret['ret_code'] == 0)
+                {
+                    break;
+                }
+
+                Notify::sendTradeMsg("ret 코드 에러 : ".$body);
+
+                sleep(1);
+            }
+            return $ret;
         }catch (RequestException $e){
             sleep(0.5);
             $this->exec($retry - 1);
