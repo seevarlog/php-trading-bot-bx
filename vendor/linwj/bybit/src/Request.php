@@ -153,8 +153,6 @@ class Request
         }catch (RequestException $e){
             sleep(0.5);
             $this->exec($retry - 1);
-
-            var_dump($e);
             Notify::sendMsg("http 전송이슈 발생");
         }
 
