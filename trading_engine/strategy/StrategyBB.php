@@ -23,15 +23,30 @@ class StrategyBB extends StrategyBase
     {
         $per = log(exp(1)+$candle->tick);
         $leverage = 15;
+        if (!Config::getInstance()->isRealTrade())
+        {
+            $leverage = 1;
+        }
+        $orderMng = OrderManager::getInstance();
+        $order_list = $orderMng->getOrderList($this->getStrategyKey());
+        if (count($order_list) > 0 && $orderMng->getOrder($this->getStrategyKey(), "손절")->amount > 0)
+        {
+            return "매도포지션 점유 중";
+        }
+
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
+        $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
+
         $per_1hour = $candle_60min->getAvgVolatilityPercent();
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
 
         //$k_up = 1.3;
+
+        $wait_min = 30;
         $k_up = 1.1 + ($per_1hour - 0.02) * 10;
         $stop_per = $per_1hour * 2.5;
         $k_down = 1.3;
@@ -99,6 +114,16 @@ class StrategyBB extends StrategyBase
             }
             else
             {
+                /**
+                 *  15분봉 끌기 전략
+                 *  약 10%의 수익률 상승이 있지만 승률이 5% 하라함. 
+                 *  고배에서는 좋지 않은 전략으로 판단됨. 추후에 시드가 늘면 오픈
+                 */
+//                if ($candle_15min->crossoverBBUpLine($day, $k_up) == false && $candle_15min->getBBUpLine($day, $k_up) < $candle_15min->c)
+//                {
+//                    return "익절금지";
+//                }
+
                 if ($candle->crossoverBBUpLine($day, $k_up) == true)
                 {
                     [$max, $min] = $candle->getMaxMinValueInLength(5);
@@ -157,30 +182,10 @@ class StrategyBB extends StrategyBase
             GOTO ENTRY;
         }
 
-        if ($candle->crossoverBBDownLine($day, $k_down) == false)
-        {
-            return "크로스안함";
-        }
-
         // 1차 합격
         $buy_per = 0.0002;
-        $candle_240min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 240);
-
-
-        $cur_5min_rsi_ma = $candle_5min->getRsiMA(14, 14);
-
-        // rsi 다운 중
-        //               50                     -             30
-        /*
-        if ($candle_5min->cp->cp->cp->cp->getRsiMA(14, 14) - $cur_5min_rsi_ma > 0)
-        {
-            return "";
-        }
-        */
-
-
         // 1시간봉 과매수 거래 중지
-        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
+
         if ($candle_60min->getNewRsi(14) > 70)
         {
             return "1시간 RSI 에러";
@@ -191,13 +196,17 @@ class StrategyBB extends StrategyBase
         if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 14) - $candle_60min->getRsiMA(14, 14) > 0)
         {
             // 하락 추세에서 반전의 냄새가 느껴지면 거래진입해서 큰 익절을 노림
-            if ($candle_60min->getMinRealRsi(14, 7) < 30 && $candle_60min->getRsiInclinationSum(3) > 0)
+            if ($candle_60min->getMinRealRsi(14, 7) < 35 && $candle_60min->getRsiInclinationSum(3) > 0 && $candle_60min->getGoldenDeadState() == "gold")
             {
-                $stop_per = $per_1hour;
-                $buy_per = $per_1hour;
-                $wait_min = 60;
+                $stop_per = $per_1hour * 2;
+                $buy_per = $per_1hour / 2;
+                $buy_price = $candle->getClose() * (1 - $buy_per);
+                $stop_price = $buy_price  * (1 - $stop_per);
+                $wait_min = 180;
 
                 $action = "1시간봉";
+
+                goto ENTRY;
             }
             else
             {
@@ -205,6 +214,20 @@ class StrategyBB extends StrategyBase
             }
         }
 
+        if ($candle->crossoverBBDownLine($day, $k_down) == false)
+        {
+            return "크로스안함";
+        }
+
+
+        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
+        // 1시간봉 BB 밑이면 정지
+        if ($candle_60min->getBBDownLine(37, 0.95) > $candle_60min->c)
+        {
+            return "1시간 BB 아래에 있음";
+        }
+
+        if ($candle_60min)
 
         $log_plus="";
 
@@ -306,7 +329,7 @@ class StrategyBB extends StrategyBase
             }
         }
 
-        $log .= "k = ".$k_up;
+        $log .= "k = ".$k_up. " DAY=".$day;
 
 
         OrderManager::getInstance()->updateOrder(
@@ -343,5 +366,10 @@ class StrategyBB extends StrategyBase
     {
 
 
+    }
+
+    public function getStrategyKey()
+    {
+        return "BBS1";
     }
 }

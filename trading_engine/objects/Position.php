@@ -46,7 +46,6 @@ class Position
 
     public function addPositionByOrder(Order $order, Candle $candle)
     {
-        $leverage = 1;
         $time = $candle->t;
 
         $this->strategy_key = $order->strategy_key;
@@ -59,7 +58,7 @@ class Position
         $prev_entry = $this->entry;
         $profit_balance = 0;
 
-        $fee = $order->getFee() * $leverage;
+        $fee = $order->getFee();
         //$add_balance += $fee;
         $exec_order_price = $order->entry;
         if ($order->is_stop)
@@ -126,7 +125,6 @@ class Position
             $this->amount = $order->amount;
         }
 
-        $profit_balance *= $leverage;
         $profit_balance /= $exec_order_price;
         $fee /= $exec_order_price;
 

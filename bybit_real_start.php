@@ -417,6 +417,7 @@ try {
         OrderManager::getInstance()->update($candle_prev_1m);
         //$msg = StrategyTest::getInstance()->BBS($candle);
         $msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
+        $msg = \trading_engine\strategy\StrategyBBShort::getInstance()->BBS($candle_prev_1m);
         Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()." debug:".$msg);
 
 
