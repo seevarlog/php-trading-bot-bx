@@ -4,16 +4,13 @@
 include __DIR__."/vendor/autoload.php";
 
 use Lin\Bybit\BybitInverse;
-use Lin\Bybit\BybitLinear;
 use trading_engine\managers\CandleManager;
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
-use trading_engine\managers\TradeLogManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
 use trading_engine\objects\Order;
 use trading_engine\strategy\StrategyBB;
-use trading_engine\strategy\StrategyTest;
 use trading_engine\util\CoinPrice;
 use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
@@ -319,7 +316,7 @@ Notify::sendMsg("봇을 시작합니다. 시작 잔액 usd:".$account->getUSDBal
 try {
     $candle_prev_1m = CandleManager::getInstance()->getLastCandle(1);
     while (1) {
-        sleep(0.5);
+        sleep(1);
         if (time() % 900 == 0)
         {
             Notify::sendMsg("살아있음.");
@@ -389,6 +386,7 @@ try {
         $position_msg = PositionManager::getInstance()->getPosition("BBS1")->getPositionMsg();
         PositionManager::getInstance()->getPosition("BBS1");
 
+        /*
         foreach (OrderManager::getInstance()->getOrderList("BBS1") as $order) {
             if ($order->is_stop == 1) {
                 $order_result_list = $bybit->privates()->getOrderList(
@@ -409,6 +407,7 @@ try {
                 }
             }
         }
+        */
 
 
         CoinPrice::getInstance()->bit_price = $candle_1m->c;
@@ -421,7 +420,7 @@ try {
         Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()." debug:".$msg);
 
 
-        if ($candle_1m->t % 1000)
+        if ($candle_1m->t % 1000 == 0)
         {
             $account = Account::getInstance();
             $result = GlobalVar::getInstance()->
