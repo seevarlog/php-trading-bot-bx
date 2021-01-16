@@ -688,6 +688,20 @@ class Candle
         return False;
     }
 
+
+    public function crossoverBBUpLineAndEMA($day, $k, $ema_length)
+    {
+        $prev = $this->getCandlePrev();
+        if($prev->getEMA($ema_length) > $prev->getBBUpLine($day, $k))
+        {
+            if($this->getEMA($ema_length) < $this->getBBUpLine($day, $k))
+            {
+                return True;
+            }
+        }
+        return False;
+    }
+
     public function calcEMA($length, $n)
     {
 
