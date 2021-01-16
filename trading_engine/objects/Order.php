@@ -64,11 +64,10 @@ class Order
             {
                 return true;
             }
-            else if ($candle->getLow() <= $this->entry && $this->entry < $candle->getHigh() && $this->is_stop)
+            else if ($this->entry <= $candle->getHigh() && $this->is_stop)
             {
                 return true;
             }
-
         }
 
         if ( $this->amount < 0)

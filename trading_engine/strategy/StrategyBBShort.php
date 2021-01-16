@@ -17,7 +17,7 @@ class StrategyBBShort extends StrategyBase
 {
     public static $last_last_entry = "sideways";
     public static $order_action = "";
-    public $leverage = 20;
+    public $leverage = 12;
 
     public function __construct()
     {
@@ -100,7 +100,7 @@ class StrategyBBShort extends StrategyBase
                     1,
                     1,
                     "익절",
-                    "마지막else"
+                    "마지막else".$candle->getDateTimeKST()
                 );
             }
         }
@@ -244,7 +244,7 @@ class StrategyBBShort extends StrategyBase
             }
         }
 
-        $log .= "k = ".$k_up. " DAY=".$day;
+        $log .= "k = ".$k_up. " DAY=".$day." order_time=".$candle->getDateTimeKST(). "candle=".$candle->displayCandle();
 
 
         OrderManager::getInstance()->updateOrder(

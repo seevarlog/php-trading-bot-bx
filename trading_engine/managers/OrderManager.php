@@ -155,7 +155,7 @@ class OrderManager extends Singleton
                             'order_type'=> "Market",
                             'qty' => abs($order->amount),
                             'stop_px'=> $order->entry,
-                            'base_price'=> $order->entry,
+                            'base_price'=> $order->amount < 0 ?  $order->entry : $order->entry - 0.5,
                             'time_in_force'=>'GoodTillCancel'
                         ]
                     );

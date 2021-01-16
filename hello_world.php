@@ -4,6 +4,8 @@ use trading_engine\managers\CandleManager;
 use trading_engine\managers\TradeLogManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
+use trading_engine\strategy\StrategyBB;
+use trading_engine\strategy\StrategyBBShort;
 
 require_once('vendor/autoload.php');
 
@@ -159,10 +161,10 @@ for ($i=0; $i<500000000; $i++)
     }
 
     \trading_engine\util\CoinPrice::getInstance()->updateBitPrice($candle->c);
-    \trading_engine\managers\OrderManager::getInstance()->update($prev_candle->getCandlePrev());
+    \trading_engine\managers\OrderManager::getInstance()->update($candle->getCandlePrev());
 
-    trading_engine\strategy\StrategyBB::getInstance()->BBS($prev_candle->getCandlePrev());
-    //trading_engine\strategy\StrategyTest::getInstance()->BBS($candle);
+    //StrategyBB::getInstance()->BBS($candle->getCandlePrev());
+    StrategyBBShort::getInstance()->BBS($candle->getCandlePrev());
 }
 
 var_dump($prev_candle->getDateTime());

@@ -57,6 +57,11 @@ class Candle
         return $datetime = date('Y-m-d H:i:s', $this->t);
     }
 
+    public function getDateTimeKST()
+    {
+        return $datetime = date('Y-m-d H:i:s', $this->t + 3600 * 9);
+    }
+
     public function displayCandle()
     {
         return "t:".$this->getDateTime()."  h:".$this->h." l:".$this->l." c:".$this->c." o:".$this->o." upbb:".$this->getBBUpLine(40, 1.3);
