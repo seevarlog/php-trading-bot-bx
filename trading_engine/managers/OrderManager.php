@@ -141,6 +141,7 @@ class OrderManager extends Singleton
                             'time_in_force'=>'GoodTillCancel'
                         ]
                     );
+                    var_dump($result);
                     $order->order_id = $result['result']['order_id'];
                     Notify::sendTradeMsg(sprintf("주문 넣었다. 진입가 : %f 로그 : %s 액션 : %s", $order->entry, $order->log, $order->action));
                 }
