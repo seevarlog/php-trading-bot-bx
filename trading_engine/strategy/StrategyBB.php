@@ -66,7 +66,12 @@ class StrategyBB extends StrategyBase
 
             if ($candle->getTime() - $order->date > $order->wait_min * 60)
             {
-                continue;
+                if ($order->comment == "진입")
+                {
+                    $orderMng->clearAllOrder($this->getStrategyKey());
+                    continue;
+                }
+                $orderMng->cancelOrder($order);
             }
         }
 
