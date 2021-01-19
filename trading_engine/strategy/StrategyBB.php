@@ -179,7 +179,8 @@ class StrategyBB extends StrategyBase
             $max_per = $candle_5min->getMaxIntervalEMA(300, 200);
             $stop_per = 0.03;
 
-            $buy_price = $candle_5min->getEMA(300) * (1 - ($max_per * 0.5));
+            //$buy_price = $candle_5min->getEMA(300) * (1 - ($max_per * 0.5));
+            $buy_price = $candle_5min->getEMA(300);
             $stop_price = $buy_price * (1 - $stop_per);
             $action = "필살5분EMA";
             $wait_min = 60;
