@@ -183,7 +183,7 @@ class StrategyBB extends StrategyBase
             $buy_price = $candle_5min->getEMA(300);
             $stop_price = $buy_price * (1 - $stop_per);
             $action = "필살5분EMA";
-            $wait_min = 60;
+            $wait_min = 30;
             GOTO ENTRY;
         }
 
@@ -251,7 +251,7 @@ class StrategyBB extends StrategyBase
             $buy_price = $min_5min;
             $stop_price = $buy_price * (1 - $stop_per);
             $action = "5분";
-            $wait_min = 60;
+            $wait_min = 30;
         }
         else if ($candle_5min->getBBDownCount($day, $k_down, 4) > 1)
         {
@@ -264,7 +264,7 @@ class StrategyBB extends StrategyBase
                 $buy_price = $candle_5min->getEMA(300);
                 $stop_price = $buy_price * (1 - $stop_per);
                 $action = "5분EMA";
-                $wait_min = 120;
+                $wait_min = 30;
             }
             else
             {
