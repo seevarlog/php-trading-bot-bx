@@ -253,7 +253,7 @@ foreach ($candle_1m_list['result'] as $candle_data)
 
 
 $candle_mng = CandleManager::getInstance();
-$make_candle_min_list = [5, 15, 30, 60, 60*4, 60 * 24];
+$make_candle_min_list = [3, 5, 15, 30, 60, 60*4, 60 * 24];
 for ($i=4; $i>0; $i--)
 {
     foreach ($make_candle_min_list as $make_min)

@@ -824,7 +824,6 @@ class Candle
                 $interval_price = $candle->getEMA120() - $candle->getEMA300();
                 if ($candle->getEMA120() - $interval_price > $candle->c)
                 {
-                    var_dump("골드예외리턴");
                     return "sideways";
                 }
                 $candle = $candle->getCandlePrev();

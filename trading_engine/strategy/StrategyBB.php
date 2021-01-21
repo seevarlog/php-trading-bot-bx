@@ -4,7 +4,6 @@
 namespace trading_engine\strategy;
 
 
-use Cassandra\Varint;
 use trading_engine\managers\CandleManager;
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
