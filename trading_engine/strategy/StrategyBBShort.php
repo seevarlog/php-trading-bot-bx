@@ -15,7 +15,7 @@ class StrategyBBShort extends StrategyBase
 {
     public static $last_last_entry = "sideways";
     public static $order_action = "";
-    public $leverage = 12;
+    public $leverage = 15;
 
     public function __construct()
     {
@@ -39,6 +39,7 @@ class StrategyBBShort extends StrategyBase
 
 
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
+        $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
 
@@ -83,7 +84,31 @@ class StrategyBBShort extends StrategyBase
         {
             $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
             $loop_msg .= "나머지익절";
-            if ($candle->crossoverBBDownLine($day, $k_up) == true)
+            if ($candle_60min->getBBDownLine($day, $k_down) > $candle->c)
+            {
+                if ($candle_3min->crossoverBBDownLine($day, $k_down) == true)
+                {
+                    [$max, $min] = $candle->getMaxMinValueInLength(5);
+                    $price = ($min + $candle->getClose()) / 2;
+                    if ($price > $candle->c)
+                    {
+                        var_dump("사탄");
+                    }
+
+                    // 골드 매도
+                    OrderManager::getInstance()->updateOrder(
+                        $candle->getTime(),
+                        $this->getStrategyKey(),
+                        $amount,
+                        $price,
+                        1,
+                        1,
+                        "익절",
+                        "성물익절".$candle->getDateTimeKST()
+                    );
+                }
+            }
+            else if ($candle->crossoverBBDownLine($day, $k_up) == true)
             {
                 [$max, $min] = $candle->getMaxMinValueInLength(5);
                 $price = ($min + $candle->getClose()) / 2;

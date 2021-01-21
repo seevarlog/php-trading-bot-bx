@@ -45,12 +45,16 @@ class Order
 
     public static function correctEntry($entry)
     {
-        if ($entry > 1000)
+        if ($entry > 4000)
         {
             $integer = (int)($entry);
             $decimal = $entry - $integer;
             $decimal = $decimal >= 0.5 ? 0.5 : 0;
             return $integer + $decimal;
+        }
+        else if ($entry > 500)
+        {
+            $entry = round($entry, 1, PHP_ROUND_HALF_DOWN);
         }
         return $entry;
     }
