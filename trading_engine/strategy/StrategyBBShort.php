@@ -51,6 +51,10 @@ class StrategyBBShort extends StrategyBase
         $per_1hour = $candle_60min->getAvgVolatilityPercent();
         $k_up = 1.1 + ($per_1hour - 0.02) * 10;
         $stop_per = $per_1hour * 1.5;
+        if ($stop_per < 0.013)
+        {
+            $stop_per = 0.013;
+        }
         $k_down = 1.3;
         $day = 40;
 

@@ -24,7 +24,7 @@ class StrategyBB extends StrategyBase
         $leverage = 15;
         if (!Config::getInstance()->isRealTrade())
         {
-            $leverage = 1;
+            $leverage = 15;
         }
         $orderMng = OrderManager::getInstance();
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
@@ -49,6 +49,10 @@ class StrategyBB extends StrategyBase
         $wait_min = 30;
         $k_up = 1.1 + ($per_1hour - 0.02) * 10;
         $stop_per = $per_1hour * 2.1;
+        if ($stop_per < 0.013)
+        {
+            $stop_per = 0.013;
+        }
         $k_down = 1.3;
         $day = 40;
         $orderMng = OrderManager::getInstance();
