@@ -35,9 +35,11 @@ class StrategyBB extends StrategyBase
 
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
+        $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
+        $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
 
-        $per_1hour = $candle_60min->getAvgVolatilityPercent();
+        $per_1hour = $candle_60min->getAvgVolatilityPercent(7);
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
@@ -46,7 +48,7 @@ class StrategyBB extends StrategyBase
 
         $wait_min = 30;
         $k_up = 1.1 + ($per_1hour - 0.02) * 10;
-        $stop_per = $per_1hour * 2.5;
+        $stop_per = $per_1hour * 2.1;
         $k_down = 1.3;
         $day = 40;
         $orderMng = OrderManager::getInstance();
@@ -200,7 +202,7 @@ class StrategyBB extends StrategyBase
         if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 14) - $candle_60min->getRsiMA(14, 14) > 0.5)
         {
             // 하락 추세에서 반전의 냄새가 느껴지면 거래진입해서 큰 익절을 노림
-            if ($candle_60min->getMinRealRsi(14, 7) < 35 && $candle_60min->getRsiInclinationSum(3) > 0 && $candle_60min->getGoldenDeadState() == "gold")
+            if ($candle_60min->getMinRealRsi(14, 7) < 35 && $candle_60min->getRsiMaInclination(1, 14, 7) > -0.2 && $candle_60min->getGoldenDeadState() == "gold")
             {
                 $stop_per = $per_1hour * 2;
                 $buy_per = $per_1hour / 2;
@@ -222,6 +224,12 @@ class StrategyBB extends StrategyBase
         {
             return "크로스안함";
         }
+//
+//        if ($candle_5min->getMaxRealRsi(14, 10) > 65 && $candle_5min->getRsiMaInclination(2, 14, 14) < 0)
+//        {
+//            var_dump("check");
+//            return "5분봉 추세 전환";
+//        }
 
 
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
