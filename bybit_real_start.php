@@ -442,6 +442,7 @@ try {
         $candle_prev_1m->cn = $candle_1m;
         $candle_prev_1m = $candle_1m;
         CandleManager::getInstance()->addNewCandle($candle_1m);
+        var_dump(round(memory_get_usage() / 1024 / 1024, 2));
     }
 }catch (\Exception $e)
 {
