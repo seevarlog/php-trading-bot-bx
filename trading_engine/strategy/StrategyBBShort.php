@@ -23,7 +23,7 @@ class StrategyBBShort extends StrategyBase
     {
         if (!Config::getInstance()->isRealTrade())
         {
-            $this->leverage = 1;
+            $this->leverage = 15;
         }
     }
 
@@ -159,7 +159,7 @@ class StrategyBBShort extends StrategyBase
 
 
         // 거래 중지 1시간
-        if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 14) - $candle_60min->getRsiMA(14, 14) < -0.5)
+        if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) < -0.5)
         {
             return "[매도]1시간반전 기회없음";
         }

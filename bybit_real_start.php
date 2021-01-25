@@ -74,7 +74,7 @@ $order_list = $bybit->privates()->getOrderList(
         'order_status' => "New",
     ]
 );
-
+$position = PositionManager::getInstance()->getPosition("BBS1");
 foreach ($order_list['result']['data'] as $data)
 {
     $order_data = $data;
@@ -132,6 +132,12 @@ foreach ($order_list['result']['data'] as $data)
     if ($order_data['symbol'] != "BTCUSD")
     {
         continue;
+    }
+    $qty = $order_data["qty"];
+
+    if ($order_data['side'] == "sell")
+    {
+        $qty = $qty * -1;
     }
 
     $comment = "손절";
