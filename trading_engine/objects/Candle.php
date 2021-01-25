@@ -2,8 +2,6 @@
 
 namespace trading_engine\objects;
 
-use trading_engine\managers\CandleManager;
-
 /**
  * Class Candle
  *
@@ -45,6 +43,7 @@ class Candle
     public $avDay = 0;
 
     public $ema = [];
+    public $rsi_ema = [];
 
     public static $data = array();
 
@@ -754,6 +753,36 @@ class Candle
         return $this->getEMA(120);
     }
 
+    public function getRsiEMA($ema_length, $rsi_length, $n = -1)
+    {
+        if ($n == -1)
+        {
+            $n = $ema_length * 2;
+        }
+
+        if (isset($this->rsi_ema[$ema_length]))
+        {
+            return $this->rsi_ema[$ema_length];
+        }
+
+        if ($n == 0)
+        {
+            $ma = $this->getRsiMA($rsi_length, $ema_length);
+            if ($ma == 0)
+            {
+                return $this->c;
+            }
+
+            return $this->getRsiMA($rsi_length, $ema_length);
+        }
+
+        $exp = 2 / ($ema_length + 1);
+        $ema = ($this->c * $exp) + ($this->getCandlePrev()->getRsiEMA($ema_length, $rsi_length,$n - 1) * (1 - $exp));
+        $this->rsi_ema[$ema_length] = $ema;
+
+        return $ema;
+    }
+
 
     public function getEMA($length, $n = -1)
     {
@@ -796,12 +825,12 @@ class Candle
     public function getRsiMaInclination($interval, $rsi_length, $ma_length)
     {
         $candle = $this;
-        $cur = $candle->getRsiMA($rsi_length, $ma_length);
+        $cur = $candle->getRsiEMA($rsi_length, $ma_length);
         for ($i=0; $i<$interval; $i++)
         {
             $candle = $candle->getCandlePrev();
         }
-        return $cur - $candle->getRsiMA($rsi_length, $ma_length);
+        return $cur - $candle->getRsiEMA($rsi_length, $ma_length);
     }
 
     public function getGoldenDeadState()
@@ -839,7 +868,6 @@ class Candle
                 $interval_price = $candle->getEMA300() - $candle->getEMA120();
                 if ($candle->getEMA300() + $interval_price < $candle->c)
                 {
-                    var_dump("데드예외리턴");
                     return "sideways";
                 }
                 $candle = $candle->getCandlePrev();
