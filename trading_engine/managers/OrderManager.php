@@ -91,6 +91,23 @@ class OrderManager extends Singleton
         return $order->order_id;
     }
 
+    public function modifyAmount($st_key, $amount, $comment)
+    {
+        $order = $this->getOrder($st_key, $comment);
+        $this->updateOrder(
+            $order->date,
+            $order->strategy_key,
+            $amount,
+            $order->entry,
+            $order->is_limit,
+            $order->is_reduce_only,
+            $order->comment,
+            $order->log,
+            $order->action,
+            $order->wait_min
+        );
+    }
+
 
     /**
      * 같은 주문이 있다면 찾아서 업데이트
@@ -168,6 +185,7 @@ class OrderManager extends Singleton
             {
                 if ($order->is_limit)
                 {
+                    var_dump("리미트");
                     $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderReplace(
                         [
                             'order_id'=>$order->order_id,
@@ -181,11 +199,12 @@ class OrderManager extends Singleton
                 }
                 else if ($order->is_stop)
                 {
+                    var_dump("스탑");
                     $result = GlobalVar::getInstance()->getByBit()->privates()->postStopOrderReplace(
                         [
                             'stop_order_id'=>$order->order_id,
                             'symbol'=>"BTCUSD",
-                            'p_r_trigger_price'=>$order->entry,
+                            'p_r_trigger_price'=>(string)($order->entry),
                             'p_r_qty'=>abs($order->amount)
                         ]
                     );
@@ -194,6 +213,8 @@ class OrderManager extends Singleton
                 }
             }
         }
+
+        return $order;
     }
 
     public function getOrderList($name)

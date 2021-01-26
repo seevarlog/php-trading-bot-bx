@@ -6,6 +6,9 @@ namespace trading_engine\objects;
 
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
+use trading_engine\util\Config;
+use trading_engine\util\GlobalVar;
+use trading_engine\util\Notify;
 
 class Order
 {
@@ -64,9 +67,59 @@ class Order
     {
         if ( $this->amount > 0)
         {
-            if ($this->entry > $candle->getLow() && $this->is_limit)
+            if ($this->entry >= $candle->getLow() && $this->is_limit)
             {
-                return true;
+                if (Config::getInstance()->isRealTrade() && $this->entry == $candle->l)
+                {
+                    $result = GlobalVar::getInstance()->bybit->privates()->getOrder(
+                        [
+                            'order_id'=>$this->order_id,
+                            'symbol'=>'BTCUSD'
+                        ]
+                    );
+                    $exec_amount = $result['result']['cum_exec_qty'];
+                    $leaves_qty = $result['result']['leaves_qty'];
+
+                    if ($exec_amount == 0)
+                    {
+                        return false;
+                    }
+
+                    if ($this->comment == "진입")
+                    {
+                        if ($exec_amount > 0)
+                        {
+                            $this->amount = $exec_amount;
+                            OrderManager::getInstance()->cancelOrder($this);
+                            OrderManager::getInstance()->modifyAmount($this->strategy_key, -$exec_amount, '손절');
+                            Notify::sendTradeMsg("거래가 일부만 채워졌다. prev:".$this->amount." filled:".$exec_amount);
+                        }
+                        return true;
+                    }
+                    else if ($this->comment == "익절")
+                    {
+                        if ($exec_amount > 0)
+                        {
+                            if ($exec_amount == abs($this->amount))
+                            {
+                                Notify::sendTradeMsg($this->comment."거래가 전부 채워졌습니다. order : ".$this->amount);
+                                return true;
+                            }
+                            else
+                            {
+                                Notify::sendTradeMsg($this->comment."거래가 의 일부만 채워졌습니다. order : ".$this->amount." filled : ".$exec_amount);
+                                OrderManager::getInstance()->modifyAmount($this->strategy_key, $leaves_qty, '손절');
+                                return false;
+                            }
+                        }
+                    }
+
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
             }
             else if ($this->entry <= $candle->getHigh() && $this->is_stop)
             {
@@ -76,9 +129,59 @@ class Order
 
         if ( $this->amount < 0)
         {
-            if ($this->entry < $candle->getHigh() && $this->is_limit)
+            if ($this->entry <= $candle->getHigh() && $this->is_limit)
             {
-                return true;
+                if (Config::getInstance()->isRealTrade() && $this->entry == $candle->l)
+                {
+                    $result = GlobalVar::getInstance()->bybit->privates()->getOrder(
+                        [
+                            'order_id'=>$this->order_id,
+                            'symbol'=>'BTCUSD'
+                        ]
+                    );
+                    $exec_amount = $result['result']['cum_exec_qty'];
+                    $leaves_qty = $result['result']['leaves_qty'];
+
+                    if ($exec_amount == 0)
+                    {
+                        return false;
+                    }
+
+                    if ($this->comment == "진입")
+                    {
+                        if ($exec_amount > 0)
+                        {
+                            $this->amount = $exec_amount;
+                            OrderManager::getInstance()->cancelOrder($this);
+                            OrderManager::getInstance()->modifyAmount($this->strategy_key, $exec_amount, '손절');
+                            Notify::sendTradeMsg("거래가 일부만 채워졌다. prev:".$this->amount." filled:".$exec_amount);
+                            return true;
+                        }
+                    }
+                    else if ($this->comment == "익절")
+                    {
+                        if ($exec_amount > 0)
+                        {
+                            if ($exec_amount == abs($this->amount))
+                            {
+                                Notify::sendTradeMsg($this->comment."거래가 전부 채워졌습니다. order : ".$this->amount);
+                                return true;
+                            }
+                            else
+                            {
+                                Notify::sendTradeMsg($this->comment."거래가 의 일부만 채워졌습니다. order : ".$this->amount." filled : ".$exec_amount);
+                                OrderManager::getInstance()->modifyAmount($this->strategy_key, -$leaves_qty, '손절');
+                                return false;
+                            }
+                        }
+                    }
+
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
             }
             else if ($candle->getLow() <= $this->entry && $this->is_stop)
             {

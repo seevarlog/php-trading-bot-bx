@@ -71,4 +71,9 @@ class CandleManager extends Singleton
 
         return isset($this->candle_data_list[$min][$this->last_index[$min]]) ? $this->candle_data_list[$min][$this->last_index[$min]] : null;
     }
+
+    public function clearMemory()
+    {
+
+    }
 }

@@ -825,12 +825,12 @@ class Candle
     public function getRsiMaInclination($interval, $rsi_length, $ma_length)
     {
         $candle = $this;
-        $cur = $candle->getRsiEMA($rsi_length, $ma_length);
+        $cur = $candle->getRsiMA($rsi_length, $ma_length);
         for ($i=0; $i<$interval; $i++)
         {
             $candle = $candle->getCandlePrev();
         }
-        return $cur - $candle->getRsiEMA($rsi_length, $ma_length);
+        return $cur - $candle->getRsiMA($rsi_length, $ma_length);
     }
 
     public function getGoldenDeadState()
