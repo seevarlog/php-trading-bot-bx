@@ -23,7 +23,7 @@ class StrategyBBShort extends StrategyBase
     {
         if (!Config::getInstance()->isRealTrade())
         {
-            $this->leverage = 15;
+            $this->leverage = 1;
         }
     }
 
@@ -44,6 +44,7 @@ class StrategyBBShort extends StrategyBase
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
+        $curPosition = PositionManager::getInstance()->getPosition($this->getStrategyKey());
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
@@ -138,7 +139,7 @@ class StrategyBBShort extends StrategyBase
             }
         }
 
-        if ($positionMng->getPosition($this->getStrategyKey())->amount < 0)
+        if ($positionMng->getPosition($this->getStrategyKey())->amount != 0)
         {
             return $loop_msg;
         }
@@ -159,7 +160,7 @@ class StrategyBBShort extends StrategyBase
 
 
         // 거래 중지 1시간
-        if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) < -0.5)
+        if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) < -0.7)
         {
             return "[매도]1시간반전 기회없음";
         }
@@ -169,6 +170,17 @@ class StrategyBBShort extends StrategyBase
             return "[매도]크로스안함";
         }
 
+//        if ($candle_60min->getCandlePrev()->h >= $candle->c && $candle_60min->getCandlePrev()->l <= $candle->c)
+//        {
+//            if ($candle_60min->h >= $candle->c && $candle_60min->l <= $candle->c)
+//            {
+//                if (($candle_60min->h - $candle_60min->l)/$candle_60min->h > 0.01515)
+//                {
+//                    var_dump("매도횡보감지");
+//                    return "횡보";
+//                }
+//            }
+//        }
 
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         // 1시간봉 BB 밑이면 정지
@@ -182,6 +194,11 @@ class StrategyBBShort extends StrategyBase
         $buy_price = $candle->getClose() * (1 + $buy_per);
         $stop_price = $buy_price  * (1 + $stop_per);
         $wait_min = 30;
+
+        if ($candle_60min->getGoldenDeadState() == "dead" && $candle_3min->getGoldenDeadState() == "dead" && $candle_3min->getEMA240() > $candle->c)
+        {
+            return "[매도]진입하긴 위험지역";
+        }
 
 
         // 5분봉 예외처리
@@ -258,6 +275,7 @@ class StrategyBBShort extends StrategyBase
 //        }
 
         ENTRY:
+
         // 매수 시그널, 아래서 위로 BB를 뚫음
         // 매수 주문
 

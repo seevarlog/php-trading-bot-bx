@@ -24,7 +24,7 @@ class StrategyBB extends StrategyBase
         $leverage = 15;
         if (!Config::getInstance()->isRealTrade())
         {
-            $leverage = 15;
+            $leverage = 1;
         }
         $orderMng = OrderManager::getInstance();
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
@@ -151,7 +151,7 @@ class StrategyBB extends StrategyBase
             }
         }
 
-        if ($positionMng->getPosition($this->getStrategyKey())->amount > 0)
+        if ($positionMng->getPosition($this->getStrategyKey())->amount != 0)
         {
             return ;
         }
@@ -199,6 +199,30 @@ class StrategyBB extends StrategyBase
         if ($candle_60min->getNewRsi(14) > 70)
         {
             return "1시간 RSI 에러";
+        }
+
+//
+//        if ($candle_60min->getCandlePrev()->h >= $candle->c && $candle_60min->getCandlePrev()->l <= $candle->c)
+//        {
+//            if ($candle_60min->h >= $candle->c && $candle_60min->l <= $candle->c)
+//            {
+//                if (($candle_60min->h - $candle_60min->l)/$candle_60min->h > 0.01515)
+//                {
+//                    var_dump("횡보감지");
+//                    return "횡보";
+//                }
+//            }
+//        }
+//
+//        if ($candle_5min->getMaxRealRsi(14, 20) > 75)
+//        {
+//            return "사탄";
+//        }
+
+        if ($candle_3min->getRsiMA(14, 14) < -0.6)
+        {
+            var_dump("pass");
+            return "위험";
         }
 
 
@@ -298,6 +322,21 @@ class StrategyBB extends StrategyBase
                 return "저항선 근처라 패스";
             }
         }
+
+        if ($candle_60min->getGoldenDeadState() == "dead" && $candle_5min->getGoldenDeadState() == "dead" && $candle_5min->getEMA120() < $candle->c)
+        {
+            return "[매수]진입하긴 위험지역";
+        }
+//
+//        if ($candle_60min->getGoldenDeadState() == "dead" && $candle_3min->getGoldenDeadState() == "gold")
+//        {
+//            var_dump("훼이크");
+//            $limit_price = $candle_3min->getEMA120() - ($candle_3min->getEMA240() - $candle_3min->getEMA120());
+//            if ($limit_price < $candle->c)
+//            {
+//                return "매수 훼이크 도달";
+//            }
+//        }
 
 
 
