@@ -323,11 +323,11 @@ class StrategyBB extends StrategyBase
             }
         }
 
-        if ($candle_60min->getGoldenDeadState() == "dead" && $candle_15min->getGoldenDeadState() == "dead")
+        if ($candle_60min->getGoldenDeadState() == "dead" && $candle_5min->getGoldenDeadState() == "dead")
         {
-            $delta = $candle_15min->getEMA300() - $candle_15min->getEMA240();
-            $max_price = $delta + $candle_15min->getEMA300();
-            if ($candle_15min->getEMA120() < $candle->c && $candle->c < $max_price)
+            $delta = $candle_5min->getEMA300() - $candle_5min->getEMA240();
+            $max_price = $delta + $candle_5min->getEMA300();
+            if ($candle_5min->getEMA120() < $candle->c && $candle->c < $max_price)
             {
                 var_dump("매수경고");
                 return "[매수]15분봉 데드 1시간봉 데드 위험";
