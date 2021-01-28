@@ -225,6 +225,14 @@ class StrategyBB extends StrategyBase
             return "위험";
         }
 
+        if ($candle_15min->getGoldenDeadState() == "dead" && $dayCandle->getRsiMaInclination(1, 14, 14) < 0 && $candle_60min->getGoldenDeadState() == "dead")
+        {
+            if ($candle_15min->getEMA240() < $candle->c)
+            {
+                return "[매수]15분 큰 저항선";
+            }
+        }
+
 
         // 거래 중지 1시간
         if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) > 0.5)

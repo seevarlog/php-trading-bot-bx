@@ -169,7 +169,7 @@ class StrategyBBShort extends StrategyBase
         {
             var_dump($dayCandle->getRsiMaInclination(1, 14, 14));
             var_dump($candle_5min->getNewRsi(14));
-            if ($dayCandle->getRsiMaInclination(1, 14, 14) < 0 & $candle_5min->getMaxBugRsi(14, 30) > 65)
+            if ($dayCandle->getRsiMaInclination(1, 14, 14) < 0 & $candle_5min->getMaxRealRsi(14, 30) > 65)
             {
                 //"하락장 유지 반전가능";
             }
