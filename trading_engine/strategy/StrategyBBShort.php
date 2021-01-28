@@ -195,6 +195,10 @@ class StrategyBBShort extends StrategyBase
         $stop_price = $buy_price  * (1 + $stop_per);
         $wait_min = 30;
 
+        if ($candle_60min->getGoldenDeadState() == "dead" && $candle_3min->getGoldenDeadState() == "dead" && $candle_3min->getEMA120() > $candle->c)
+        {
+            return "[매도]진입하긴 위험지역";
+        }
 
 
         // 5분봉 예외처리

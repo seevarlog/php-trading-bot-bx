@@ -323,19 +323,9 @@ class StrategyBB extends StrategyBase
             }
         }
 
-        if ($candle_60min->getGoldenDeadState() == "dead" && $candle_5min->getGoldenDeadState() == "dead" && $candle_5min->getEMA120() < $candle->c)
-        {
-            return "[매수]진입하긴 위험지역";
-        }
-//
-//        if ($candle_60min->getGoldenDeadState() == "dead" && $candle_3min->getGoldenDeadState() == "gold")
+//        if ($candle_60min->getGoldenDeadState() == "dead" && $candle_3min->getRsiMaInclination(1, 14, 10) < 0)
 //        {
-//            var_dump("훼이크");
-//            $limit_price = $candle_3min->getEMA120() - ($candle_3min->getEMA240() - $candle_3min->getEMA120());
-//            if ($limit_price < $candle->c)
-//            {
-//                return "매수 훼이크 도달";
-//            }
+//            return "[매도]진입하긴 위험지역";
 //        }
 
 
