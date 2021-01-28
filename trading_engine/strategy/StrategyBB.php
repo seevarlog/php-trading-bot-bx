@@ -327,11 +327,16 @@ class StrategyBB extends StrategyBase
         {
             $delta = $candle_5min->getEMA300() - $candle_5min->getEMA240();
             $max_price = $delta + $candle_5min->getEMA300();
-            if ($candle_5min->getEMA120() < $candle->c && $candle->c < $max_price)
+            if ($candle_5min->getEMA120() < $candle->c )
             {
                 var_dump("매수경고");
                 return "[매수]15분봉 데드 1시간봉 데드 위험";
             }
+        }
+
+        if ($dayCandle->getRsiMaInclination(1, 14, 14) < 0 & $candle_5min->getMaxRealRsi(14, 30) > 65)
+        {
+            return "[매수]하락장 단기 과매수에 매수 금지";
         }
 
 
