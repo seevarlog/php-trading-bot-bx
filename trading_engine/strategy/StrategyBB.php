@@ -323,10 +323,16 @@ class StrategyBB extends StrategyBase
             }
         }
 
-//        if ($candle_60min->getGoldenDeadState() == "dead" && $candle_3min->getRsiMaInclination(1, 14, 10) < 0)
-//        {
-//            return "[매도]진입하긴 위험지역";
-//        }
+        if ($candle_60min->getGoldenDeadState() == "dead" && $candle_15min->getGoldenDeadState() == "dead")
+        {
+            $delta = $candle_15min->getEMA300() - $candle_15min->getEMA240();
+            $max_price = $delta + $candle_15min->getEMA300();
+            if ($candle_15min->getEMA120() < $candle->c && $candle->c < $max_price)
+            {
+                var_dump("매수경고");
+                return "[매수]15분봉 데드 1시간봉 데드 위험";
+            }
+        }
 
 
 
