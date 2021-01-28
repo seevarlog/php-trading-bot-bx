@@ -24,11 +24,11 @@ class CandleManager extends Singleton
     }
 
     /**
-     * @param $candle
+     * @param Candle $candle
      * @param $target_min
      * @return Candle
      */
-    public function getCurOtherMinCandle($candle, $target_min)
+    public function getCurOtherMinCandle(Candle $candle, $target_min)
     {
         $remainder = $candle->t % (60 * $target_min);
         $index = $candle->t - $remainder;

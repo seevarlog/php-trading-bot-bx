@@ -45,6 +45,8 @@ class Candle
     public $ema = [];
     public $rsi_ema = [];
 
+    public $cross_ema = [];
+
     public static $data = array();
 
     public function __construct($min_tick)
@@ -204,7 +206,7 @@ class Candle
 
     }
 
-    public function getMinBugRsi($rsi_length, $range_day)
+    public function getMinRealRsi($rsi_length, $range_day)
     {
         $min = 100;
         $candle = $this;
@@ -221,7 +223,7 @@ class Candle
         return $min;
     }
 
-    public function getMinRealRsi($rsi_length, $range_day)
+    public function getMinRsi($rsi_length, $range_day)
     {
         $min = 100;
         $candle = $this;
@@ -239,7 +241,7 @@ class Candle
     }
 
 
-    public function getMaxBugRsi($rsi_length, $range_day)
+    public function getMaxRealRsi($rsi_length, $range_day)
     {
         $max = 0;
         $candle = $this;
@@ -256,7 +258,7 @@ class Candle
         return $max;
     }
 
-    public function getMaxRealRsi($rsi_length, $range_day)
+    public function getMaxRsi($rsi_length, $range_day)
     {
         $max = 0;
         $candle = $this;
@@ -388,6 +390,41 @@ class Candle
         if ($this->h < $high) $this->h = $high;
         if ($this->l > $low)  $this->l = $low;
         if ($this->c < $high) $this->c = $close;
+    }
+
+    // EMA 120, 200, 300 일선을 몇 번이나 터치했나로 방향성을 체크한다.
+    public function getEMACrossCount($length=300)
+    {
+        if (isset($this->cross_ema[$length]))
+        {
+            return $this->cross_ema[$length];
+        }
+
+        $sum_cross_count = 0;
+        $candle = $this;
+
+        for($i=0; $i<$length; $i++)
+        {
+            $sum_cross_count += $candle->checkCross($candle->getEMA300());
+            $sum_cross_count += $candle->checkCross($candle->getEMA240());
+            $sum_cross_count += $candle->checkCross($candle->getEMA120());
+
+            $candle = $candle->getCandlePrev();
+        }
+
+        $this->cross_ema[$length] = $sum_cross_count;
+
+        return $sum_cross_count;
+    }
+
+    public function checkCross($value)
+    {
+        if($this->l <= $value && $value <= $this->h)
+        {
+            return 1;
+        }
+
+        return 0;
     }
 
 
