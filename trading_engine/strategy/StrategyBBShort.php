@@ -160,10 +160,20 @@ class StrategyBBShort extends StrategyBase
 
 
         // 거래 중지 1시간
-        if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) < -0.7)
+        if (($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) < -0.7))
         {
-            return "[매도]1시간반전 기회없음";
+            if ($dayCandle->getRsiMaInclination(1, 14, 14) < 0 & $candle_5min->getMaxRealRsi(14, 30) > 67)
+            {
+                var_dump($candle->displayCandle());
+                var_dump("하락장 유지 반전가능");
+            }
+            else
+            {
+                return "[매도]1시간반전 기회없음";
+            }
         }
+        
+
 
         if ($candle->crossoverBBUpLine($day, $k_down) == false)
         {
