@@ -158,7 +158,7 @@ class StrategyBBShort extends StrategyBase
             return "[매도]1시간 RSI 에러";
         }
 
-        if ($dayCandle->getRsiMaInclination(1, 14, 14) > 0 & $candle_5min->getMinRealRsi(14, 30) < 30)
+        if ($dayCandle->getRsiMaInclination(1, 14, 14) > 0 & $candle_5min->getMinBugRsi(14, 30) < 30)
         {
             return "[매도]상승장에 단기 과매도에 속지말기";
         }
@@ -167,7 +167,9 @@ class StrategyBBShort extends StrategyBase
         // 거래 중지 1시간
         if (($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) < -0.7))
         {
-            if ($dayCandle->getRsiMaInclination(1, 14, 14) < 0 & $candle_5min->getMaxRealRsi(14, 30) > 65)
+            var_dump($dayCandle->getRsiMaInclination(1, 14, 14));
+            var_dump($candle_5min->getNewRsi(14));
+            if ($dayCandle->getRsiMaInclination(1, 14, 14) < 0 & $candle_5min->getMaxBugRsi(14, 30) > 65)
             {
                 //"하락장 유지 반전가능";
             }
@@ -175,6 +177,7 @@ class StrategyBBShort extends StrategyBase
             {
                 return "[매도]1시간반전 기회없음";
             }
+            var_dump($dayCandle->getRsiMaInclination(1, 14, 14) );
         }
         
 

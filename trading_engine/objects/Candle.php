@@ -198,44 +198,28 @@ class Candle
         return $sum;
     }
 
-    public function findRsiLowerThan($prev_n, $lower_rsi_value, $rsi_n)
-    {
-        $candle = $this;
-        for ($i=0; $i<$prev_n; $i++)
-        {
-            if ($candle->getRsi($rsi_n) <= $lower_rsi_value)
-            {
-                return true;
-            }
-
-            $candle = $candle->getCandlePrev();
-        }
-
-        return false;
-    }
-
-
-    public function findRsiUpperThan($prev_n, $upper_rsi_value, $rsi_n)
-    {
-        $candle = $this;
-        for ($i=0; $i<$prev_n; $i++)
-        {
-            if ($candle->getRsi($rsi_n) >= $upper_rsi_value)
-            {
-                return true;
-            }
-
-            $candle = $candle->getCandlePrev();
-        }
-
-        return false;
-    }
 
     public function calcRsi($length, $left=1)
     {
 
     }
 
+    public function getMinBugRsi($rsi_length, $range_day)
+    {
+        $min = 100;
+        $candle = $this;
+        for ($i=0; $i<1; $i++)
+        {
+            $rsi = $candle->getNewRsi($rsi_length);
+            if ($rsi < $min)
+            {
+                $min = $rsi;
+            }
+            $candle = $candle->getCandlePrev();
+        }
+
+        return $min;
+    }
 
     public function getMinRealRsi($rsi_length, $range_day)
     {
@@ -248,12 +232,29 @@ class Candle
             {
                 $min = $rsi;
             }
-            $candle = $this->getCandlePrev();
+            $candle = $candle->getCandlePrev();
         }
 
         return $min;
     }
 
+
+    public function getMaxBugRsi($rsi_length, $range_day)
+    {
+        $max = 0;
+        $candle = $this;
+        for ($i=0; $i<1; $i++)
+        {
+            $rsi = $candle->getNewRsi($rsi_length);
+            if ($rsi > $max)
+            {
+                $max = $rsi;
+            }
+            $candle = $this->getCandlePrev();
+        }
+
+        return $max;
+    }
 
     public function getMaxRealRsi($rsi_length, $range_day)
     {
@@ -266,7 +267,8 @@ class Candle
             {
                 $max = $rsi;
             }
-            $candle = $this->getCandlePrev();
+            //$candle = $this->getCandlePrev(); 사탄
+            $candle = $candle->getCandlePrev();
         }
 
         return $max;
@@ -285,8 +287,13 @@ class Candle
         {
             return 50;
         }
+        $up = $this->getNewUpAvg($length, $length);
+        if ($up == 0)
+        {
+            return 50;
+        }
 
-        $rsi = 100-(100/(1+$this->getNewUpAvg($length, $length) / $du));
+        $rsi = 100-(100/(1+ $up / $du));
         $this->r_rsi[$length] = $rsi;
 
         return $rsi;
@@ -342,7 +349,7 @@ class Candle
             return 0;
         }
 
-        if ($left == -$length * 2)
+        if ($left == -$length * 3)
         {
             $sum = 0;
             $candle = $this;
@@ -360,72 +367,6 @@ class Candle
         return $this->r_du[$length];
     }
 
-
-
-
-    public function getRsi($day)
-    {
-        if ($this->getCandlePrev()->r != -1 && $this->rd == $day)
-        {
-            $prev = $this->getCandlePrev();
-            $delta = $this->c - $prev->c;
-            $up = $delta > 0 ? $delta : 0;
-            $down = $delta < 0 ? abs($delta) : 0;
-
-            $au = $prev->r * ($day - 1) + $up;
-            $du = $prev->r * ($day - 1) + $down;
-
-            $this->r = 100 * $au / ($au + $du);
-            $this->rd = $day;
-
-            return $this->r;
-        }
-
-        $first_candle = $this;
-        for ($i=0; $i<$day*3; $i++)
-        {
-            $first_candle = $first_candle->getCandlePrev();
-        }
-
-        // 최적화 가능한 부분
-        // 걍 처음부터 다시한다
-        $au = $first_candle->getUpAvg($day);
-        $ad = $first_candle->getDownAvg($day);
-        $first_candle->au = $au;
-        $first_candle->ad = $ad;
-        $first_candle->rd = $day;
-        if (($au + $ad) == 0)
-        {
-            $au = 1;
-            $ad = 1;
-        }
-        $first_candle->r = 100 * $au / ( $au + $ad );
-
-        $first_candle = $first_candle->getCandleNext();
-        for ($i=0; $i<$day*5; $i++)
-        {
-            $prev = $first_candle->getCandlePrev();
-            $delta = $first_candle->c - $prev->c;
-            $up = $delta > 0 ? $delta : 0;
-            $down = $delta < 0 ? abs($delta) : 0;
-
-            $first_candle->au = ($prev->au * ($day-1) + $up) / $day;
-            $first_candle->ad = ($prev->ad * ($day-1) + $down) / $day;
-
-            if (($first_candle->au + $first_candle->ad) == 0)
-            {
-                $first_candle->au = 1;
-                $first_candle->ad = 1;
-            }
-
-            $first_candle->r = 100 * $first_candle->au / ( $first_candle->au + $first_candle->ad );
-            $first_candle->rd = $day;
-
-            $first_candle = $first_candle->getCandleNext();
-        }
-
-        return $this->r;
-    }
 
 
     public function setData($time, $open, $high, $low, $close)
