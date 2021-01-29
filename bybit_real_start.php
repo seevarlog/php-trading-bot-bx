@@ -11,6 +11,7 @@ use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
 use trading_engine\objects\Order;
 use trading_engine\strategy\StrategyBB;
+use trading_engine\strategy\StrategyBBShort;
 use trading_engine\util\CoinPrice;
 use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
@@ -330,7 +331,7 @@ try {
 
         $time_second = time() % 60;
         // 55 ~ 05 초 사이에 갱신을 시도한다.
-        if (!($time_second < 10 || $time_second > 50)) {
+        if (!($time_second < 5 || $time_second > 55)) {
             continue;
         }
 
@@ -362,6 +363,10 @@ try {
         }
 
 
+        if (time() % 900 < 1)
+        {
+            Notify::sendMsg("살아있음.");
+        }
 
         foreach ($make_candle_min_list as $min)
         {
@@ -388,43 +393,14 @@ try {
             }
         }
 
-        $order_count = count(OrderManager::getInstance()->getOrderList("BBS1"));
-        $position_msg = PositionManager::getInstance()->getPosition("BBS1")->getPositionMsg();
-        PositionManager::getInstance()->getPosition("BBS1");
-
-        /*
-        foreach (OrderManager::getInstance()->getOrderList("BBS1") as $order) {
-            if ($order->is_stop == 1) {
-                $order_result_list = $bybit->privates()->getOrderList(
-                    [
-                        'symbol' => 'BTCUSD',
-                        'order_status' => 'Filled',
-                        'limit' => 3
-                    ]
-                );
-                foreach ($order_result_list['result']['data'] as $order_result) {
-                    if (!isset($order_result['last_exec_price']) || $order_result['last_exec_price'] == 0) {
-                        continue;
-                    }
-
-                    if ($order->order_id == $order_result['order_id']) {
-                        $order->execution_price = $order_result['last_exec_price'];
-                    }
-                }
-            }
-        }
-        */
-
-
         CoinPrice::getInstance()->bit_price = $candle_1m->c;
 
         // 오더북 체크크
 
         OrderManager::getInstance()->update($candle_prev_1m);
-       $msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
-        Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".GlobalVar::getInstance()->candleTick."debug:".$msg);
-        $msg = \trading_engine\strategy\StrategyBBShort::getInstance()->BBS($candle_prev_1m);
-        Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()." debug:".$msg);
+        $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
+        $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
+        Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".GlobalVar::getInstance()->candleTick."buy:".$buy_msg." sell:".$sell_msg);
 
 
         if ($candle_1m->t % 1000 == 0)
@@ -443,6 +419,8 @@ try {
         $candle_prev_1m = $candle_1m;
         CandleManager::getInstance()->addNewCandle($candle_1m);
         var_dump(round(memory_get_usage() / 1024 / 1024, 2));
+
+        sleep(10);
     }
 }catch (\Exception $e)
 {
