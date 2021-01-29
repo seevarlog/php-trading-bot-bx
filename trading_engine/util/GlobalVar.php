@@ -13,6 +13,7 @@ use Lin\Bybit\BybitInverse;
 class GlobalVar extends Singleton
 {
     public BybitInverse $bybit;
+    public $candleTick;
 
     public function setByBit($bybit)
     {

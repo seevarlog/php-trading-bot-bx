@@ -9,6 +9,8 @@ use trading_engine\util\Singleton;
 class StrategyBase extends Singleton
 {
     public $min = 1;
+    public $ema_count = 40;
+    public $avg_limit = 0.009;
 
     public function setMin1()
     {

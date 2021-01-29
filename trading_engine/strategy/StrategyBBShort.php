@@ -9,9 +9,7 @@ use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
-use trading_engine\objects\Order;
 use trading_engine\util\Config;
-use trading_engine\util\Notify;
 
 class StrategyBBShort extends StrategyBase
 {
@@ -23,7 +21,7 @@ class StrategyBBShort extends StrategyBase
     {
         if (!Config::getInstance()->isRealTrade())
         {
-            $this->leverage = 15;
+            $this->leverage = 1;
         }
     }
 
@@ -40,7 +38,6 @@ class StrategyBBShort extends StrategyBase
         }
 
 
-        $candle_2min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 2)->getCandlePrev();
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
         $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
@@ -49,7 +46,7 @@ class StrategyBBShort extends StrategyBase
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
 
-        if ($candle_60min->getEMACrossCount() > 50 && $dayCandle->getAvgVolatilityPercent(5) > 0.1)
+        if ($candle_60min->getEMACrossCount() > $this->ema_count && $candle_60min->getAvgVolatilityPercent(200) > $this->avg_limit)
         {
             $candle = $candle_3min;
         }

@@ -9,8 +9,8 @@ use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
-use trading_engine\objects\Order;
 use trading_engine\util\Config;
+use trading_engine\util\GlobalVar;
 
 class StrategyBB extends StrategyBase
 {
@@ -24,7 +24,7 @@ class StrategyBB extends StrategyBase
         $leverage = 15;
         if (!Config::getInstance()->isRealTrade())
         {
-            $leverage = 15;
+            $leverage = 1;
         }
         $orderMng = OrderManager::getInstance();
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
@@ -33,7 +33,6 @@ class StrategyBB extends StrategyBase
             return "매도포지션 점유 중";
         }
 
-        $candle_2min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 2)->getCandlePrev();
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
@@ -41,11 +40,14 @@ class StrategyBB extends StrategyBase
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
 
         $log_min = "1111111111111";
-        if ($candle_60min->getEMACrossCount() > 50 && $dayCandle->getAvgVolatilityPercent(5) > 0.1)
+        if ($candle_60min->getEMACrossCount() > $this->ema_count && $candle_60min->getAvgVolatilityPercent(200) > $this->avg_limit)
         {
             $log_min = "333333333";
             $candle = $candle_3min;
         }
+        GlobalVar::getInstance()->candleTick = $candle->t;
+
+        $log_min .= "cross:".$candle_60min->getEMACrossCount()." per".$candle_60min->getAvgVolatilityPercent(200);
 
         $per_1hour = $candle_60min->getAvgVolatilityPercent(7);
 
@@ -95,7 +97,7 @@ class StrategyBB extends StrategyBase
             $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
             if ($positionMng->getPosition($this->getStrategyKey())->action == "5분EMA")
             {
-                $sell_price = $min5->getMA(240) + $min5->getEMA(120) - $min5->getMA(300);
+                $sell_price = $candle_5min->getMA(240) + $candle_5min->getEMA(120) - $candle_5min->getMA(300);
 
                 OrderManager::getInstance()->updateOrder(
                     $candle->getTime(),
