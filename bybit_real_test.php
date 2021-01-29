@@ -25,8 +25,8 @@ ini_set('memory_limit','3G');
 $config = json_decode(file_get_contents(__DIR__."/config/config.json"), true);
 
 $bybit = new BybitInverse(
-    $config['real']['key'],
-    $config['real']['secret'],
+    $config['test']['key'],
+    $config['test']['secret'],
     'https://api-testnet.bybit.com/'
 );
 
@@ -77,7 +77,7 @@ $order_list = $bybit->privates()->getOrderList(
         'order_status' => "New",
     ]
 );
-
+$position = PositionManager::getInstance()->getPosition("BBS1");
 foreach ($order_list['result']['data'] as $data)
 {
     $order_data = $data;
@@ -135,6 +135,12 @@ foreach ($order_list['result']['data'] as $data)
     if ($order_data['symbol'] != "BTCUSD")
     {
         continue;
+    }
+    $qty = $order_data["qty"];
+
+    if ($order_data['side'] == "sell")
+    {
+        $qty = $qty * -1;
     }
 
     $comment = "손절";
@@ -256,8 +262,8 @@ foreach ($candle_1m_list['result'] as $candle_data)
 
 
 $candle_mng = CandleManager::getInstance();
-$make_candle_min_list = [5, 15, 30, 60, 60*4, 60 * 24];
-for ($i=2; $i>0; $i--)
+$make_candle_min_list = [3, 5, 15, 30, 60, 60*4, 60 * 24];
+for ($i=4; $i>0; $i--)
 {
     foreach ($make_candle_min_list as $make_min)
     {
@@ -265,6 +271,11 @@ for ($i=2; $i>0; $i--)
         if ($interval == 60 * 24)
         {
             $interval = "D";
+        }
+
+        if ($interval =="D" && $i >= 3)
+        {
+            continue;
         }
 
         // 일봉셋팅 (14일꺼 가져옴)
@@ -310,21 +321,12 @@ $account->balance = 1;
 $account->balance = $bybit->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
 
 Notify::sendMsg("봇을 시작합니다. 시작 잔액 usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
-
+var_dump(CandleManager::getInstance()->getCurOtherMinCandle(    CandleManager::getInstance()->getLastCandle(1), 24*60)->getCandlePrev()->getAvgVolatilityPercent(5));
 try {
-    $candle = CandleManager::getInstance()->getLastCandle(1);
+    $candle_prev_1m = CandleManager::getInstance()->getLastCandle(1);
     while (1) {
+        break;
         sleep(1);
-        if (time() % 900 == 0)
-        {
-            Notify::sendMsg("살아있음.");
-        }
-
-        $time_second = time() % 60;
-        // 55 ~ 05 초 사이에 갱신을 시도한다.
-        if (!($time_second < 10 || $time_second > 50)) {
-            continue;
-        }
 
         // 캔들 마감 전에는 빨리 갱신한다.
         $candle_api_result = $bybit->publics()->getKlineList([
@@ -344,27 +346,29 @@ try {
         $candle_1m->h = $candle_data['high'];
         $candle_1m->l = $candle_data['low'];
         $candle_1m->c = $candle_data['close'];
-        if ($candle->t == $candle_data['open_time'])
+        if ($candle_prev_1m->t == $candle_data['open_time'])
         {
-            $candle->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
+            $candle_prev_1m->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
         }
 
-        if ($candle->t == $candle_1m->t) {
+        if ($candle_prev_1m->t == $candle_1m->t) {
             continue;
         }
 
+
+
         foreach ($make_candle_min_list as $min)
         {
-            if ($candle->t % (60 * $min) == 0)
+            if ($candle_1m->t % (60 * $min) == 0)
             {
                 $_last_candle = CandleManager::getInstance()->getLastCandle($min);
                 if ($_last_candle != null)
                 {
-                    $_last_candle->updateCandle($candle->h, $candle->l, $candle->c);
+                    $_last_candle->updateCandle($candle_1m->h, $candle_1m->l, $candle_1m->c);
                 }
 
                 $_new_last_candle = new Candle($min);
-                $_new_last_candle->setData($candle->t, $candle->o, $candle->h, $candle->l, $candle->c);
+                $_new_last_candle->setData($candle_1m->t, $candle_1m->o, $candle_1m->h, $candle_1m->l, $candle_1m->c);
                 CandleManager::getInstance()->addNewCandle($_new_last_candle);
                 $_new_last_candle->cp = $_last_candle;
                 if ($_last_candle != null)
@@ -374,7 +378,7 @@ try {
             }
             else
             {
-                CandleManager::getInstance()->getLastCandle($min)->updateCandle($candle->h, $candle->l, $candle->c);
+                CandleManager::getInstance()->getLastCandle($min)->updateCandle($candle_1m->h, $candle_1m->l, $candle_1m->c);
             }
         }
 
@@ -382,6 +386,7 @@ try {
         $position_msg = PositionManager::getInstance()->getPosition("BBS1")->getPositionMsg();
         PositionManager::getInstance()->getPosition("BBS1");
 
+        /*
         foreach (OrderManager::getInstance()->getOrderList("BBS1") as $order) {
             if ($order->is_stop == 1) {
                 $order_result_list = $bybit->privates()->getOrderList(
@@ -402,19 +407,21 @@ try {
                 }
             }
         }
+        */
 
 
         CoinPrice::getInstance()->bit_price = $candle_1m->c;
 
         // 오더북 체크크
 
-        OrderManager::getInstance()->update($candle);
-        $msg = StrategyTest::getInstance()->BBS($candle);
-        //$msg = StrategyBB::getInstance()->BBS($candle);
-        Notify::sendMsg("debug:".$msg);
+        OrderManager::getInstance()->update($candle_prev_1m);
+        $msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
+        Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()." debug:".$msg);
+        $msg = \trading_engine\strategy\StrategyBBShort::getInstance()->BBS($candle_prev_1m);
+        Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()." debug:".$msg);
 
 
-        if ($candle->t % 1000)
+        if ($candle_1m->t % 1000 == 0)
         {
             $account = Account::getInstance();
             $result = GlobalVar::getInstance()->
@@ -425,9 +432,12 @@ try {
             }
         }
 
-        $candle_1m->cp = $candle;
-        $candle->cn = $candle_1m;
-        $candle = $candle_1m;
+        $candle_1m->cp = $candle_prev_1m;
+        $candle_prev_1m->cn = $candle_1m;
+        $candle_prev_1m = $candle_1m;
+        CandleManager::getInstance()->addNewCandle($candle_1m);
+        var_dump(round(memory_get_usage() / 1024 / 1024, 2));
+        break;
     }
 }catch (\Exception $e)
 {

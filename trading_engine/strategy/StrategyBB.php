@@ -41,7 +41,7 @@ class StrategyBB extends StrategyBase
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
 
         $log_min = "1111111111111";
-        if ($candle_60min->getEMACrossCount() > 30 && $dayCandle->getAvgVolatility(5) > 0.21)
+        if ($candle_60min->getEMACrossCount() > 50 && $dayCandle->getAvgVolatilityPercent(5) > 0.1)
         {
             $log_min = "333333333";
             $candle = $candle_3min;

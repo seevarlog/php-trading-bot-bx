@@ -25,11 +25,12 @@ ini_set('memory_limit','3G');
 $config = json_decode(file_get_contents(__DIR__."/config/config.json"), true);
 
 $bybit = new BybitInverse(
-    $config['short']['key'],
-    $config['short']['secret'],
-    'https://api.bybit.com/'
+    $config['test']['key'],
+    $config['test']['secret'],
+    'https://api-testnet.bybit.com/'
 );
 
+Config::getInstance()->is_test = true;
 GlobalVar::getInstance()->setByBit($bybit);
 Config::getInstance()->setRealTrade();
 
@@ -50,3 +51,8 @@ $bybit->setOptions([
     //'verify'=>false,
 ]);
 
+
+$candle = new Candle(1);
+$candle->t = 1610409000;
+
+echo $candle->getDateTimeKST();

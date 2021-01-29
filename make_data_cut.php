@@ -8,17 +8,17 @@ require_once('vendor/autoload.php');
 ini_set("display_errors", 1);
 ini_set('memory_limit','4G');
 
-if (!($fp = fopen(__DIR__.'/bitstampUSD_1-min_data_2012-01-01_to_2020-04-22.csv', 'r'))) {
+if (!($fp = fopen(__DIR__.'/bitstampUSD_1-min_data_2012-01-01_to_2019-03-13.csv', 'r'))) {
     echo "err";
     return;
 }
 
 
-$start_date = strtotime("2018-09-10 01:00:00");
+$start_date = strtotime("2017-11-10 00:00:00");
+$end_date = strtotime("2018-12-10 00:00:00");
 
 
-
-$fpw = fopen("result_2013_to".$start_date."min.csv", "w");
+$fpw = fopen("result_2013_to".$start_date."-".$end_date.".csv", "w");
 fwrite($fpw, "Timestamp,Open,High,Low,Close,Volume_(BTC),Volume_(Currency),Weighted_Price\n");
 
 $candle_min = 60*60*24; // 몇 분붕을 만들지 정함
@@ -43,6 +43,12 @@ for ($i=0; $i<500000000; $i++)
     if ($arr[0] < $start_date)
     {
         continue;
+    }
+
+    if ((int)$arr[0] > $end_date)
+    {
+        var_dump($arr);
+        break;
     }
 
     if ($arr[1] == "NaN")

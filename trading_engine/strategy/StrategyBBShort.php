@@ -49,7 +49,7 @@ class StrategyBBShort extends StrategyBase
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
 
-        if ($candle_60min->getEMACrossCount() > 30 && $dayCandle->getAvgVolatility(5) > 0.21)
+        if ($candle_60min->getEMACrossCount() > 50 && $dayCandle->getAvgVolatilityPercent(5) > 0.1)
         {
             $candle = $candle_3min;
         }

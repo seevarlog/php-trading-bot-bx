@@ -8,13 +8,13 @@ require_once('vendor/autoload.php');
 ini_set("display_errors", 1);
 ini_set('memory_limit','4G');
 
-if (!($fp = fopen(__DIR__.'/btc2020.csv', 'r'))) {
+if (!($fp = fopen(__DIR__.'/result_2013_to1510272000-1544400000.csv', 'r'))) {
     echo "err";
     return;
 }
 
 
-$candle_min = 60*60*24; // 몇 분붕을 만들지 정함
+$candle_min = 60; // 몇 분붕을 만들지 정함
 $cur_candle = new Candle(1);
 $last_candle = new Candle(1);
 $candle_save_list = [];
@@ -35,7 +35,7 @@ for ($i=0; $i<500000000; $i++)
     }
 
     $arr = explode(",", fgets($fp,1024));
-    if ($i<=0)
+    if ($i<=1)
     {
         if ($arr[1] == "symbol")
         {
@@ -44,7 +44,6 @@ for ($i=0; $i<500000000; $i++)
         }
         continue;
     }
-var_dump($arr);
     if ($arr[1] == "NaN")
     {
         if ($i % $candle_min == 0)
@@ -58,6 +57,7 @@ var_dump($arr);
     }
     else
     {
+        $arr[4+$z] = str_replace("\n", "", $arr[4+$z]);
         if ($i % $candle_min == 0)
         {
             $cur_candle->setData($arr[0], $arr[1 + $z], $arr[2 + $z], $arr[3 + $z], $arr[4 + $z]);
@@ -78,9 +78,13 @@ var_dump($arr);
 fclose($fp);
 
 $fp = fopen("result_1min_to_".$candle_min."min.csv", "w");
-fwrite($fp, "Timestamp,Open,High,Low,Close,Volume_(BTC),Volume_(Currency),Weighted_Price\n");
+fwrite($fp, "Timestamp,Open,High,Low,Close\n");
 foreach ($candle_save_list as $candle)
 {
-    fwrite($fp, $candle->t.",".$candle->o.",".$candle->h.",".$candle->l.",".$candle->c."\n");
+    if ((int)$candle->o <= 0)
+    {
+        break;
+    }
+    fprintf($fp, "%d,%d,%d,%d,%d\n", $candle->t, $candle->o, $candle->h,$candle->l, $candle->c);
 }
 fclose($fp);

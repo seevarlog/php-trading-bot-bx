@@ -18,13 +18,13 @@ header('Content-Type: text/html; charset=UTF-8');
 
 ob_start();
 $time_start = time();
-if (!($fp = fopen(__DIR__.'/output.csv', 'r'))) {
+if (!($fp = fopen(__DIR__.'/result_2013_to1510272000-1544400000.csv', 'r'))) {
     echo "err";
     return;
 }
 
 // m본
-$make_candle_min_list = [3, 5, 15, 30, 60, 60*4, 60 * 24];
+$make_candle_min_list = [2, 3, 5, 15, 30, 60, 60*4, 60 * 24];
 
 // 30분봉 만들어봄
 $candleMng = CandleManager::getInstance();
@@ -163,7 +163,7 @@ for ($i=0; $i<500000000; $i++)
     \trading_engine\util\CoinPrice::getInstance()->updateBitPrice($candle->c);
     \trading_engine\managers\OrderManager::getInstance()->update($candle->getCandlePrev());
 
-    //StrategyBB::getInstance()->BBS($candle->getCandlePrev());
+    StrategyBB::getInstance()->BBS($candle->getCandlePrev());
     StrategyBBShort::getInstance()->BBS($candle->getCandlePrev());
 }
 
