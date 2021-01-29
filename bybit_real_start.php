@@ -326,7 +326,7 @@ try {
         sleep(1);
         if (time() % 900 == 0)
         {
-            Notify::sendMsg("살아있음.");
+            Notify::sendMsg("살아있음.1");
         }
 
         $time_second = time() % 60;
@@ -363,11 +363,7 @@ try {
         }
 
 
-        if (time() % 900 < 1)
-        {
-            Notify::sendMsg("살아있음.");
-        }
-
+        Notify::sendMsg("살아있음.2");
         foreach ($make_candle_min_list as $min)
         {
             if ($candle_1m->t % (60 * $min) == 0)
