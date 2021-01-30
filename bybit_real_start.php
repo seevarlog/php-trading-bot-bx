@@ -337,11 +337,11 @@ try {
         }
 
         // 콜을 자주 호출하면 봇이 다운될 수 있음
-        $last_time = (int)(time() / 60);
         if ($last_time == (int)(time() / 60))
         {
             continue;
         }
+        $last_time = (int)(time() / 60);
 
         // 캔들 마감 전에는 빨리 갱신한다.
         $candle_api_result = $bybit->publics()->getKlineList([
