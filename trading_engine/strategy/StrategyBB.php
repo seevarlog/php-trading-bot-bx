@@ -24,7 +24,7 @@ class StrategyBB extends StrategyBase
         $leverage = 15;
         if (!Config::getInstance()->isRealTrade())
         {
-            $leverage = 1;
+            $leverage = 12;
         }
         $orderMng = OrderManager::getInstance();
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
@@ -49,6 +49,8 @@ class StrategyBB extends StrategyBase
 
         $log_min .= "cross:".$candle_60min->getEMACrossCount()." per".$candle_60min->getAvgVolatilityPercent(200);
 
+
+        $log_min = "";
         $per_1hour = $candle_60min->getAvgVolatilityPercent(7);
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
@@ -63,6 +65,10 @@ class StrategyBB extends StrategyBase
         if ($stop_per < 0.013)
         {
             $stop_per = 0.013;
+        }
+        if ($stop_per > 0.06)
+        {
+            $stop_per = 0.06;
         }
         $k_down = 1.3;
         $day = 40;

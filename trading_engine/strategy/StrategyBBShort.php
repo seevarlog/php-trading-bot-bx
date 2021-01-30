@@ -21,7 +21,7 @@ class StrategyBBShort extends StrategyBase
     {
         if (!Config::getInstance()->isRealTrade())
         {
-            $this->leverage = 1;
+            $this->leverage = 12;
         }
     }
 
@@ -50,6 +50,7 @@ class StrategyBBShort extends StrategyBase
         {
             $candle = $candle_3min;
         }
+        $log_min = "";
 
         $per_1hour = $candle_60min->getAvgVolatilityPercent();
         $k_up = 1.1 + ($per_1hour - 0.02) * 10;
@@ -57,6 +58,10 @@ class StrategyBBShort extends StrategyBase
         if ($stop_per < 0.013)
         {
             $stop_per = 0.013;
+        }
+        if ($stop_per > 0.06)
+        {
+            $stop_per = 0.06;
         }
         $k_down = 1.3;
         $day = 40;
