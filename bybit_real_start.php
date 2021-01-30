@@ -318,7 +318,7 @@ $account->balance = 1;
 // 계정 밸런스 불러옴
 $account->balance = $bybit->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
 
-Notify::sendMsg("봇을 시작합니다. 시작 잔액 usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
+Notify::sendMsg("봇을 시작합니다. 시작 잔액 usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance(). "Candle:".CandleManager::getInstance()->getLastCandle(1)->displayCandle());
 
 try {
     $last_time = time();
@@ -332,16 +332,10 @@ try {
 
         $time_second = time() % 60;
         // 55 ~ 05 초 사이에 갱신을 시도한다.
-        if (!($time_second < 5 || $time_second > 55)) {
+        if (!($time_second < 3 || $time_second > 57)) {
             continue;
         }
 
-        // 콜을 자주 호출하면 봇이 다운될 수 있음
-        if ($last_time == (int)(time() / 60))
-        {
-            continue;
-        }
-        $last_time = (int)(time() / 60);
 
         // 캔들 마감 전에는 빨리 갱신한다.
         $candle_api_result = $bybit->publics()->getKlineList([
