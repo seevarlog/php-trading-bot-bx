@@ -20,11 +20,17 @@ use trading_engine\util\Notify;
 ini_set("display_errors", 1);
 ini_set('memory_limit','3G');
 
+$key_name = "real";
+if (isset($argv[1]))
+{
+    $key_name = $argv[1];
+}
+
 $config = json_decode(file_get_contents(__DIR__."/config/config.json"), true);
 
 $bybit = new BybitInverse(
-    $config['real']['key'],
-    $config['real']['secret'],
+    $config[$key_name]['key'],
+    $config[$key_name]['secret'],
     'https://api.bybit.com/'
 );
 
