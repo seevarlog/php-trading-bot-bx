@@ -39,6 +39,7 @@ class StrategyBBShort extends StrategyBase
 
 
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
+        $candle_1min = $candle;
         $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
@@ -46,11 +47,20 @@ class StrategyBBShort extends StrategyBase
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
 
-        if ($candle_60min->getEMACrossCount() > $this->ema_count && $candle_60min->getAvgVolatilityPercent(200) > $this->avg_limit)
+        $ema_count = $candle_60min->getEMACrossCount();
+        $log_min = "111111111";
+        if ($ema_count > $this->ema_count && $candle_60min->getAvgVolatilityPercent(200) > $this->avg_limit)
         {
+            $log_min = "333333333";
             $candle = $candle_3min;
+            if ($ema_count > $this->ema_5m_count)
+            {
+                // 최고조 박스형태
+                $log_min = "555555555";
+                $candle = $candle_5min;
+            }
         }
-        $log_min = "";
+        $log_min .= "cross:".$candle_60min->getEMACrossCount()." per".$candle_60min->getAvgVolatilityPercent(200);
 
         $per_1hour = $candle_60min->getAvgVolatilityPercent();
         $k_up = 1.1 + ($per_1hour - 0.02) * 10;
@@ -277,7 +287,7 @@ class StrategyBBShort extends StrategyBase
             }
         }
 
-        $log .= "k = ".$k_up. " DAY=".$day." order_time=".$candle->getDateTimeKST(). "candle=".$candle->displayCandle();
+        $log .= "k = ".$k_up. " DAY=".$day." order_time=".$candle->getDateTimeKST(). "candle=".$candle->displayCandle().$log_min;
 
 
         OrderManager::getInstance()->updateOrder(

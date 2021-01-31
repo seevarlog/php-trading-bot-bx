@@ -34,23 +34,30 @@ class StrategyBB extends StrategyBase
         }
 
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
+        $candle_1min = $candle;
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
 
-        $log_min = "1111111111111";
-        if ($candle_60min->getEMACrossCount() > $this->ema_count && $candle_60min->getAvgVolatilityPercent(200) > $this->avg_limit)
+        $ema_count = $candle_60min->getEMACrossCount();
+        $log_min = "111111111";
+        if ($ema_count > $this->ema_count && $candle_60min->getAvgVolatilityPercent(200) > $this->avg_limit)
         {
             $log_min = "333333333";
             $candle = $candle_3min;
+            if ($ema_count > $this->ema_5m_count)
+            {
+                // 최고조 박스형태
+                $log_min = "555555555";
+                $candle = $candle_5min;
+            }
         }
         GlobalVar::getInstance()->candleTick = $candle->tick;
 
         $log_min .= "cross:".$candle_60min->getEMACrossCount()." per".$candle_60min->getAvgVolatilityPercent(200);
 
 
-        $log_min = "";
         $per_1hour = $candle_60min->getAvgVolatilityPercent(7);
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
@@ -61,7 +68,7 @@ class StrategyBB extends StrategyBase
         $wait_min = 30;
         $buy_per = 0.0002;
         $k_up = 1.1 + ($per_1hour - 0.02) * 10;
-        $stop_per = $per_1hour * 2.1;
+        $stop_per = $per_1hour * 2.5;
         if ($stop_per < 0.013)
         {
             $stop_per = 0.013;
@@ -212,6 +219,12 @@ class StrategyBB extends StrategyBase
         if ($candle_60min->getNewRsi(14) > 70)
         {
             return "1시간 RSI 에러";
+        }
+
+        $rsi_val = 0.5;
+        if ($dayCandle->getRsiMaInclination(1, 14, 17) < 0)
+        {
+            $rsi_val = -1;
         }
 
 
