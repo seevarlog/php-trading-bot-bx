@@ -54,6 +54,7 @@ class StrategyBB extends StrategyBase
             }
         }
         GlobalVar::getInstance()->candleTick = $candle->tick;
+        GlobalVar::getInstance()->emaCount = $ema_count;
 
         $log_min .= "cross:".$candle_60min->getEMACrossCount()." per".$candle_60min->getAvgVolatilityPercent(200);
 

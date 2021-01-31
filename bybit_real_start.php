@@ -404,7 +404,7 @@ try {
         OrderManager::getInstance()->update($candle_prev_1m);
         $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
         $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
-        Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".GlobalVar::getInstance()->candleTick."buy:".$buy_msg." sell:".$sell_msg);
+        Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".GlobalVar::getInstance()->candleTick."ema:".GlobalVar::getInstance()->emaCount." buy:".$buy_msg." sell:".$sell_msg);
 
 
         if ($candle_1m->t % 1000 == 0)
