@@ -20,11 +20,17 @@ use trading_engine\util\Notify;
 ini_set("display_errors", 1);
 ini_set('memory_limit','3G');
 
+$key_name = "real";
+if (isset($argv[1]))
+{
+    $key_name = $argv[1];
+}
+
 $config = json_decode(file_get_contents(__DIR__."/config/config.json"), true);
 
 $bybit = new BybitInverse(
-    $config['real']['key'],
-    $config['real']['secret'],
+    $config[$key_name]['key'],
+    $config[$key_name]['secret'],
     'https://api.bybit.com/'
 );
 
@@ -318,9 +324,10 @@ $account->balance = 1;
 // 계정 밸런스 불러옴
 $account->balance = $bybit->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
 
-Notify::sendMsg("봇을 시작합니다. 시작 잔액 usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
+Notify::sendMsg("봇을 시작합니다. 시작 잔액 usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance(). "Candle:".CandleManager::getInstance()->getLastCandle(1)->displayCandle());
 
 try {
+    $last_time = time();
     $candle_prev_1m = CandleManager::getInstance()->getLastCandle(1);
     while (1) {
         sleep(1);
@@ -331,9 +338,10 @@ try {
 
         $time_second = time() % 60;
         // 55 ~ 05 초 사이에 갱신을 시도한다.
-        if (!($time_second < 5 || $time_second > 55)) {
+        if (!($time_second < 3 || $time_second > 57)) {
             continue;
         }
+
 
         // 캔들 마감 전에는 빨리 갱신한다.
         $candle_api_result = $bybit->publics()->getKlineList([
@@ -396,7 +404,7 @@ try {
         OrderManager::getInstance()->update($candle_prev_1m);
         $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
         $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
-        Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".GlobalVar::getInstance()->candleTick."buy:".$buy_msg." sell:".$sell_msg);
+        Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".GlobalVar::getInstance()->candleTick."ema:".GlobalVar::getInstance()->emaCount." buy:".$buy_msg." sell:".$sell_msg);
 
 
         if ($candle_1m->t % 1000 == 0)
@@ -415,8 +423,6 @@ try {
         $candle_prev_1m = $candle_1m;
         CandleManager::getInstance()->addNewCandle($candle_1m);
         var_dump(round(memory_get_usage() / 1024 / 1024, 2));
-
-        sleep(10);
     }
 }catch (\Exception $e)
 {
