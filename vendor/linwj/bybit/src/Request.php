@@ -149,6 +149,11 @@ class Request
                 {
                     break;
                 }
+                
+                if ($ret['ret_code'] == 30004)
+                {
+                    break;
+                }
 
                 Notify::sendTradeMsg("ret 코드 에러 : ".$body);
 
