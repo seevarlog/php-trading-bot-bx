@@ -183,7 +183,7 @@ class StrategyBB extends StrategyBase
         $log = "";
         // BB 밑이면 이미 하락 크게 진행 중
         if ($candle_5min->getGoldenDeadState() == "gold" &&
-            $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA(200) )
+            $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA120() )
         {
             // 골크에 200일선과 300일선 사이라서 도박해본다
             if ($dayCandle->getAvgVolatilityPercent(3) > 0.12)

@@ -191,6 +191,15 @@ class Order
 
         return false;
     }
+    public function getReverseSide()
+    {
+        return $this->amount > 0 ? "sell" : "buy";
+    }
+
+    public function getSide()
+    {
+        return $this->amount > 0 ? "buy" : "sell";
+    }
 
     public function getFee()
     {
