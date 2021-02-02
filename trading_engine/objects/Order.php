@@ -5,7 +5,6 @@ namespace trading_engine\objects;
 
 
 use trading_engine\managers\OrderManager;
-use trading_engine\managers\PositionManager;
 use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
 use trading_engine\util\Notify;
@@ -107,6 +106,7 @@ class Order
                             }
                             else
                             {
+                                $this->amount = $exec_amount;
                                 Notify::sendTradeMsg($this->comment."거래가 의 일부만 채워졌습니다. order : ".$this->amount." filled : ".$exec_amount);
                                 OrderManager::getInstance()->modifyAmount($this->strategy_key, $leaves_qty, '손절');
                                 return false;
@@ -169,6 +169,7 @@ class Order
                             }
                             else
                             {
+                                $this->amount = -$exec_amount;
                                 Notify::sendTradeMsg($this->comment."거래가 의 일부만 채워졌습니다. order : ".$this->amount." filled : ".$exec_amount);
                                 OrderManager::getInstance()->modifyAmount($this->strategy_key, -$leaves_qty, '손절');
                                 return false;
