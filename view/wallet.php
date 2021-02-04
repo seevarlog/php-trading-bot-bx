@@ -33,7 +33,7 @@ if ($result !== null)
 
 $candle_api_result = $bybit->publics()->getKlineList([
     'symbol' => "BTCUSD",
-    'interval' => "2",
+    'interval' => "1",
     'from' => time() - 120
 ]);
 
@@ -94,7 +94,7 @@ foreach ($info_list as $info)
 {
     $coin_amount = $info["per"] * $btc_amount;
     $krw = $info["per"] * $btc_amount * $account->getUSDBalance();
-    $result = <<<HTML
+    $result .= <<<HTML
     <tr>
         <td>{$info["name"]}</td>
         <td>{$info["per"]}</td>
@@ -105,7 +105,7 @@ HTML;
 
 }
 
-$result = <<<HTML
+$result .= <<<HTML
 </table>
 </body>
 </html>
