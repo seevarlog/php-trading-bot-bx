@@ -57,11 +57,11 @@ $info_list = [
         'per'=>$brother_per
     ],
     [
-        'name'=>"셀트리온대주주",
+        'name'=>"셀리버리대주주",
         'per'=>$brother_per
     ],
     [
-        'name'=>"제1거지",
+        'name'=>"알거지",
         'per'=>1-$brother_per-$brother_per-$father_per
     ],
 ];
