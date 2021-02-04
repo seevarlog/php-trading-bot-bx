@@ -69,6 +69,7 @@ $info_list = [
 
 $result = <<<HTML
 <html>
+<meta charset="utf-8">
 <body>
 환율 : 1110<br>
 비트코인 BTC(USD) : {$price}<br>
