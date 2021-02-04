@@ -100,7 +100,7 @@ foreach ($info_list as $info)
         <td>{$info["name"]}</td>
         <td>{$info["per"]}</td>
         <td>{$coin_amount}</td>    
-        <td>{$krw}</td>
+        <td>{$krw} 원</td>
     </tr>
 HTML;
 
