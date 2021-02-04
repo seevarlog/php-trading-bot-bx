@@ -93,7 +93,7 @@ HTML;
 foreach ($info_list as $info)
 {
     $coin_amount = $info["per"] * $btc_amount;
-    $krw = $info["per"] * $btc_amount * $account->getUSDBalance();
+    $krw = number_format((int)($info["per"] * $btc_amount * $account->getUSDBalance() * 1110));
     $result .= <<<HTML
     <tr>
         <td>{$info["name"]}</td>
