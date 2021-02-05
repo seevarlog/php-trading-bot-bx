@@ -44,8 +44,8 @@ $price_kr = $price * 1110;
 $btc_amount = $account->getBitBalance();
 $krw_total = $account->getBitBalance() * $price_kr;
 
-$father_per = 0.445467055189;
-$brother_per = 0.196307748401993;
+$father_per = 0.6293599029;
+$brother_per = 0.1712710449;
 
 $info_list = [
     [
@@ -77,10 +77,6 @@ $result = <<<HTML
 보유BTC : {$btc_amount} <br>
 보유원화: {$krw_total} <br>
 <br>
-<br>
-아빠지분률 : {$father_per} <br>
-엄마 : {$brother_per} <br>
-형 : {$brother_per} <br>
 <br>
 <br>
 <table border="1">
