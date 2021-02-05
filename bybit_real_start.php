@@ -395,11 +395,11 @@ try {
 
         // 오더북 체크크
 
-        OrderManager::getInstance()->update($candle_1m);
-        $buy_msg = StrategyBB::getInstance()->BBS($candle_1m);
-        $sell_msg = StrategyBBShort::getInstance()->BBS($candle_1m);
-        Notify::sendMsg("candle:".$candle_1m->displayCandle()."t:".GlobalVar::getInstance()->candleTick."ema:".GlobalVar::getInstance()->emaCount." buy:".$buy_msg." sell:".$sell_msg);
-        Notify::sendMsg("5m candle:".$candle_mng->getCurOtherMinCandle($candle_1m, 5)->displayCandle());
+        OrderManager::getInstance()->update($candle_prev_1m);
+        $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
+        $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
+        Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".GlobalVar::getInstance()->candleTick."ema:".GlobalVar::getInstance()->emaCount." buy:".$buy_msg." sell:".$sell_msg);
+        Notify::sendMsg("5m candle:".$candle_mng->getCurOtherMinCandle($candle_prev_1m, 5)->displayCandle());
 
 
 
