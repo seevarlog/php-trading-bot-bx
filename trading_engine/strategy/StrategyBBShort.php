@@ -21,7 +21,7 @@ class StrategyBBShort extends StrategyBase
     {
         if (!Config::getInstance()->isRealTrade())
         {
-            $this->leverage = 12;
+            $this->leverage = 1;
         }
     }
 
@@ -283,7 +283,7 @@ class StrategyBBShort extends StrategyBase
             }
             else
             {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.2;
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.4;
             }
         }
 

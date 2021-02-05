@@ -183,7 +183,7 @@ class StrategyBB extends StrategyBase
         $log = "";
         // BB 밑이면 이미 하락 크게 진행 중
         if ($candle_5min->getGoldenDeadState() == "gold" &&
-            $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA120() )
+            $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA120() && $candle_5min->getEMA300Cross(20) <= 0)
         {
             // 골크에 200일선과 300일선 사이라서 도박해본다
             if ($dayCandle->getAvgVolatilityPercent(3) > 0.12)
@@ -263,7 +263,7 @@ class StrategyBB extends StrategyBase
 //        }
 
 
-        // 1시간봉 BB 밑이면 정지
+        // 1시간봉 BB 밑이면 정지필살5분EMA
         if ($candle_60min->getBBDownLine(37, 0.95) > $candle_60min->c)
         {
             return "1시간 BB 아래에 있음";
@@ -367,7 +367,7 @@ class StrategyBB extends StrategyBase
             }
             else
             {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.2;
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.4;
             }
         }
 
