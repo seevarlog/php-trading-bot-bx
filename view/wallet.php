@@ -44,8 +44,8 @@ $price_kr = $price * 1110;
 $btc_amount = $account->getBitBalance();
 $krw_total = $account->getBitBalance() * $price_kr;
 
-$father_per = 0.6293599029;
-$brother_per = 0.1712710449;
+$father_per = 0.5603284169;
+$brother_per = 0.1524851409;
 
 $info_list = [
     [
