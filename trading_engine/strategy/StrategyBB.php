@@ -290,7 +290,7 @@ class StrategyBB extends StrategyBase
             $action = "5분";
             $wait_min = 30;
         }
-        else if ($candle_5min->getBBDownCount($day, $k_down, 4) > 1 && $candle_60min->getGoldenDeadState() != "gold" && $candle->tick < 5)
+        else if ($candle_5min->getBBDownCount($day, $k_down, 4) > 1 && $candle_60min->getGoldenDeadState() != "gold")
         {
             // BB 밑이면 이미 하락 크게 진행 중
             if ($candle_5min->getGoldenDeadState() == "gold" && $candle_5min->getBBDownLine($day, $k_up) > $candle->c &&
