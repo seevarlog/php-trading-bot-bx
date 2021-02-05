@@ -24,7 +24,7 @@ class StrategyBB extends StrategyBase
         $leverage = 15;
         if (!Config::getInstance()->isRealTrade())
         {
-            $leverage = 12;
+            $leverage = 15;
         }
         $orderMng = OrderManager::getInstance();
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
@@ -183,7 +183,7 @@ class StrategyBB extends StrategyBase
         $log = "";
         // BB 밑이면 이미 하락 크게 진행 중
         if ($candle_5min->getGoldenDeadState() == "gold" &&
-            $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA120() && $candle_5min->getEMA300Cross(20) <= 0)
+            $candle_5min->getEMA(300) < $candle->c && $candle_5min->getEMA300Cross(20) <= 0)
         {
             // 골크에 200일선과 300일선 사이라서 도박해본다
             if ($dayCandle->getAvgVolatilityPercent(3) > 0.12)
@@ -290,7 +290,7 @@ class StrategyBB extends StrategyBase
             $action = "5분";
             $wait_min = 30;
         }
-        else if ($candle_5min->getBBDownCount($day, $k_down, 4) > 1)
+        else if ($candle_5min->getBBDownCount($day, $k_down, 4) > 1 && $candle_60min->getGoldenDeadState() != "gold" && $candle->tick < 5)
         {
             // BB 밑이면 이미 하락 크게 진행 중
             if ($candle_5min->getGoldenDeadState() == "gold" && $candle_5min->getBBDownLine($day, $k_up) > $candle->c &&

@@ -65,7 +65,7 @@ class Candle
 
     public function displayCandle()
     {
-        return "t:".$this->getDateTime()."  h:".$this->h." l:".$this->l." c:".$this->c." o:".$this->o;
+        return "t:".$this->getDateTime()."  h:".$this->h." l:".$this->l." c:".$this->c." o:".$this->o. "tick:".$this->tick;
     }
 
     public function getTime()

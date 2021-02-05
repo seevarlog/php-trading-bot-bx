@@ -331,10 +331,6 @@ try {
     $candle_prev_1m = CandleManager::getInstance()->getLastCandle(1);
     while (1) {
         sleep(1);
-        if (time() % 900 == 0)
-        {
-            Notify::sendMsg("살아있음.1");
-        }
 
         $time_second = time() % 60;
         // 55 ~ 05 초 사이에 갱신을 시도한다.
@@ -370,8 +366,6 @@ try {
             continue;
         }
 
-
-        Notify::sendMsg("살아있음.2");
         foreach ($make_candle_min_list as $min)
         {
             if ($candle_1m->t % (60 * $min) == 0)
@@ -401,10 +395,12 @@ try {
 
         // 오더북 체크크
 
-        OrderManager::getInstance()->update($candle_prev_1m);
-        $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
-        $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
-        Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".GlobalVar::getInstance()->candleTick."ema:".GlobalVar::getInstance()->emaCount." buy:".$buy_msg." sell:".$sell_msg);
+        OrderManager::getInstance()->update($candle_1m);
+        $buy_msg = StrategyBB::getInstance()->BBS($candle_1m);
+        $sell_msg = StrategyBBShort::getInstance()->BBS($candle_1m);
+        Notify::sendMsg("candle:".$candle_1m->displayCandle()."t:".GlobalVar::getInstance()->candleTick."ema:".GlobalVar::getInstance()->emaCount." buy:".$buy_msg." sell:".$sell_msg);
+        Notify::sendMsg("5m candle:".$candle_mng->getCurOtherMinCandle($candle_1m, 5)->displayCandle());
+
 
 
         if ($candle_1m->t % 1000 == 0)
