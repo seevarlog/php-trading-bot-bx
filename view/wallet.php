@@ -103,7 +103,15 @@ HTML;
 
 }
 
+$krw_total = number_format((int)($krw_total));
 $result .= <<<HTML
+
+    <tr>
+        <td>총합</td>
+        <td>1</td>
+        <td>{$btc_amount}</td>    
+        <td>{$krw_total} 원</td>
+    </tr>
 </table>
 </body>
 </html>
