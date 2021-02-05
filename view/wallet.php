@@ -66,11 +66,12 @@ $info_list = [
     ],
 ];
 
-
+$datetime = date('Y-m-d H:i:s');
 $result = <<<HTML
 <html>
 <meta charset="utf-8">
 <body>
+기준 : {$datetime}
 환율 : 1110<br>
 비트코인 BTC(USD) : {$price}<br>
 비트코인 BTC(KRW) : {$price_kr}<br>
