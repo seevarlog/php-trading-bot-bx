@@ -14,6 +14,8 @@ class Order
     public $order_id = '';
     public $date;
     public $strategy_key;
+    public $filled_start_time = 0;
+    public $filled_amount = 0;
     public $amount = 0;
     public $entry;
     public $is_stop;
@@ -64,6 +66,38 @@ class Order
 
     public function isContract(Candle $candle)
     {
+        // 진입 filled 추적
+        if ($this->filled_amount > 0 && $this->comment == "진입")
+        {
+            if (Config::getInstance()->isRealTrade())
+            {
+                $result = GlobalVar::getInstance()->bybit->privates()->getOrder(
+                    [
+                        'order_id'=>$this->order_id,
+                        'symbol'=>'BTCUSD'
+                    ]
+                );
+                $exec_amount = $result['result']['cum_exec_qty'];
+                $leaves_qty = $result['result']['leaves_qty'];
+
+                if ($exec_amount == abs($this->amount))
+                {
+                    return true;
+                }
+
+                $this->filled_amount = $exec_amount;
+                if ($this->filled_start_time + 60 * 15 < time())
+                {
+                    $this->amount = $this->amount > 0 ? $exec_amount : -$exec_amount;
+                    OrderManager::getInstance()->cancelOrder($this);
+                    OrderManager::getInstance()->modifyAmount($this->strategy_key, -$this->amount, '손절');
+                    Notify::sendTradeMsg("진입 거래를 마감함. prev:".$this->amount." filled:".$exec_amount);
+
+                    return true;
+                }
+            }
+        }
+
         if ( $this->amount > 0)
         {
             if ($this->entry >= $candle->getLow() && $this->is_limit)
@@ -88,12 +122,15 @@ class Order
                     {
                         if ($exec_amount > 0)
                         {
-                            $this->amount = $exec_amount;
-                            OrderManager::getInstance()->cancelOrder($this);
+                            //$this->amount = $exec_amount;
+                            $this->filled_start_time = time();
+                            $this->filled_amount = $exec_amount;
+                            //OrderManager::getInstance()->cancelOrder($this);
                             OrderManager::getInstance()->modifyAmount($this->strategy_key, -$exec_amount, '손절');
                             Notify::sendTradeMsg("거래가 일부만 채워졌다. prev:".$this->amount." filled:".$exec_amount);
+
+                            return false;
                         }
-                        return true;
                     }
                     else if ($this->comment == "익절")
                     {
@@ -150,11 +187,13 @@ class Order
                     {
                         if ($exec_amount > 0)
                         {
-                            $this->amount = $exec_amount;
-                            OrderManager::getInstance()->cancelOrder($this);
+                            //$this->amount = $exec_amount;
+                            $this->filled_start_time = time();
+                            $this->filled_amount = $exec_amount;
+                            //OrderManager::getInstance()->cancelOrder($this);
                             OrderManager::getInstance()->modifyAmount($this->strategy_key, $exec_amount, '손절');
                             Notify::sendTradeMsg("거래가 일부만 채워졌다. prev:".$this->amount." filled:".$exec_amount);
-                            return true;
+                            return false;
                         }
                     }
                     else if ($this->comment == "익절")
