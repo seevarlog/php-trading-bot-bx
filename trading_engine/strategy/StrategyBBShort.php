@@ -52,12 +52,10 @@ class StrategyBBShort extends StrategyBase
         if ($ema_count > $this->ema_count && $candle_60min->getAvgVolatilityPercent(200) > $this->avg_limit)
         {
             $log_min = "333333333";
-            $candle = $candle_3min;
             if ($ema_count > $this->ema_5m_count)
             {
                 // 최고조 박스형태
                 $log_min = "555555555";
-                $candle = $candle_5min;
             }
         }
         $log_min .= "cross:".$candle_60min->getEMACrossCount()." per".$candle_60min->getAvgVolatilityPercent(200);
@@ -175,6 +173,30 @@ class StrategyBBShort extends StrategyBase
         {
             return "[매도]1시간반전 기회없음";
         }
+
+
+//        // BB 밑이면 이미 하락 크게 진행 중
+//        if ($candle_5min->getGoldenDeadState() == "gold" &&
+//            $candle_5min->getEMA120() > $candle->c && $candle_5min->getEMA120Cross(20) <= 0 && $position_count == 0)
+//        {
+//            $stop_per = 0.03;
+//            $buy_price = $candle_5min->getEMA120();
+//            $stop_price = $buy_price * (1 + $stop_per);
+//            $action = "필살5분EMA";
+//            $wait_min = 30;
+//            GOTO ENTRY;
+//        }
+        if ($candle_5min->getGoldenDeadState() == "dead" &&
+            $candle_5min->getEMA240() > $candle->c && $candle_5min->getEMA240Cross(20) <= 0 && $position_count == 0)
+        {
+            $stop_per = 0.03;
+            $buy_price = $candle_5min->getEMA120();
+            $stop_price = $buy_price * (1 + $stop_per);
+            $action = "필살5분EMA";
+            $wait_min = 30;
+            GOTO ENTRY;
+        }
+
 
         if ($candle->crossoverBBUpLine($day, $k_down) == false)
         {

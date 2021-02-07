@@ -82,6 +82,7 @@ class Order
 
                 if ($exec_amount == abs($this->amount))
                 {
+                    $this->amount = $this->amount > 0 ? $exec_amount : -$exec_amount;
                     return true;
                 }
 

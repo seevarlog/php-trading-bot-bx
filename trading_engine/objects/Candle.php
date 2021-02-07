@@ -439,6 +439,50 @@ class Candle
         return $sum_cross_count;
     }
 
+
+    public function getEMA120Cross($length=20)
+    {
+        if (isset($this->cross_ema[$length]))
+        {
+            return $this->cross_ema[$length];
+        }
+
+        $sum_cross_count = 0;
+        $candle = $this;
+
+        for($i=0; $i<$length; $i++)
+        {
+            $sum_cross_count += $candle->checkCross($candle->getEMA120());
+            $candle = $candle->getCandlePrev();
+        }
+
+        $this->cross_ema[$length] = $sum_cross_count;
+
+        return $sum_cross_count;
+    }
+
+
+    public function getEMA240Cross($length=20)
+    {
+        if (isset($this->cross_ema[$length]))
+        {
+            return $this->cross_ema[$length];
+        }
+
+        $sum_cross_count = 0;
+        $candle = $this;
+
+        for($i=0; $i<$length; $i++)
+        {
+            $sum_cross_count += $candle->checkCross($candle->getEMA120());
+            $candle = $candle->getCandlePrev();
+        }
+
+        $this->cross_ema[$length] = $sum_cross_count;
+
+        return $sum_cross_count;
+    }
+
     public function checkCross($value)
     {
         if($this->l <= $value && $value <= $this->h)

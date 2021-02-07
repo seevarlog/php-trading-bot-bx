@@ -45,12 +45,10 @@ class StrategyBB extends StrategyBase
         if ($ema_count > $this->ema_count && $candle_60min->getAvgVolatilityPercent(200) > $this->avg_limit)
         {
             $log_min = "333333333";
-            $candle = $candle_3min;
             if ($ema_count > $this->ema_5m_count)
             {
                 // 최고조 박스형태
                 $log_min = "555555555";
-                $candle = $candle_5min;
             }
         }
         GlobalVar::getInstance()->candleTick = $candle->tick;
