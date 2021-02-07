@@ -184,17 +184,17 @@ class StrategyBBShort extends StrategyBase
             $stop_price = $buy_price * (1 + $stop_per);
             $action = "필살5분EMA";
             $wait_min = 30;
-            GOTO ENTRY;
+            GOTO SELL_ENTRY;
         }
         if ($candle_5min->getGoldenDeadState() == "dead" &&
             $candle_5min->getEMA240() > $candle->c && $candle_5min->getEMA240Cross(20) <= 0 && $position_count == 0)
         {
             $stop_per = 0.03;
-            $buy_price = $candle_5min->getEMA120();
+            $buy_price = $candle_5min->getEMA240();
             $stop_price = $buy_price * (1 + $stop_per);
             $action = "필살5분EMA";
             $wait_min = 30;
-            GOTO ENTRY;
+            GOTO SELL_ENTRY;
         }
 
 
@@ -289,7 +289,7 @@ class StrategyBBShort extends StrategyBase
 //            }
 //        }
 
-        ENTRY:
+SELL_ENTRY:
         // 매수 시그널, 아래서 위로 BB를 뚫음
         // 매수 주문
 
