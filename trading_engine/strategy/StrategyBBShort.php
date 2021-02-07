@@ -47,21 +47,34 @@ class StrategyBBShort extends StrategyBase
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
 
-        $ema_count = $candle_60min->getEMACrossCount();
-        $log_min = "111111111";
-        if ($ema_count > $this->ema_count && $candle_60min->getAvgVolatilityPercent(200) > $this->avg_limit)
+//        $ema_count = $candle_60min->getEMACrossCount();
+//        $log_min = "111111111";
+//        if ($ema_count > $this->ema_count && $candle_60min->getAvgVolatilityPercent(200) > $this->avg_limit)
+//        {
+//            $log_min = "333333333";
+//            if ($ema_count > $this->ema_5m_count)
+//            {
+//                // 최고조 박스형태
+//                $log_min = "555555555";
+//            }
+//        }
+        $log_min = "11111111";
+        $day_per = $dayCandle->getAvgVolatilityPercent($this->day_day);
+        if ($day_per > $this->day_per_1)
         {
             $log_min = "333333333";
-            if ($ema_count > $this->ema_5m_count)
-            {
-                // 최고조 박스형태
-                $log_min = "555555555";
-            }
+            $candle = $candle_3min;
         }
-        $log_min .= "cross:".$candle_60min->getEMACrossCount()." per".$candle_60min->getAvgVolatilityPercent(200);
+        else if ($day_per > $this->day_per_2)
+        {
+            $log_min = "555555555";
+            $candle = $candle_5min;
+        }
+
+        $log_min .= "per:".$day_per;
 
         $per_1hour = $candle_60min->getAvgVolatilityPercent();
-        $k_up = 1.1 + ($per_1hour - 0.02) * 10;
+        $k_up = 1.1 + ($per_1hour - 0.02) * 15;
         $stop_per = $per_1hour * 1.5;
         if ($stop_per < 0.013)
         {

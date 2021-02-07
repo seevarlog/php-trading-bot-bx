@@ -40,21 +40,33 @@ class StrategyBB extends StrategyBase
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
 
-        $ema_count = $candle_60min->getEMACrossCount();
-        $log_min = "111111111";
-        if ($ema_count > $this->ema_count && $candle_60min->getAvgVolatilityPercent(200) > $this->avg_limit)
+//        $ema_count = $candle_60min->getEMACrossCount();
+//        $log_min = "111111111";
+//        if ($ema_count > $this->ema_count && $candle_60min->getAvgVolatilityPercent(200) > $this->avg_limit)
+//        {
+//            $log_min = "333333333";
+//            if ($ema_count > $this->ema_5m_count)
+//            {
+//                // 최고조 박스형태
+//                $log_min = "555555555";
+//            }
+//        }
+        $log_min = "11111111";
+        $day_per = $dayCandle->getAvgVolatilityPercent($this->day_day);
+        if ($day_per > $this->day_per_1)
         {
             $log_min = "333333333";
-            if ($ema_count > $this->ema_5m_count)
-            {
-                // 최고조 박스형태
-                $log_min = "555555555";
-            }
+            $candle = $candle_3min;
+        }
+        else if ($day_per > $this->day_per_2)
+        {
+            $log_min = "555555555";
+            $candle = $candle_5min;
         }
         GlobalVar::getInstance()->candleTick = $candle->tick;
-        GlobalVar::getInstance()->emaCount = $ema_count;
+        GlobalVar::getInstance()->emaCount = 1;
 
-        $log_min .= "cross:".$candle_60min->getEMACrossCount()." per".$candle_60min->getAvgVolatilityPercent(200);
+        $log_min .= "per:".$day_per;
 
 
         $per_1hour = $candle_60min->getAvgVolatilityPercent(7);
@@ -66,7 +78,7 @@ class StrategyBB extends StrategyBase
 
         $wait_min = 30;
         $buy_per = 0.0002;
-        $k_up = 1.1 + ($per_1hour - 0.02) * 10;
+        $k_up = 1.1 + ($per_1hour - 0.02) * 15;
         $stop_per = $per_1hour * 2.5;
         if ($stop_per < 0.013)
         {

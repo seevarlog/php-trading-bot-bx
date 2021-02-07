@@ -645,9 +645,6 @@ class Candle
 
     public function getAvgVolatilityPercent($day = 12)
     {
-        $sum = 0;
-        $prev = $this->getCandlePrev();
-
         if ($this->c == 0)
         {
             return 0.04;
@@ -658,6 +655,7 @@ class Candle
         for ($i=0; $i<$day; $i++)
         {
             $sum += abs(($candle->h / $candle->l) - 1);
+            $candle = $this->getCandlePrev();
         }
 
         return $sum / $day;
@@ -879,6 +877,7 @@ class Candle
 
     public function getGoldenDeadState()
     {
+
         $ma300 = $this->getEMA(300);
         $ma240 = $this->getEMA(240);
         $ma120 = $this->getEMA(120);
