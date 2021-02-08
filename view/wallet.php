@@ -28,7 +28,7 @@ class ClosedPnl
 
     public function btcToKrw($btc_amount)
     {
-        return $btc_amount * $this->avg_exit_price * 1110;
+        return $btc_amount * 1110;
     }
 
     public function getSidePosition()
@@ -189,7 +189,7 @@ $result .= <<<HTML
     <tr>
         <td>소유자</td>
         <td>지분률</td>
-        <td>BTC</td>
+        <td>달러</td>
         <td>원화</td>
     </tr>
 HTML;
