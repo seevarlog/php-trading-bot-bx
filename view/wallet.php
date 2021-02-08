@@ -155,7 +155,7 @@ $info_list = [
 ];
 
 $datetime = date('Y-m-d H:i:s');
-$result = <<<HTML
+$result .= <<<HTML
 <html>
 <meta charset="utf-8">
 <body>
@@ -218,7 +218,7 @@ HTML;
 
 foreach ($closed_list as $closed)
 {
-    $result = <<<HTML
+    $result .= <<<HTML
     <tr>
         <td>{$closed->getDateTime()}</td>
         <td>{$closed->side}</td>
@@ -230,7 +230,7 @@ foreach ($closed_list as $closed)
 HTML;
 
 }
-$result = <<<HTML
+$result .= <<<HTML
 </table>
 </body>
 </html>
