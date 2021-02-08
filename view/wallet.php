@@ -31,6 +31,16 @@ class ClosedPnl
         return $btc_amount * $this->avg_exit_price * 1110;
     }
 
+    public function getSidePosition()
+    {
+        if ($this->side == "Buy")
+        {
+            return "Short";
+        }
+
+        return "Long";
+    }
+
     public function getDateTime()
     {
         return date('Y-m-d H:i:s', $this->created_at + 3600 * 9);
@@ -38,7 +48,12 @@ class ClosedPnl
 
     public function getBtcProfit()
     {
-        return $this->closed_pnl + $this->getFee();
+        if ($this->side == "Sell")
+        {
+            return $this->qty * (($this->avg_entry_price / $this->avg_exit_price) - 1);
+        }
+
+        return $this->qty * (($this->avg_exit_price / $this->avg_entry_price) - 1);
     }
 
     public function getKrwProfit()
@@ -221,7 +236,7 @@ foreach ($closed_list as $closed)
     $result .= <<<HTML
     <tr>
         <td>{$closed->getDateTime()}</td>
-        <td>{$closed->side}</td>
+        <td>{$closed->getSidePosition()}</td>
         <td>{$closed->avg_entry_price}</td>
         <td>{$closed->avg_exit_price}</td>
         <td>{$closed->getBtcProfit()}</td>
