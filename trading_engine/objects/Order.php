@@ -83,6 +83,7 @@ class Order
                 if ($exec_amount == abs($this->amount))
                 {
                     $this->amount = $this->amount > 0 ? $exec_amount : -$exec_amount;
+                    OrderManager::getInstance()->modifyAmount($this->strategy_key, -$this->amount, '손절');
                     return true;
                 }
 
