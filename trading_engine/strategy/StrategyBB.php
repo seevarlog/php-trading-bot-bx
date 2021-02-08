@@ -78,7 +78,8 @@ class StrategyBB extends StrategyBase
 
         $wait_min = 30;
         $buy_per = 0.0002;
-        $k_up = 1.1 + ($per_1hour - 0.02) * 15;
+//        $k_up = 1.1 + ($per_1hour - 0.02) * 15;
+        $k_up = 1.3;
         $stop_per = $per_1hour * 2.5;
         if ($stop_per < 0.013)
         {
