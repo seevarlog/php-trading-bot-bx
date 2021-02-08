@@ -240,7 +240,7 @@ foreach ($closed_list as $closed)
         <td>{$closed->avg_entry_price}</td>
         <td>{$closed->avg_exit_price}</td>
         <td>{$closed->getBtcProfit()}</td>
-        <td>{$closed->getKrwProfit()}}</td>
+        <td>{$closed->getKrwProfit()} 원</td>
     </tr>
 HTML;
 
