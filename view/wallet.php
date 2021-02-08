@@ -50,15 +50,15 @@ class ClosedPnl
     {
         if ($this->side == "Sell")
         {
-            return $this->qty * (($this->avg_entry_price / $this->avg_exit_price) - 1);
+            return $this->qty * (($this->avg_exit_price / $this->avg_entry_price) - 1);
         }
+        return $this->qty * (($this->avg_entry_price / $this->avg_exit_price) - 1) / $this->avg_exit_price;
 
-        return $this->qty * (($this->avg_exit_price / $this->avg_entry_price) - 1);
     }
 
     public function getKrwProfit()
     {
-        return self::btcToKrw($this->getBtcProfit() + $this->getFee());
+        return number_format((int)(self::btcToKrw($this->getBtcProfit() + $this->getFee())));
     }
 
     public function getFee()
