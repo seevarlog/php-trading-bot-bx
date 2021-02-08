@@ -220,14 +220,18 @@ $result .= <<<HTML
 HTML;
 
 $result .= <<<HTML
+<br>
+<br>
+최근거래
+<br>
 <table border="1">
     <tr>
         <td>시간</td>
         <td>타입</td>
         <td>진입가</td>
         <td>청산가</td>
-        <td>BTC</td>
-        <td>원화</td>
+        <td>수익</td>
+        <td>원화기준수익</td>
     </tr>
 HTML;
 
