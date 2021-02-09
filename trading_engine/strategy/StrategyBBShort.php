@@ -176,10 +176,10 @@ class StrategyBBShort extends StrategyBase
         $buy_per = 0.0002;
         // 1시간봉 과매수 거래 중지
 
-        if ($candle_60min->getNewRsi(14) > 70)
-        {
-            return "[매도]1시간 RSI 에러";
-        }
+//        if ($candle_60min->getNewRsi(14) > 70)
+//        {
+//            return "[매도]1시간 RSI 에러";
+//        }
 
 
         // 거래 중지 1시간
@@ -217,11 +217,11 @@ class StrategyBBShort extends StrategyBase
             return "[매도]크로스안함";
         }
 
-        // 1시간봉 BB 밑이면 정지
-        if ($candle_60min->getBBUpLine(37, 0.95) < $candle_60min->c)
-        {
-            return "[매도]1시간 BB 위에 있음";
-        }
+//        // 1시간봉 BB 밑이면 정지
+//        if ($candle_60min->getBBUpLine(37, 1.3) < $candle_60min->c)
+//        {
+//            return "[매도]1시간 BB 위에 있음";
+//        }
 
         $log = sprintf("buy_per:%f stop:%f", (1 + $buy_per), (1 + $stop_per));
 
