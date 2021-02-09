@@ -213,9 +213,8 @@ class StrategyBB extends StrategyBase
             {
                 $stop_per = 0.035;
             }
-
-            $max_per = $candle_5min->getMaxIntervalEMA(300, 200);
             $stop_per = 0.03;
+            $max_per = $candle_5min->getMaxIntervalEMA(300, 200);
 
             //$buy_price = $candle_5min->getEMA(300) * (1 - ($max_per * 0.5));
             $buy_price = $candle_5min->getEMA(300);
@@ -301,7 +300,7 @@ class StrategyBB extends StrategyBase
             $action = "5분";
             $wait_min = 30;
         }
-        else if ($candle_5min->getBBDownCount($day, $k_down, 4) > 1 && $candle_60min->getGoldenDeadState() != "gold")
+        else if ($candle_5min->getBBDownCount($day, $k_down, 4) > 1)
         {
             // BB 밑이면 이미 하락 크게 진행 중
             if ($candle_5min->getGoldenDeadState() == "gold" && $candle_5min->getBBDownLine($day, $k_up) > $candle->c &&
