@@ -52,7 +52,7 @@ class ClosedPnl
         {
             return $this->qty * (($this->avg_exit_price / $this->avg_entry_price) - 1);
         }
-        return $this->qty * (($this->avg_entry_price / $this->avg_exit_price) - 1) / $this->avg_exit_price;
+        return -$this->qty * (($this->avg_entry_price / $this->avg_exit_price) - 1);
 
     }
 
