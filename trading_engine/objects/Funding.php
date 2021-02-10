@@ -12,11 +12,11 @@ class Funding extends Singleton
 {
     public $prev_time = 60 * 60 * 8;
     public $funding_rate = 0.0001;
-    public $last_update = 0;
+    public $next_update = 0;
 
     public function syncFunding()
     {
-        if ($this->last_update < time() - 60 * 5)
+        if ($this->next_update > time())
         {
             return;
         }
@@ -28,7 +28,7 @@ class Funding extends Singleton
             $this->funding_rate = $result['funding_rate'];
         }
 
-        $this->last_update = time();
+        $this->next_update = time() + 60 * 5;
     }
 
     public function getNextFundingTime()
