@@ -223,6 +223,14 @@ class StrategyBBShort extends StrategyBase
             return "[매도]1시간 BB 위에 있음";
         }
 
+        if ($candle_5min->getGoldenDeadState() == "gold")
+        {
+            if ($candle->getEMA240() > $candle->c)
+            {
+                return "[매도]5분봉 골크 반등 최소화";
+            }
+        }
+
         $log = sprintf("buy_per:%f stop:%f", (1 + $buy_per), (1 + $stop_per));
 
         $buy_price = $candle->getClose() * (1 + $buy_per);
