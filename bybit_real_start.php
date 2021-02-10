@@ -9,6 +9,7 @@ use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
+use trading_engine\objects\Funding;
 use trading_engine\objects\Order;
 use trading_engine\strategy\StrategyBB;
 use trading_engine\strategy\StrategyBBShort;
