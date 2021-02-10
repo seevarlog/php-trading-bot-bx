@@ -4,17 +4,31 @@
 namespace trading_engine\objects;
 
 
+use trading_engine\util\Config;
+use trading_engine\util\GlobalVar;
 use trading_engine\util\Singleton;
 
 class Funding extends Singleton
 {
     public $prev_time = 60 * 60 * 8;
-    public $fuding_rate = 0.01;
+    public $funding_rate = 0.0001;
+    public $last_update = 0;
 
-    public function syncFunding($funding_rate, $next_time)
+    public function syncFunding()
     {
-        $this->prev_time = $next_time;
-        $this->fuding_rate = $funding_rate;
+        if ($this->last_update < time() - 60 * 5)
+        {
+            return;
+        }
+
+        if (Config::getInstance()->isRealTrade())
+        {
+            $result = GlobalVar::getInstance()->bybit->publics()->getFuding(['symbol'=>"BTCUSD"])['result'];
+            $this->prev_time = $result['funding_rate_timestamp'];
+            $this->funding_rate = $result['funding_rate'];
+        }
+
+        $this->last_update = time();
     }
 
     public function getNextFundingTime()
@@ -27,9 +41,21 @@ class Funding extends Singleton
         return $this->getNextFundingTime() - time();
     }
 
-    public function isNewEntry()
+    public function isLongTradeStop()
     {
-        if ($this->fuding_rate > 0.001 && $this->getLeftTime() < 60 * 40)
+        $this->syncFunding();
+
+        if ($this->funding_rate > 0.0012 && $this->getNextFundingTime() < time() + 3600*2)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isShortTradeStop()
+    {
+        if ($this->funding_rate < -0.003 && $this->getNextFundingTime() < time() + 3600*2)
         {
             return true;
         }

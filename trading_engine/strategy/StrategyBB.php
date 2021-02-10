@@ -9,6 +9,7 @@ use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
+use trading_engine\objects\Funding;
 use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
 
@@ -188,6 +189,11 @@ class StrategyBB extends StrategyBase
         if ($positionMng->getPosition($this->getStrategyKey())->amount > 0)
         {
             return ;
+        }
+
+        if (Funding::getInstance()->isLongTradeStop())
+        {
+            return "펀비 높음";
         }
 
         $action = "";

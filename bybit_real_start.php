@@ -323,7 +323,8 @@ $account->balance = 1;
 
 // 계정 밸런스 불러옴
 $account->balance = $bybit->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
-
+\trading_engine\objects\Funding::getInstance()->syncFunding();
+var_dump(Funding::getInstance());
 Notify::sendMsg("봇을 시작합니다. 시작 잔액 usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance(). "Candle:".CandleManager::getInstance()->getLastCandle(1)->displayCandle());
 
 try {
@@ -334,6 +335,12 @@ try {
 
         $time_second = time() % 60;
         // 55 ~ 05 초 사이에 갱신을 시도한다.
+
+
+        if (!($time_second < 35 || $time_second > 25)) {
+            \trading_engine\objects\Funding::getInstance()->syncFunding();
+        }
+
         if (!($time_second < 3 || $time_second > 57)) {
             continue;
         }

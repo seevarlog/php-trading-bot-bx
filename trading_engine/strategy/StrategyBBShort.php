@@ -9,6 +9,7 @@ use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
+use trading_engine\objects\Funding;
 use trading_engine\util\Config;
 
 class StrategyBBShort extends StrategyBase
@@ -175,6 +176,11 @@ class StrategyBBShort extends StrategyBase
         // 1차 합격
         $buy_per = 0.0002;
         // 1시간봉 과매수 거래 중지
+
+        if (Funding::getInstance()->isShortTradeStop())
+        {
+            return "[매도]펀비 낮음";
+        }
 
         if ($candle_60min->getNewRsi(14) > 70)
         {
