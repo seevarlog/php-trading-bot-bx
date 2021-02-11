@@ -169,7 +169,7 @@ class Order
         {
             if ($this->entry <= $candle->getHigh() && $this->is_limit)
             {
-                if (Config::getInstance()->isRealTrade() && $this->entry == $candle->l)
+                if (Config::getInstance()->isRealTrade() && $this->entry == $candle->h)
                 {
                     $result = GlobalVar::getInstance()->bybit->privates()->getOrder(
                         [
