@@ -2,11 +2,14 @@
 include __DIR__."/../vendor/autoload.php";
 
 use Lin\Bybit\BybitInverse;
+use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
 use trading_engine\util\CoinPrice;
 use trading_engine\util\GlobalVar;
 
 ini_set("display_errors", 1);
+
+$usd_to_krw = 1110;
 
 class ClosedPnl
 {
@@ -77,7 +80,7 @@ class ClosedPnl
     }
 }
 
-sleep(30);
+sleep(10);
 
 $key_name = "real";
 if (isset($argv[1]))
@@ -133,6 +136,27 @@ foreach ($trade_list as $data)
 
 
 
+
+$position = PositionManager::getInstance()->getPosition("BBS1");
+$position_list = $bybit->privates()->getPositionList();
+foreach ($position_list['result'] as $data)
+{
+    $position_result = $data['data'];
+    if ($position_result['symbol'] != "BTCUSD")
+    {
+        continue;
+    }
+    if ($position_result['side'] == "None")
+    {
+        continue;
+    }
+
+    $position->entry = $position_result['entry_price'];
+    $position->amount = $position_result['side'] == "Buy" ? $position_result['size'] : -$position_result['size'];
+    $position->strategy_key = "BBS1";
+}
+
+
 $candle_api_result = $bybit->publics()->getKlineList([
     'symbol' => "BTCUSD",
     'interval' => "1",
@@ -175,6 +199,10 @@ $datetime = date('Y-m-d H:i:s');
 $result .= <<<HTML
 <html>
 <meta charset="utf-8">
+<script>
+setTimeout('location.reload()',60000); 
+</script>
+
 <body>
 기준 : {$datetime}
 환율 : 1110<br>
@@ -182,6 +210,14 @@ $result .= <<<HTML
 비트코인 BTC(KRW) : {$price_kr}<br>
 보유BTC : {$btc_amount} <br>
 보유원화: {$krw_total} <br>
+ <br>
+진입가격 : {$position->entry} <br>
+포지션 : {$position->getPositionName()}  <br>
+계약usd : {$position->amount}  <br>
+미실현BTC : {$position->getBtcProfit($price)}  <br> 
+미실현KRW : {$position->getKrwProfit($price, $usd_to_krw)} 원  <br>
+미추정KRW : {$position->getKrwUnrealizedPnl($krw_total, $price, $usd_to_krw)} 원 <br>
+
 <br>
 <br>
 <br>
