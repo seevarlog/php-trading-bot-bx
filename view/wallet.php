@@ -77,6 +77,8 @@ class ClosedPnl
     }
 }
 
+sleep(30);
+
 $key_name = "real";
 if (isset($argv[1]))
 {
