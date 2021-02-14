@@ -110,7 +110,7 @@ $closed_list = [];
 $trade_list = GlobalVar::getInstance()->getByBit()->privates()->getTradeClosedPnlList(
     [
         'symbol' => "BTCUSD",
-        'limit' => 10,
+        'limit' => 20,
     ]
 )['result']['data'];
 foreach ($trade_list as $data)
