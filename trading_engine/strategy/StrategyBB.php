@@ -233,10 +233,10 @@ class StrategyBB extends StrategyBase
         // 1차 합격
         // 1시간봉 과매수 거래 중지
 
-//        if ($candle_60min->getNewRsi(14) > 70)
-//        {
-//            return "1시간 RSI 에러";
-//        }
+        if ($candle_60min->getNewRsi(14) > 70)
+        {
+            return "1시간 RSI 에러";
+        }
 
         $rsi_val = 0.5;
         if ($dayCandle->getRsiMaInclination(1, 14, 17) < 0)
