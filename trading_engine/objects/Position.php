@@ -4,10 +4,8 @@
 namespace trading_engine\objects;
 
 
-use trading_engine\managers\OrderManager;
 use trading_engine\managers\TradeLogManager;
 use trading_engine\strategy\StrategyBB;
-use trading_engine\util\CoinPrice;
 use trading_engine\util\Config;
 use trading_engine\util\Notify;
 
@@ -28,6 +26,44 @@ class Position
     public function resetLog()
     {
         $this->log = [];
+    }
+
+    public function getPositionName()
+    {
+        if ($this->amount > 0)
+        {
+            return "Long";
+        }
+        else if ($this->amount < 0)
+        {
+            return "short";
+        }
+
+        return "None";
+    }
+
+    public function getBtcProfit($now_btc_price)
+    {
+        if ($this->amount > 0)
+        {
+            return $this->amount * (($this->entry / $now_btc_price) - 1);
+        }
+        else if ($this->amount < 0)
+        {
+            return $this->amount * (($now_btc_price / $this->entry) - 1);
+        }
+
+        return 0;
+    }
+
+    public function getKrwProfit($now_btc_price, $usd_to_krw)
+    {
+        return (int)($this->getBtcProfit($now_btc_price) * $usd_to_krw * $now_btc_price);
+    }
+
+    public function getKrwUnrealizedPnl($cur_krw, $now_btc_price, $usd_to_krw)
+    {
+        return (int)($cur_krw - $this->getBtcProfit($now_btc_price) * $usd_to_krw * $now_btc_price);
     }
 
     public function isValid()

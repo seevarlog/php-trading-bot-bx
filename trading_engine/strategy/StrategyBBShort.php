@@ -232,11 +232,20 @@ class StrategyBBShort extends StrategyBase
 
         if ($candle_5min->getGoldenDeadState() == "gold")
         {
-            if ($candle->getEMA240() > $candle->c)
+            if ($candle_5min->getEMA240() > $candle->c)
             {
                 return "[매도]5분봉 골크 반등 최소화";
             }
         }
+
+//        if ($candle_60min->getGoldenDeadState() == "gold")
+//        {
+//            if ($candle->getEMA120() > $candle->c)
+//            {
+//                var_dump("5분봉 1시간 골크 반등 최소화");
+//                return "[매도]5분봉 골크 반등 최소화";
+//            }
+//        }
 
         $log = sprintf("buy_per:%f stop:%f", (1 + $buy_per), (1 + $stop_per));
 

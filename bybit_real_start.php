@@ -56,6 +56,7 @@ $bybit->setOptions([
 ]);
 
 // 포지션 동기화
+$position = PositionManager::getInstance()->getPosition("BBS1");
 $position_list = $bybit->privates()->getPositionList();
 foreach ($position_list['result'] as $data)
 {
@@ -69,7 +70,6 @@ foreach ($position_list['result'] as $data)
         continue;
     }
 
-    $position = PositionManager::getInstance()->getPosition("BBS1");
     $position->entry = $position_result['entry_price'];
     $position->amount = $position_result['side'] == "Buy" ? $position_result['size'] : -$position_result['size'];
     $position->strategy_key = "BBS1";
@@ -82,7 +82,29 @@ $order_list = $bybit->privates()->getOrderList(
         'order_status' => "New",
     ]
 );
-$position = PositionManager::getInstance()->getPosition("BBS1");
+
+
+$stop_list = $bybit->privates()->getStopOrderList(
+    [
+        'symbol' => 'BTCUSD',
+        'stop_order_status'=>'Untriggered'
+    ]
+);
+
+$is_long_trade = true;
+
+foreach ($stop_list['result']['data'] as $data)
+{
+    $order_data = $data;
+    $qty = $order_data["qty"];
+
+    if ($order_data['side'] == "Buy")
+    {
+        $is_long_trade = false;
+    }
+}
+
+
 foreach ($order_list['result']['data'] as $data)
 {
     $order_data = $data;
@@ -94,19 +116,31 @@ foreach ($order_list['result']['data'] as $data)
 
     $is_limit = $order_data["order_type"] == "Limit" ? 1 : 0;
     $comment = "진입";
-    if ($order_data["order_type"] == "Limit" && $order_data["side"] == "Buy")
+    if ($is_long_trade)
     {
-        $comment = "진입";
-    }
-    else if ($order_data["order_type"] == "Market" && $order_data["side"] == "Sell")
-    {
-        $comment = "손절";
+        if ($order_data["order_type"] == "Limit" && $order_data["side"] == "Buy")
+        {
+            $comment = "진입";
+        }
+        else if ($order_data["order_type"] == "Limit" && $order_data["side"] == "Sell")
+        {
+            $comment = "익절";
+            $qty *= 1;
+        }
     }
     else
     {
-        $comment = "익절";
-        $qty *= -1;
+        if ($order_data["order_type"] == "Limit" && $order_data["side"] == "Buy")
+        {
+            $comment = "익절";
+        }
+        else if ($order_data["order_type"] == "Limit" && $order_data["side"] == "Sell")
+        {
+            $comment = "진입";
+            $qty *= 1;
+        }
     }
+
 
     var_dump($data);
 
@@ -127,14 +161,7 @@ foreach ($order_list['result']['data'] as $data)
 
 
 
-$order_list = $bybit->privates()->getStopOrderList(
-    [
-        'symbol' => 'BTCUSD',
-        'stop_order_status'=>'Untriggered'
-    ]
-);
-
-foreach ($order_list['result']['data'] as $data)
+foreach ($stop_list['result']['data'] as $data)
 {
     $order_data = $data;
     if ($order_data['symbol'] != "BTCUSD")
@@ -143,7 +170,7 @@ foreach ($order_list['result']['data'] as $data)
     }
     $qty = $order_data["qty"];
 
-    if ($order_data['side'] == "sell")
+    if ($order_data['side'] == "Sell")
     {
         $qty = $qty * -1;
     }
@@ -153,7 +180,7 @@ foreach ($order_list['result']['data'] as $data)
     $order = Order::getNewOrderObj(
         strtotime($order_data["created_at"]),
         "BBS1",
-        -$order_data["qty"],
+        $qty,
         $order_data["stop_px"],
         0,
         0,
