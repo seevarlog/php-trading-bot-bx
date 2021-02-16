@@ -71,6 +71,7 @@ class StrategyBBShort extends StrategyBase
             $log_min = "555555555";
             $candle = $candle_5min;
         }
+        $candle = $candle_5min;
 
         $log_min .= "per:".$day_per;
 

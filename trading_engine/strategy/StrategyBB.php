@@ -52,6 +52,8 @@ class StrategyBB extends StrategyBase
 //                $log_min = "555555555";
 //            }
 //        }
+
+
         $log_min = "11111111";
         $day_per = $dayCandle->getAvgVolatilityPercent($this->day_day);
         if ($day_per > $this->day_per_1)
@@ -64,6 +66,7 @@ class StrategyBB extends StrategyBase
             $log_min = "555555555";
             $candle = $candle_5min;
         }
+        $candle = $candle_5min;
         GlobalVar::getInstance()->candleTick = $candle->tick;
         GlobalVar::getInstance()->emaCount = 1;
 
