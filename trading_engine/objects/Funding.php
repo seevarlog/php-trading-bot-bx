@@ -45,7 +45,7 @@ class Funding extends Singleton
     {
         $this->syncFunding();
 
-        if ($this->funding_rate > 0.002 && $this->getNextFundingTime() < time() + 3600*2)
+        if ($this->funding_rate > 0.0025 && $this->getNextFundingTime() < time() + 3600*2)
         {
             return true;
         }
