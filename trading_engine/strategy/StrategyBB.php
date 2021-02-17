@@ -66,7 +66,6 @@ class StrategyBB extends StrategyBase
             $log_min = "555555555";
             $candle = $candle_5min;
         }
-        $candle = $candle_5min;
         GlobalVar::getInstance()->candleTick = $candle->tick;
         GlobalVar::getInstance()->emaCount = 1;
 
