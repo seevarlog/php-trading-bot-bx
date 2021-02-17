@@ -71,14 +71,13 @@ class StrategyBBShort extends StrategyBase
             $log_min = "555555555";
             $candle = $candle_5min;
         }
-        $candle = $candle_5min;
 
         $log_min .= "per:".$day_per;
 
         $per_1hour = $candle_60min->getAvgVolatilityPercent();
 //        $k_up = 1.1 + ($per_1hour - 0.02) * 15;
         $k_up = 1.3;
-        $stop_per = $per_1hour * 2.5;
+        $stop_per = $per_1hour * 0.8;
         if ($stop_per < 0.013)
         {
             $stop_per = 0.013;
