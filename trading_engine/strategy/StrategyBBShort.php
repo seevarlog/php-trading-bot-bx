@@ -77,7 +77,7 @@ class StrategyBBShort extends StrategyBase
         $per_1hour = $candle_60min->getAvgVolatilityPercent();
 //        $k_up = 1.1 + ($per_1hour - 0.02) * 15;
         $k_up = 1.3;
-        $stop_per = $per_1hour * 0.8;
+        $stop_per = $per_1hour * 2;
         if ($stop_per < 0.013)
         {
             $stop_per = 0.013;
@@ -342,7 +342,7 @@ SELL_ENTRY:
             }
             else
             {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.4;
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.3;
             }
         }
 
