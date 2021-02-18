@@ -35,7 +35,7 @@ class StrategyBB extends StrategyBase
         }
 
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
-        $candle_1min = $candle;
+        $candle_1min = clone $candle;
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
@@ -66,6 +66,8 @@ class StrategyBB extends StrategyBase
             $log_min = "555555555";
             $candle = $candle_5min;
         }
+        $candle = $candle_3min;
+
         GlobalVar::getInstance()->candleTick = $candle->tick;
         GlobalVar::getInstance()->emaCount = 1;
 
@@ -178,7 +180,7 @@ class StrategyBB extends StrategyBase
                         $candle->getTime(),
                         $this->getStrategyKey(),
                         $amount,
-                        ($max + $candle->getClose()) / 2,
+                        ($max + $candle_1min->getClose()) / 2,
                         1,
                         1,
                         "익절",
@@ -293,7 +295,7 @@ class StrategyBB extends StrategyBase
 
         $log = sprintf("buy_per:%f stop:%f".$log_plus, (1 - $buy_per), (1 - $stop_per));
 
-        $buy_price = $candle->getClose() * (1 - $buy_per);
+        $buy_price = $candle_1min->getClose() * (1 - $buy_per);
         $stop_price = $buy_price  * (1 - $stop_per);
         $wait_min = 30;
 
@@ -385,7 +387,7 @@ class StrategyBB extends StrategyBase
             }
             else
             {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.3;
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.2;
             }
         }
 
