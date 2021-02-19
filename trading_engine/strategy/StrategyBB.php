@@ -57,7 +57,7 @@ class StrategyBB extends StrategyBase
         $log_min = "11111111";
         $sideCount = $candle_60min->getSidewaysCount();
         $vol = $candle_60min->getAvgVolatilityPercent(60);
-        if ($sideCount < $this->side_count && $vol > 0.012)
+        if ($sideCount < $this->side_count && $vol > 0.009)
         {
             $log_min = "333333333";
             $candle = $candle_3min;
