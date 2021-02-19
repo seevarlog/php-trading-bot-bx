@@ -14,7 +14,8 @@ class GlobalVar extends Singleton
 {
     public BybitInverse $bybit;
     public $candleTick;
-    public $emaCount = 0;
+    public $CrossCount = 0;
+    public $vol_1hour = 0;
 
     public function setByBit($bybit)
     {
