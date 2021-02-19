@@ -64,7 +64,7 @@ class StrategyBB extends StrategyBase
         }
 
         GlobalVar::getInstance()->candleTick = $candle->tick;
-        GlobalVar::getInstance()->CrossCount = 1;
+        GlobalVar::getInstance()->CrossCount = $sideCount;
         GlobalVar::getInstance()->vol_1hour = $vol;
 
         $log_min .= "side_count:".$sideCount."vol:".$vol;

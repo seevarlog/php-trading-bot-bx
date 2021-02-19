@@ -12,7 +12,7 @@ class StrategyBase extends Singleton
     public $day_per_1 = 0.3;
     public $day_per_2 = 0.4;
     public $day_day = 30;
-    public $side_count = 25;
+    public $side_count = 100;
 
 
     public function setMin1()
