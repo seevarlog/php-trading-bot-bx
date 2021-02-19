@@ -723,7 +723,11 @@ class Candle
 
     public function crossoverBBUpLine($day, $k)
     {
-        $prev = $this->getCandlePrev();
+        $prev = $this;
+        if ($this->tick == 1)
+        {
+            $prev = $this->getCandlePrev();
+        }
         if($prev->getClose() > $prev->getBBUpLine($day, $k))
         {
             if($this->getClose() < $this->getBBUpLine($day, $k))
