@@ -794,7 +794,7 @@ class Candle
         return $max;
     }
 
-    public function getSidewaysCount($length = 250)
+    public function getSidewaysCount($length = 200)
     {
         // 횡보는 1시간봉 EMA 30일 선을 기준으로 한다
         $sum = 0;

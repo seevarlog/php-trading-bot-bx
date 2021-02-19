@@ -62,12 +62,12 @@ class StrategyBBShort extends StrategyBase
 //            }
 //        }
         $log_min = "11111111";
-        $sideCount = $candle_60min->getSidewaysCount();
+        $sideCount = $candle_60min->getSidewaysCount($this->side_length);
         $vol = $candle_60min->getAvgVolatilityPercent(60);
         if ($sideCount < $this->side_count && $vol > 0.009)
         {
             $log_min = "333333333";
-            $candle = $candle_3min;
+            $candle = $candle_5min;
         }
         GlobalVar::getInstance()->candleTick = $candle->tick;
         GlobalVar::getInstance()->CrossCount = $sideCount;

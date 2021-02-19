@@ -55,12 +55,12 @@ class StrategyBB extends StrategyBase
 
 
         $log_min = "11111111";
-        $sideCount = $candle_60min->getSidewaysCount();
+        $sideCount = $candle_60min->getSidewaysCount($this->side_length);
         $vol = $candle_60min->getAvgVolatilityPercent(60);
-        if ($sideCount < $this->side_count && $vol > 0.009)
+        if ($sideCount < $this->side_count && $vol > 0.007)
         {
             $log_min = "333333333";
-            $candle = $candle_3min;
+            $candle = $candle_5min;
         }
 
         GlobalVar::getInstance()->candleTick = $candle->tick;
@@ -285,11 +285,7 @@ class StrategyBB extends StrategyBase
             return "1시간 BB 아래에 있음";
         }
 
-        if ($candle_60min)
-
-            $log_plus="";
-
-        $log = sprintf("buy_per:%f stop:%f".$log_plus, (1 - $buy_per), (1 - $stop_per));
+        $log = sprintf("buy_per:%f stop:%f", (1 - $buy_per), (1 - $stop_per));
 
         $buy_price = $candle_1min->getClose() * (1 - $buy_per);
         $stop_price = $buy_price  * (1 - $stop_per);
