@@ -61,20 +61,14 @@ class StrategyBBShort extends StrategyBase
 //            }
 //        }
         $log_min = "11111111";
-        $day_per = $dayCandle->getAvgVolatilityPercent($this->day_day);
-        if ($day_per > $this->day_per_1)
+        $sideCount = $candle_60min->getSidewaysCount();
+        if ($sideCount < $this->side_count && $candle_60min->getAvgVolatilityPercent(60) > 0.01)
         {
             $log_min = "333333333";
             $candle = $candle_3min;
         }
-        else if ($day_per > $this->day_per_2)
-        {
-            $log_min = "555555555";
-            $candle = $candle_5min;
-        }
-        $candle = $candle_3min;
 
-        $log_min .= "per:".$day_per;
+        $log_min .= "side_count:".$sideCount;
 
         $per_1hour = $candle_60min->getAvgVolatilityPercent();
 //        $k_up = 1.1 + ($per_1hour - 0.02) * 15;
@@ -181,11 +175,6 @@ class StrategyBBShort extends StrategyBase
         if (Funding::getInstance()->isShortTradeStop())
         {
             return "[매도]펀비 낮음";
-        }
-        
-        if ($candle_15min->getGoldenDeadState() == "gold" && $candle_5min->getEMA300() > $candle->c)
-        {
-            return "[매도]물리기 좋은 자리";
         }
 
         if ($candle_60min->getNewRsi(14) > 70 && $dayCandle->getRsiMaInclination(1, 14, 17) > 0)

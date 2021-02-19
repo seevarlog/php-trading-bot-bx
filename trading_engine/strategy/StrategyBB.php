@@ -55,23 +55,19 @@ class StrategyBB extends StrategyBase
 
 
         $log_min = "11111111";
-        $day_per = $dayCandle->getAvgVolatilityPercent($this->day_day);
-        if ($day_per > $this->day_per_1)
+        $sideCount = $candle_60min->getSidewaysCount();
+        $vol = $candle_60min->getAvgVolatilityPercent(60);
+        if ($sideCount < $this->side_count && $vol > 0.008)
         {
             $log_min = "333333333";
             $candle = $candle_3min;
         }
-        else if ($day_per > $this->day_per_2)
-        {
-            $log_min = "555555555";
-            $candle = $candle_5min;
-        }
-        $candle = $candle_3min;
 
         GlobalVar::getInstance()->candleTick = $candle->tick;
-        GlobalVar::getInstance()->emaCount = 1;
+        GlobalVar::getInstance()->CrossCount = 1;
+        GlobalVar::getInstance()->vol_1hour = $vol;
 
-        $log_min .= "per:".$day_per;
+        $log_min .= "side_count:".$sideCount."vol:".$vol;
 
 
         $per_1hour = $candle_60min->getAvgVolatilityPercent(7);
@@ -348,14 +344,14 @@ class StrategyBB extends StrategyBase
 
 
         $log .= $state;
-        if ($buy_price > $candle->c)
+        if ($buy_price > $candle_1min->c)
         {
-            $buy_price = $candle->c - 1;
+            $buy_price = $candle_1min->c - 1;
             var_dump("buy 사탄".$buy_price."-".$candle->c);
         }
-        if ($stop_price > $candle->c)
+        if ($stop_price > $candle_1min->c)
         {
-            $stop_price = $candle->c - 1;
+            $stop_price = $candle_1min->c - 1;
             var_dump("stop 사탄".$stop_price."-".$candle->c);
         }
 

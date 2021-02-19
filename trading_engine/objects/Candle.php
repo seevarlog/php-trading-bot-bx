@@ -735,6 +735,20 @@ class Candle
     }
 
 
+    public function crossoverBBMiddleLine($day)
+    {
+        $prev = $this->getCandlePrev();
+        if($prev->getClose() > $prev->getMA($day))
+        {
+            if($this->getClose() < $this->getMA($day))
+            {
+                return True;
+            }
+        }
+        return False;
+    }
+
+
     public function crossoverBBUpLineAndEMA($day, $k, $ema_length)
     {
         $prev = $this->getCandlePrev();
@@ -778,6 +792,38 @@ class Candle
         }
 
         return $max;
+    }
+
+    public function getSidewaysCount($length = 100)
+    {
+        // 횡보는 1시간봉 EMA 50일 선을 기준으로 한다
+        $sum = 0;
+        $candle = $this;
+        for ($i=0; $i<$length; $i++)
+        {
+            if ($candle->getEMA(30) > $candle->c)
+            {
+                $sum -= 1;
+            }
+            else
+            {
+                $sum += 1;
+            }
+
+            $candle = $candle->getCandlePrev();
+        }
+
+        return abs($sum);
+    }
+
+    public function getEMA50()
+    {
+        return $this->getEMA(50);
+    }
+
+    public function getEMA20()
+    {
+        return $this->getEMA(20);
     }
 
     public function getEMA300()

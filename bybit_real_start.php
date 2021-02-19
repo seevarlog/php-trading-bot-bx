@@ -433,7 +433,7 @@ try {
         OrderManager::getInstance()->update($candle_prev_1m);
         $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
         $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
-        Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".GlobalVar::getInstance()->candleTick."ema:".GlobalVar::getInstance()->emaCount." buy:".$buy_msg." sell:".$sell_msg);
+        Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".GlobalVar::getInstance()->candleTick."cross:".GlobalVar::getInstance()->CrossCount."1hour_per:".GlobalVar::getInstance()->vol_1hour." buy:".$buy_msg." sell:".$sell_msg);
         Notify::sendMsg("5m candle:".$candle_mng->getCurOtherMinCandle($candle_prev_1m, 5)->displayCandle());
 
 
