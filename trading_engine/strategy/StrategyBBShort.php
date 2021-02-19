@@ -11,6 +11,7 @@ use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
 use trading_engine\objects\Funding;
 use trading_engine\util\Config;
+use trading_engine\util\GlobalVar;
 
 class StrategyBBShort extends StrategyBase
 {
@@ -62,13 +63,17 @@ class StrategyBBShort extends StrategyBase
 //        }
         $log_min = "11111111";
         $sideCount = $candle_60min->getSidewaysCount();
-        if ($sideCount < $this->side_count && $candle_60min->getAvgVolatilityPercent(60) > 0.012)
+        $vol = $candle_60min->getAvgVolatilityPercent(60);
+        if ($sideCount < $this->side_count && $vol > 0.012)
         {
             $log_min = "333333333";
             $candle = $candle_3min;
         }
+        GlobalVar::getInstance()->candleTick = $candle->tick;
+        GlobalVar::getInstance()->CrossCount = $sideCount;
+        GlobalVar::getInstance()->vol_1hour = $vol;
 
-        $log_min .= "side_count:".$sideCount;
+        $log_min .= "side_count:".$sideCount."vol:".$vol;
 
         $per_1hour = $candle_60min->getAvgVolatilityPercent();
 //        $k_up = 1.1 + ($per_1hour - 0.02) * 15;
