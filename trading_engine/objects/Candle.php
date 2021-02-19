@@ -655,7 +655,7 @@ class Candle
         for ($i=0; $i<$day; $i++)
         {
             $sum += abs(($candle->h / $candle->l) - 1);
-            $candle = $this->getCandlePrev();
+            $candle = $candle->getCandlePrev();
         }
 
         return $sum / $day;
@@ -794,9 +794,9 @@ class Candle
         return $max;
     }
 
-    public function getSidewaysCount($length = 100)
+    public function getSidewaysCount($length = 250)
     {
-        // 횡보는 1시간봉 EMA 50일 선을 기준으로 한다
+        // 횡보는 1시간봉 EMA 30일 선을 기준으로 한다
         $sum = 0;
         $candle = $this;
         for ($i=0; $i<$length; $i++)
