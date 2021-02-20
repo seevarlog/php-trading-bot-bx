@@ -4,14 +4,7 @@
 namespace trading_engine\strategy;
 
 
-use Cassandra\Varint;
-use trading_engine\managers\CandleManager;
-use trading_engine\managers\OrderManager;
-use trading_engine\managers\PositionManager;
-use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
-use trading_engine\objects\Order;
-use trading_engine\util\Config;
 
 class StrategyBB extends StrategyBase
 {
@@ -28,5 +21,10 @@ class StrategyBB extends StrategyBase
     {
 
 
+    }
+
+    public function getStrategyKey()
+    {
+        return "BBS1";
     }
 }

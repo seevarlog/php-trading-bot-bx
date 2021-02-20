@@ -9,7 +9,6 @@ use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
-use trading_engine\objects\Funding;
 use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
 
@@ -34,8 +33,8 @@ class StrategyBB extends StrategyBase
             return "매도포지션 점유 중";
         }
 
-        $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
         $candle_1min = clone $candle;
+        $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
@@ -56,8 +55,8 @@ class StrategyBB extends StrategyBase
 
         $log_min = "11111111";
         $sideCount = $candle_60min->getSidewaysCount($this->side_length);
-        $vol = $candle_60min->getAvgVolatilityPercent(60);
-        if ($sideCount < $this->side_count && $vol > 0.007)
+        $vol = $candle_60min->getAvgRealVolatilityPercent(60);
+        if ($sideCount < $this->side_count && $vol > 0.025)
         {
             $log_min = "333333333";
             $candle = $candle_5min;
@@ -70,7 +69,7 @@ class StrategyBB extends StrategyBase
         $log_min .= "side_count:".$sideCount."vol:".$vol;
 
 
-        $per_1hour = $candle_60min->getAvgVolatilityPercent(7);
+        $per_1hour = $candle_60min->getAvgBugVolatilityPercent(7);
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
@@ -78,17 +77,11 @@ class StrategyBB extends StrategyBase
         //$k_up = 1.3;
 
         $wait_min = 30;
-        $buy_per = 0.0002;
-//        $k_up = 1.1 + ($per_1hour - 0.02) * 15;
-        $k_up = 1.3;
-        $stop_per = $per_1hour * 2;
+        $k_up = 1.1 + ($per_1hour - 0.02) * 10;
+        $stop_per = $per_1hour * 2.1;
         if ($stop_per < 0.013)
         {
             $stop_per = 0.013;
-        }
-        if ($stop_per > 0.06)
-        {
-            $stop_per = 0.06;
         }
         $k_down = 1.3;
         $day = 40;
@@ -123,7 +116,9 @@ class StrategyBB extends StrategyBase
             $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
             if ($positionMng->getPosition($this->getStrategyKey())->action == "5분EMA")
             {
-                $sell_price = $candle_5min->getMA(240) + $candle_5min->getEMA(120) - $candle_5min->getMA(300);
+                $min5 = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
+
+                $sell_price = $min5->getMA(240) + $min5->getEMA(120) - $min5->getMA(300);
 
                 OrderManager::getInstance()->updateOrder(
                     $candle->getTime(),
@@ -191,36 +186,33 @@ class StrategyBB extends StrategyBase
             return ;
         }
 
-        if (Funding::getInstance()->isLongTradeStop())
-        {
-            return "펀비 높음";
-        }
-
         $action = "";
         $log = "";
+        $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         // BB 밑이면 이미 하락 크게 진행 중
-        if ($candle_5min->getGoldenDeadState() == "gold" && $candle_60min->getGoldenDeadState() == "gold" &&
-            $candle_5min->getEMA(300) < $candle->c && $candle_5min->getEMA300Cross(20) <= 0 && $position_count == 0)
+        if ($candle_5min->getGoldenDeadState() == "gold" &&
+            $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA(200) )
         {
             // 골크에 200일선과 300일선 사이라서 도박해본다
-            if ($dayCandle->getAvgVolatilityPercent(3) > 0.12)
+            if ($dayCandle->getAvgBugVolatilityPercent(3) > 0.12)
             {
                 $stop_per = 0.08;
             }
-            else if ($dayCandle->getAvgVolatilityPercent(3) > 0.09)
+            else if ($dayCandle->getAvgBugVolatilityPercent(3) > 0.09)
             {
                 $stop_per = 0.06;
             }
-            else if ($dayCandle->getAvgVolatilityPercent(3) > 0.075)
+            else if ($dayCandle->getAvgBugVolatilityPercent(3) > 0.075)
             {
                 $stop_per = 0.045;
             }
-            else if ($dayCandle->getAvgVolatilityPercent(3) > 0.05)
+            else if ($dayCandle->getAvgBugVolatilityPercent(3) > 0.05)
             {
                 $stop_per = 0.035;
             }
-            $stop_per = 0.03;
+
             $max_per = $candle_5min->getMaxIntervalEMA(300, 200);
+            $stop_per = 0.03;
 
             //$buy_price = $candle_5min->getEMA(300) * (1 - ($max_per * 0.5));
             $buy_price = $candle_5min->getEMA(300);
@@ -231,17 +223,12 @@ class StrategyBB extends StrategyBase
         }
 
         // 1차 합격
+        $buy_per = 0.0002;
         // 1시간봉 과매수 거래 중지
 
-        if ($candle_60min->getNewRsi(14) > 70 && $dayCandle->getCandlePrev()->getMaxMinValueInLength(35)[0] > $candle_60min->c)
+        if ($candle_60min->getNewRsi(14) > 70)
         {
             return "1시간 RSI 에러";
-        }
-
-        $rsi_val = 0.5;
-        if ($dayCandle->getRsiMaInclination(1, 14, 17) < 0)
-        {
-            $rsi_val = -1;
         }
 
 
@@ -279,15 +266,20 @@ class StrategyBB extends StrategyBase
 //        }
 
 
-        // 1시간봉 BB 밑이면 정지필살5분EMA
+        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
+        // 1시간봉 BB 밑이면 정지
         if ($candle_60min->getBBDownLine(37, 0.95) > $candle_60min->c)
         {
             return "1시간 BB 아래에 있음";
         }
 
-        $log = sprintf("buy_per:%f stop:%f", (1 - $buy_per), (1 - $stop_per));
+        if ($candle_60min)
 
-        $buy_price = $candle_1min->getClose() * (1 - $buy_per);
+            $log_plus="";
+
+        $log = sprintf("buy_per:%f stop:%f".$log_plus, (1 - $buy_per), (1 - $stop_per));
+
+        $buy_price = $candle->getClose() * (1 - $buy_per);
         $stop_price = $buy_price  * (1 - $stop_per);
         $wait_min = 30;
 
@@ -379,11 +371,11 @@ class StrategyBB extends StrategyBase
             }
             else
             {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.2;
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.8;
             }
         }
 
-        $log .= "k = ".$k_up. " DAY=".$day.$log_min;
+        $log .= "k = ".$k_up. " DAY=".$day;
 
 
         OrderManager::getInstance()->updateOrder(

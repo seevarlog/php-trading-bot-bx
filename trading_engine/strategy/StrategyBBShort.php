@@ -9,7 +9,6 @@ use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
-use trading_engine\objects\Funding;
 use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
 
@@ -45,8 +44,8 @@ class StrategyBBShort extends StrategyBase
         $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
-        $candle_240min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 240)->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
+
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
 
@@ -63,8 +62,8 @@ class StrategyBBShort extends StrategyBase
 //        }
         $log_min = "11111111";
         $sideCount = $candle_60min->getSidewaysCount($this->side_length);
-        $vol = $candle_60min->getAvgVolatilityPercent(60);
-        if ($sideCount < $this->side_count && $vol > 0.009)
+        $vol = $candle_60min->getAvgRealVolatilityPercent(60);
+        if ($sideCount < $this->side_count && $vol > 0.025)
         {
             $log_min = "333333333";
             $candle = $candle_5min;
@@ -75,17 +74,12 @@ class StrategyBBShort extends StrategyBase
 
         $log_min .= "side_count:".$sideCount."vol:".$vol;
 
-        $per_1hour = $candle_60min->getAvgVolatilityPercent();
-//        $k_up = 1.1 + ($per_1hour - 0.02) * 15;
-        $k_up = 1.3;
-        $stop_per = $per_1hour * 2.5;
+        $per_1hour = $candle_60min->getAvgBugVolatilityPercent();
+        $k_up = 1.1 + ($per_1hour - 0.02) * 10;
+        $stop_per = $per_1hour * 1.5;
         if ($stop_per < 0.013)
         {
             $stop_per = 0.013;
-        }
-        if ($stop_per > 0.06)
-        {
-            $stop_per = 0.06;
         }
         $k_down = 1.3;
         $day = 40;
@@ -113,6 +107,11 @@ class StrategyBBShort extends StrategyBase
             }
         }
 
+
+        $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
+        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
+        $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
+        $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
 
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount < 0)
         {
@@ -164,6 +163,7 @@ class StrategyBBShort extends StrategyBase
                 );
             }
         }
+
         if ($positionMng->getPosition($this->getStrategyKey())->amount < 0)
         {
             return $loop_msg;
@@ -171,21 +171,18 @@ class StrategyBBShort extends StrategyBase
 
         $action = "";
         $log = "";
+        $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         // BB 밑이면 이미 하락 크게 진행 중
 
         // 1차 합격
         $buy_per = 0.0002;
         // 1시간봉 과매수 거래 중지
 
-        if (Funding::getInstance()->isShortTradeStop())
-        {
-            return "[매도]펀비 낮음";
-        }
-
-        if ($candle_60min->getNewRsi(14) > 70 && $dayCandle->getRsiMaInclination(1, 14, 17) > 0)
+        if ($candle_60min->getNewRsi(14) > 70)
         {
             return "[매도]1시간 RSI 에러";
         }
+
 
         // 거래 중지 1시간
         if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) < -0.5)
@@ -193,49 +190,18 @@ class StrategyBBShort extends StrategyBase
             return "[매도]1시간반전 기회없음";
         }
 
-
-        // BB 밑이면 이미 하락 크게 진행 중
-        if ($candle_5min->getGoldenDeadState() == "gold" &&
-            $candle_5min->getEMA120() > $candle->c && $candle_5min->getEMA120Cross(20) <= 0 && $position_count == 0)
-        {
-            $stop_per = 0.03;
-            $buy_price = $candle_5min->getEMA120();
-            $stop_price = $buy_price * (1 + $stop_per);
-            $action = "필살5분EMA";
-            $wait_min = 30;
-            GOTO SELL_ENTRY;
-        }
-        if ($candle_5min->getGoldenDeadState() == "dead" &&
-            $candle_5min->getEMA240() > $candle->c && $candle_5min->getEMA240Cross(20) <= 0 && $position_count == 0)
-        {
-            $stop_per = 0.03;
-            $buy_price = $candle_5min->getEMA240();
-            $stop_price = $buy_price * (1 + $stop_per);
-            $action = "필살5분EMA";
-            $wait_min = 30;
-            GOTO SELL_ENTRY;
-        }
-
-
         if ($candle->crossoverBBUpLine($day, $k_down) == false)
         {
             return "[매도]크로스안함";
         }
 
+
+        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         // 1시간봉 BB 밑이면 정지
-        if ($candle_60min->getBBUpLine(37, 1.3) < $candle_60min->c)
+        if ($candle_60min->getBBUpLine(37, 0.95) < $candle_60min->c)
         {
             return "[매도]1시간 BB 위에 있음";
         }
-
-        if ($candle_5min->getGoldenDeadState() == "gold")
-        {
-            if ($candle_5min->getEMA240() > $candle->c)
-            {
-                return "[매도]5분봉 골크 반등 최소화";
-            }
-        }
-
 
         $log = sprintf("buy_per:%f stop:%f", (1 + $buy_per), (1 + $stop_per));
 
@@ -317,7 +283,7 @@ class StrategyBBShort extends StrategyBase
 //            }
 //        }
 
-SELL_ENTRY:
+        ENTRY:
         // 매수 시그널, 아래서 위로 BB를 뚫음
         // 매수 주문
 
@@ -333,11 +299,11 @@ SELL_ENTRY:
             }
             else
             {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.2;
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.8;
             }
         }
 
-        $log .= "k = ".$k_up. " DAY=".$day." order_time=".$candle->getDateTimeKST(). "candle=".$candle->displayCandle().$log_min;
+        $log .= "k = ".$k_up. " DAY=".$day." order_time=".$candle->getDateTimeKST(). "candle=".$candle->displayCandle();
 
 
         OrderManager::getInstance()->updateOrder(

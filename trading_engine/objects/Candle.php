@@ -210,23 +210,6 @@ class Candle
     {
         $min = 100;
         $candle = $this;
-        for ($i=0; $i<1; $i++)
-        {
-            $rsi = $candle->getNewRsi($rsi_length);
-            if ($rsi < $min)
-            {
-                $min = $rsi;
-            }
-            $candle = $candle->getCandlePrev();
-        }
-
-        return $min;
-    }
-
-    public function getMinRsi($rsi_length, $range_day)
-    {
-        $min = 100;
-        $candle = $this;
         for ($i=0; $i<$range_day; $i++)
         {
             $rsi = $candle->getNewRsi($rsi_length);
@@ -234,7 +217,7 @@ class Candle
             {
                 $min = $rsi;
             }
-            $candle = $candle->getCandlePrev();
+            $candle = $this->getCandlePrev();
         }
 
         return $min;
@@ -245,23 +228,6 @@ class Candle
     {
         $max = 0;
         $candle = $this;
-        for ($i=0; $i<1; $i++)
-        {
-            $rsi = $candle->getNewRsi($rsi_length);
-            if ($rsi > $max)
-            {
-                $max = $rsi;
-            }
-            $candle = $this->getCandlePrev();
-        }
-
-        return $max;
-    }
-
-    public function getMaxRsi($rsi_length, $range_day)
-    {
-        $max = 0;
-        $candle = $this;
         for ($i=0; $i<$range_day; $i++)
         {
             $rsi = $candle->getNewRsi($rsi_length);
@@ -269,8 +235,7 @@ class Candle
             {
                 $max = $rsi;
             }
-            //$candle = $this->getCandlePrev(); 사탄
-            $candle = $candle->getCandlePrev();
+            $candle = $this->getCandlePrev();
         }
 
         return $max;
@@ -289,13 +254,8 @@ class Candle
         {
             return 50;
         }
-        $up = $this->getNewUpAvg($length, $length);
-        if ($up == 0)
-        {
-            return 50;
-        }
 
-        $rsi = 100-(100/(1+ $up / $du));
+        $rsi = 100-(100/(1+$this->getNewUpAvg($length, $length) / $du));
         $this->r_rsi[$length] = $rsi;
 
         return $rsi;
@@ -351,7 +311,7 @@ class Candle
             return 0;
         }
 
-        if ($left == -$length * 3)
+        if ($left == -$length * 2)
         {
             $sum = 0;
             $candle = $this;
@@ -369,6 +329,72 @@ class Candle
         return $this->r_du[$length];
     }
 
+
+
+
+    public function getRsi($day)
+    {
+        if ($this->getCandlePrev()->r != -1 && $this->rd == $day)
+        {
+            $prev = $this->getCandlePrev();
+            $delta = $this->c - $prev->c;
+            $up = $delta > 0 ? $delta : 0;
+            $down = $delta < 0 ? abs($delta) : 0;
+
+            $au = $prev->r * ($day - 1) + $up;
+            $du = $prev->r * ($day - 1) + $down;
+
+            $this->r = 100 * $au / ($au + $du);
+            $this->rd = $day;
+
+            return $this->r;
+        }
+
+        $first_candle = $this;
+        for ($i=0; $i<$day*3; $i++)
+        {
+            $first_candle = $first_candle->getCandlePrev();
+        }
+
+        // 최적화 가능한 부분
+        // 걍 처음부터 다시한다
+        $au = $first_candle->getUpAvg($day);
+        $ad = $first_candle->getDownAvg($day);
+        $first_candle->au = $au;
+        $first_candle->ad = $ad;
+        $first_candle->rd = $day;
+        if (($au + $ad) == 0)
+        {
+            $au = 1;
+            $ad = 1;
+        }
+        $first_candle->r = 100 * $au / ( $au + $ad );
+
+        $first_candle = $first_candle->getCandleNext();
+        for ($i=0; $i<$day*5; $i++)
+        {
+            $prev = $first_candle->getCandlePrev();
+            $delta = $first_candle->c - $prev->c;
+            $up = $delta > 0 ? $delta : 0;
+            $down = $delta < 0 ? abs($delta) : 0;
+
+            $first_candle->au = ($prev->au * ($day-1) + $up) / $day;
+            $first_candle->ad = ($prev->ad * ($day-1) + $down) / $day;
+
+            if (($first_candle->au + $first_candle->ad) == 0)
+            {
+                $first_candle->au = 1;
+                $first_candle->ad = 1;
+            }
+
+            $first_candle->r = 100 * $first_candle->au / ( $first_candle->au + $first_candle->ad );
+            $first_candle->rd = $day;
+
+            $first_candle = $first_candle->getCandleNext();
+        }
+
+        return $this->r;
+    }
 
 
     public function setData($time, $open, $high, $low, $close)
@@ -564,8 +590,8 @@ class Candle
         $prev = $this;
         for ($i=0; $i<$day; $i++)
         {
-             $sum += $prev->c;
-             $prev = $prev->getCandlePrev();
+            $sum += $prev->c;
+            $prev = $prev->getCandlePrev();
         }
 
         return $sum / $day;
@@ -589,7 +615,7 @@ class Candle
 
         return $sum / $day;
     }
-    
+
     public function getStandardDeviationClose($day)
     {
         // 1. 평균 구하기
@@ -601,11 +627,11 @@ class Candle
             $sum += $prev->getClose();
             $prev = $prev->getCandlePrev();
         }
-        
+
         $avg = $sum / $day;
         $sum = 0;
         $prev = $tmpPrev;
-        
+
         for ($i=0; $i<$day; $i++)
         {
             $sum += pow(abs($prev->getClose() - $avg),2);
@@ -615,7 +641,7 @@ class Candle
         $ret = sqrt($sum / $day);
         return $ret;
     }
-    
+
     // 평균 변동성 구하기 (종가 기준)
     public function getAvgVolatilityClose($day)
     {
@@ -642,8 +668,7 @@ class Candle
         return $this->ba;
     }
 
-
-    public function getAvgVolatilityPercent($day = 12)
+    public function getAvgRealVolatilityPercent($day = 12)
     {
         if ($this->c == 0)
         {
@@ -656,6 +681,27 @@ class Candle
         {
             $sum += abs(($candle->h / $candle->l) - 1);
             $candle = $candle->getCandlePrev();
+        }
+
+        return $sum / $day;
+    }
+
+
+    public function getAvgBugVolatilityPercent($day = 12)
+    {
+        $sum = 0;
+        $prev = $this->getCandlePrev();
+
+        if ($this->c == 0)
+        {
+            return 0.04;
+        }
+        $day = 1;
+        $candle = $this;
+        $sum = 0;
+        for ($i=0; $i<$day; $i++)
+        {
+            $sum += abs(($candle->h / $candle->l) - 1);
         }
 
         return $sum / $day;
@@ -697,12 +743,12 @@ class Candle
 
         return $sum_percent;
     }
-    
+
     public function getBBUpLine($day, $k)
     {
         return $this->getMA($day) + ($this->getStandardDeviationClose($day) * $k);
     }
-    
+
     public function getBBDownLine($day, $k)
     {
         return $this->getMA($day) - ($this->getStandardDeviationClose($day) * $k);
@@ -723,28 +769,10 @@ class Candle
 
     public function crossoverBBUpLine($day, $k)
     {
-        $prev = $this;
-        if ($this->tick == 1)
-        {
-            $prev = $this->getCandlePrev();
-        }
+        $prev = $this->getCandlePrev();
         if($prev->getClose() > $prev->getBBUpLine($day, $k))
         {
             if($this->getClose() < $this->getBBUpLine($day, $k))
-            {
-                return True;
-            }
-        }
-        return False;
-    }
-
-
-    public function crossoverBBMiddleLine($day)
-    {
-        $prev = $this->getCandlePrev();
-        if($prev->getClose() > $prev->getMA($day))
-        {
-            if($this->getClose() < $this->getMA($day))
             {
                 return True;
             }
@@ -927,7 +955,6 @@ class Candle
 
     public function getGoldenDeadState()
     {
-
         $ma300 = $this->getEMA(300);
         $ma240 = $this->getEMA(240);
         $ma120 = $this->getEMA(120);
@@ -971,5 +998,5 @@ class Candle
 
         return "sideways";
     }
-    
+
 }
