@@ -190,7 +190,7 @@ class StrategyBB extends StrategyBase
         $log = "";
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         // BB 밑이면 이미 하락 크게 진행 중
-        if ($candle_5min->getGoldenDeadState() == "gold" &&
+        if ($candle_5min->getGoldenDeadState() == "gold" && $candle_5min->getEMA300Cross(20) &&
             $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA(200) )
         {
             // 골크에 200일선과 300일선 사이라서 도박해본다
@@ -279,7 +279,7 @@ class StrategyBB extends StrategyBase
 
         $log = sprintf("buy_per:%f stop:%f".$log_plus, (1 - $buy_per), (1 - $stop_per));
 
-        $buy_price = $candle->getClose() * (1 - $buy_per);
+        $buy_price = $candle_1min->getClose() * (1 - $buy_per);
         $stop_price = $buy_price  * (1 - $stop_per);
         $wait_min = 30;
 
@@ -371,7 +371,7 @@ class StrategyBB extends StrategyBase
             }
             else
             {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.8;
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.3;
             }
         }
 
