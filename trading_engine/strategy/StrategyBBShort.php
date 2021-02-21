@@ -119,7 +119,7 @@ class StrategyBBShort extends StrategyBase
             $loop_msg .= "나머지익절";
             if ($candle_60min->getBBDownLine($day, $k_down) > $candle->c)
             {
-                if ($candle_3min->crossoverBBDownLine($day, $k_down) == true)
+                if ($candle_3min->crossoverBBDownLineNew($day, $k_down) == true)
                 {
                     [$max, $min] = $candle->getMaxMinValueInLength(5);
                     $price = ($min + $candle->getClose()) / 2;
@@ -141,7 +141,7 @@ class StrategyBBShort extends StrategyBase
                     );
                 }
             }
-            else if ($candle->crossoverBBDownLine($day, $k_up) == true)
+            else if ($candle->crossoverBBDownLineNew($day, $k_up) == true)
             {
                 [$max, $min] = $candle->getMaxMinValueInLength(5);
                 $price = ($min + $candle_1min->getClose()) / 2;
@@ -190,7 +190,7 @@ class StrategyBBShort extends StrategyBase
             return "[매도]1시간반전 기회없음";
         }
 
-        if ($candle->crossoverBBUpLine($day, $k_down) == false)
+        if ($candle->crossOverBBUpLineNew($day, $k_down) == false)
         {
             return "[매도]크로스안함";
         }

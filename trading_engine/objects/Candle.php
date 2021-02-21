@@ -182,7 +182,7 @@ class Candle
         return $sum / $ma_length;
     }
 
-    // n 일동안의 기울기 합을 구함
+    //  0보다 크면 상승중
     public function getRsiInclinationSum($n)
     {
         $sum = 0;
@@ -206,7 +206,7 @@ class Candle
 
     }
 
-    public function getMinRealRsi($rsi_length, $range_day)
+    public function getMinRsiBug($rsi_length, $range_day)
     {
         $min = 100;
         $candle = $this;
@@ -218,6 +218,24 @@ class Candle
                 $min = $rsi;
             }
             $candle = $this->getCandlePrev();
+        }
+
+        return $min;
+    }
+
+
+    public function getMinRsi($rsi_length, $range_day)
+    {
+        $min = 100;
+        $candle = $this;
+        for ($i=0; $i<$range_day; $i++)
+        {
+            $rsi = $candle->getNewRsi($rsi_length);
+            if ($rsi < $min)
+            {
+                $min = $rsi;
+            }
+            $candle = $candle->getCandlePrev();
         }
 
         return $min;
@@ -254,8 +272,13 @@ class Candle
         {
             return 50;
         }
+        $up = $this->getNewUpAvg($length, $length);
+        if ($up == 0)
+        {
+            return 50;
+        }
 
-        $rsi = 100-(100/(1+$this->getNewUpAvg($length, $length) / $du));
+        $rsi = 100-(100/(1+ $up / $du));
         $this->r_rsi[$length] = $rsi;
 
         return $rsi;
@@ -311,7 +334,7 @@ class Candle
             return 0;
         }
 
-        if ($left == -$length * 2)
+        if ($left == -$length * 3)
         {
             $sum = 0;
             $candle = $this;
@@ -767,6 +790,33 @@ class Candle
         return False;
     }
 
+    public function crossoverBBDownLineNew($day, $k)
+    {
+        $prev = $this->getCandlePrev();
+        if($prev->getClose() < $prev->getBBDownLine($day, $k))
+        {
+            $is_smooth = $this->getClose() * 1.0001 > $this->getBBDownLine($day, $k);
+            $is_base = $this->getClose() > $this->getBBDownLine($day, $k);
+            if ($is_base == true && $is_smooth == false)
+            {
+                $candle = $this->getCandlePrev();
+                for ($i=0; $i<5; $i++)
+                {
+                    if ($candle->crossoverBBDownLine($day, $k))
+                    {
+                        return true;
+                    }
+                    $candle = $candle->getCandlePrev();
+                }
+            }
+            else if ($is_base == true && $is_smooth == true)
+            {
+                return true;
+            }
+        }
+        return False;
+    }
+
     public function crossoverBBUpLine($day, $k)
     {
         $prev = $this->getCandlePrev();
@@ -775,6 +825,33 @@ class Candle
             if($this->getClose() < $this->getBBUpLine($day, $k))
             {
                 return True;
+            }
+        }
+        return False;
+    }
+
+    public function crossOverBBUpLineNew($day, $k)
+    {
+        $prev = $this->getCandlePrev();
+        if($prev->getClose() > $prev->getBBUpLine($day, $k))
+        {
+            $is_smooth = $this->getClose() * 1.0001 < $this->getBBUpLine($day, $k);
+            $is_base = $this->getClose() < $this->getBBUpLine($day, $k);
+            if ($is_base == true && $is_smooth == false)
+            {
+                $candle = $this->getCandlePrev();;
+                for ($i=0; $i<5; $i++)
+                {
+                    if ($candle->crossoverBBUpLine($day, $k))
+                    {
+                        return true;
+                    }
+                    $candle = $candle->getCandlePrev();
+                }
+            }
+            else if ($is_base == true && $is_smooth == true)
+            {
+                return true;
             }
         }
         return False;

@@ -163,7 +163,7 @@ class StrategyBB extends StrategyBase
 //                    return "익절금지";
 //                }
 
-                if ($candle->crossoverBBUpLine($day, $k_up) == true)
+                if ($candle->crossOverBBUpLineNew($day, $k_up) == true)
                 {
                     [$max, $min] = $candle->getMaxMinValueInLength(5);
                     // 골드 매도
@@ -236,7 +236,7 @@ class StrategyBB extends StrategyBase
         if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) > 0.5)
         {
             // 하락 추세에서 반전의 냄새가 느껴지면 거래진입해서 큰 익절을 노림
-            if ($candle_60min->getMinRealRsi(14, 7) < 35 && $candle_60min->getRsiInclinationSum(3) > 0 && $candle_60min->getGoldenDeadState() == "gold")
+            if ($candle_60min->getMinRsiBug(14, 7) < 35 && $candle_60min->getRsiInclinationSum(3) > 0 && $candle_60min->getGoldenDeadState() == "gold")
             {
                 $stop_per = $per_1hour * 2;
                 $buy_per = $per_1hour / 2;
@@ -254,7 +254,7 @@ class StrategyBB extends StrategyBase
             }
         }
 
-        if ($candle->crossoverBBDownLine($day, $k_down) == false)
+        if ($candle->crossoverBBDownLineNew($day, $k_down) == false)
         {
             return "크로스안함";
         }
@@ -285,7 +285,7 @@ class StrategyBB extends StrategyBase
 
 
         // 5분봉 예외처리
-        if ($candle_5min->getMinRealRsi(14, 5) < 30)
+        if ($candle_5min->getMinRsi(14, 5) < 30)
         {
             $stop_per += 0.005;
             [$max_5min, $min_5min] = $candle_5min->getMaxMinValueInLength(90);
