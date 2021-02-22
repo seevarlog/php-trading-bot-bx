@@ -795,7 +795,7 @@ class Candle
         $prev = $this->getCandlePrev();
         if($prev->getClose() < $prev->getBBDownLine($day, $k))
         {
-            $is_smooth = $this->getClose() * 1.0001 > $this->getBBDownLine($day, $k);
+            $is_smooth = $this->getClose() * 0.9999 > $this->getBBDownLine($day, $k);
             $is_base = $this->getClose() > $this->getBBDownLine($day, $k);
             if ($is_base == true && $is_smooth == false)
             {
