@@ -790,8 +790,27 @@ class Candle
         return False;
     }
 
-    public function crossoverBBDownLineNew($day, $k)
+    public function crossoverBBDownLineNew($day, $k, $r = 0)
     {
+        if ($r == 0)
+        {
+            if ($this->getCandlePrev()->crossoverBBDownLine($day, $k) == false)
+            {
+                if ($this->getCandlePrev()->crossoverBBDownLineNew($day, $k, 1) == true)
+                {
+                    $prev = $this->getCandlePrev()->getCandlePrev();
+                    if($prev->getClose() < $prev->getBBDownLine($day, $k))
+                    {
+                        if($this->getClose() > $this->getBBDownLine($day, $k))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+
         $prev = $this->getCandlePrev();
         if($prev->getClose() < $prev->getBBDownLine($day, $k))
         {
@@ -830,8 +849,27 @@ class Candle
         return False;
     }
 
-    public function crossOverBBUpLineNew($day, $k)
+    public function crossOverBBUpLineNew($day, $k, $r = 0)
     {
+        if ($r == 0)
+        {
+            if ($this->getCandlePrev()->crossoverBBUpLine($day, $k) == false)
+            {
+                if ($this->getCandlePrev()->crossoverBBUpLineNew($day, $k, 1) == true)
+                {
+                    $prev = $this->getCandlePrev()->getCandlePrev();
+                    if($prev->getClose() > $prev->getBBDownLine($day, $k))
+                    {
+                        if($this->getClose() < $this->getBBUpLine($day, $k))
+                        {
+                            return True;
+                        }
+                    }
+                }
+            }
+        }
+
+
         $prev = $this->getCandlePrev();
         if($prev->getClose() > $prev->getBBUpLine($day, $k))
         {
