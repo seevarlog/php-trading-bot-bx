@@ -22,7 +22,7 @@ class StrategyBBShort extends StrategyBase
     {
         if (!Config::getInstance()->isRealTrade())
         {
-            $this->leverage = 15;
+            $this->leverage = 1;
         }
     }
 

@@ -24,7 +24,7 @@ class StrategyBB extends StrategyBase
         $leverage = 15;
         if (!Config::getInstance()->isRealTrade())
         {
-            $leverage = 15;
+            $leverage = 1;
         }
         $orderMng = OrderManager::getInstance();
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
