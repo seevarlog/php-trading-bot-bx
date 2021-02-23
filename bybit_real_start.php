@@ -92,6 +92,8 @@ $stop_list = $bybit->privates()->getStopOrderList(
     ]
 );
 
+$stop_list = [];
+
 $is_long_trade = true;
 
 foreach ($stop_list['result']['data'] as $data)
