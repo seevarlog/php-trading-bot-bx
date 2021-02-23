@@ -82,6 +82,7 @@ $order_list = $bybit->privates()->getOrderList(
         'order_status' => "New",
     ]
 );
+$order_list = [];
 
 
 $stop_list = $bybit->privates()->getStopOrderList(
