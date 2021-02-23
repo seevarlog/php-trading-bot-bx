@@ -851,6 +851,12 @@ class Candle
 
     public function crossOverBBUpLineNew($day, $k, $r = 0)
     {
+        $per = 0.0001;
+        if ($this->tick > 1)
+        {
+            $per = 0.001;
+        }
+
         if ($r == 0)
         {
             if ($this->getCandlePrev()->crossoverBBUpLine($day, $k) == true)
@@ -860,9 +866,8 @@ class Candle
                     $prev = $this->getCandlePrev()->getCandlePrev();
                     if($prev->getClose() > $prev->getBBUpLine($day, $k))
                     {
-                        if($this->getClose() * 1.0002 < $this->getBBUpLine($day, $k))
+                        if($this->getClose() * (1+$per*2) < $this->getBBUpLine($day, $k))
                         {
-                            var_dump("하이");
                             return True;
                         }
                     }
@@ -874,7 +879,7 @@ class Candle
         $prev = $this->getCandlePrev();
         if($prev->getClose() > $prev->getBBUpLine($day, $k))
         {
-            $is_smooth = $this->getClose() * 1.0001 < $this->getBBUpLine($day, $k);
+            $is_smooth = $this->getClose() * (1+$per) < $this->getBBUpLine($day, $k);
             $is_base = $this->getClose() < $this->getBBUpLine($day, $k);
             if ($is_base == true && $is_smooth == false)
             {

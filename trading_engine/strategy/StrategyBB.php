@@ -56,7 +56,7 @@ class StrategyBB extends StrategyBase
         $log_min = "11111111";
         $sideCount = $candle_60min->getSidewaysCount($this->side_length);
         $vol = $candle_60min->getAvgRealVolatilityPercent(60);
-        if ($sideCount < $this->side_count && $vol > 0.025)
+        if ($sideCount <= $this->side_count && $vol > 0.025)
         {
             $log_min = "333333333";
             $candle = $candle_5min;
@@ -190,7 +190,7 @@ class StrategyBB extends StrategyBase
         $log = "";
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         // BB 밑이면 이미 하락 크게 진행 중
-        if ($candle_5min->getGoldenDeadState() == "gold" && $candle_5min->getEMA300Cross(20) &&
+        if ($candle_5min->getGoldenDeadState() == "gold" && $candle_5min->getEMA300Cross(20) >= 1 &&
             $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA(200) )
         {
             // 골크에 200일선과 300일선 사이라서 도박해본다
@@ -371,7 +371,7 @@ class StrategyBB extends StrategyBase
             }
             else
             {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.3;
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.8;
             }
         }
 
