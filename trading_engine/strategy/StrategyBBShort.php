@@ -82,9 +82,9 @@ class StrategyBBShort extends StrategyBase
         $per_1hour = $candle_60min->getAvgBugVolatilityPercent();
         $k_up = 1.1 + ($per_1hour - 0.02) * 10;
         $stop_per = $per_1hour * 1.5;
-        if ($stop_per < 0.013)
+        if ($stop_per < 0.012)
         {
-            $stop_per = 0.013;
+            $stop_per = 0.012;
         }
         $k_down = 1.3;
         $day = 40;
@@ -130,6 +130,7 @@ class StrategyBBShort extends StrategyBase
                     $price = ($min + $candle->getClose()) / 2;
                     if ($price > $candle->c)
                     {
+                        $price = $candle->c - 1;
                         var_dump("사탄");
                     }
 
@@ -152,6 +153,7 @@ class StrategyBBShort extends StrategyBase
                 $price = ($min + $candle_1min->getClose()) / 2;
                 if ($price > $candle->c)
                 {
+                    $price = $candle->c - 1;
                     var_dump("사탄");
                 }
 

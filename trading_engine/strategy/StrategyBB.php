@@ -84,10 +84,11 @@ class StrategyBB extends StrategyBase
         $wait_min = 30;
         $k_up = 1.1 + ($per_1hour - 0.02) * 10;
         $stop_per = $per_1hour * 2.1;
-        if ($stop_per < 0.013)
+        if ($stop_per < 0.012)
         {
-            $stop_per = 0.013;
+            $stop_per = 0.012;
         }
+
         $k_down = 1.3;
         $day = 40;
         $orderMng = OrderManager::getInstance();
