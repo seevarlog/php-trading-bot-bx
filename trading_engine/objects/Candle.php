@@ -792,6 +792,12 @@ class Candle
 
     public function crossoverBBDownLineNew($day, $k, $r = 0)
     {
+        $per = 0.0001;
+        if ($this->tick > 1)
+        {
+            $per = 0.001 * $this->tick;
+        }
+
         if ($r == 0)
         {
             if ($this->getCandlePrev()->crossoverBBDownLine($day, $k) == true)
@@ -801,7 +807,7 @@ class Candle
                     $prev = $this->getCandlePrev()->getCandlePrev();
                     if($prev->getClose() < $prev->getBBDownLine($day, $k))
                     {
-                        if($this->getClose() * 0.9998 > $this->getBBDownLine($day, $k))
+                        if($this->getClose() * (1-$per*2) > $this->getBBDownLine($day, $k))
                         {
                             return true;
                         }
@@ -814,7 +820,7 @@ class Candle
         $prev = $this->getCandlePrev();
         if($prev->getClose() < $prev->getBBDownLine($day, $k))
         {
-            $is_smooth = $this->getClose() * 0.9999 > $this->getBBDownLine($day, $k);
+            $is_smooth = $this->getClose() * (1-$per) > $this->getBBDownLine($day, $k);
             $is_base = $this->getClose() > $this->getBBDownLine($day, $k);
             if ($is_base == true && $is_smooth == false)
             {
@@ -854,7 +860,7 @@ class Candle
         $per = 0.0001;
         if ($this->tick > 1)
         {
-            $per = 0.001;
+            $per = 0.001 * $this->tick;
         }
 
         if ($r == 0)
