@@ -24,7 +24,7 @@ class StrategyBB extends StrategyBase
         $leverage = 15;
         if (!Config::getInstance()->isRealTrade())
         {
-            $leverage = 1;
+            $leverage = $this->test_leverage;
         }
         $orderMng = OrderManager::getInstance();
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
@@ -230,6 +230,14 @@ class StrategyBB extends StrategyBase
         if ($candle_60min->getNewRsi(14) > 70)
         {
             return "1시간 RSI 에러";
+        }
+
+        if ($candle->tick >= 5)
+        {
+            if ($candle_15min->getMA(40) < $candle_1min->c)
+            {
+                return "BB 상단위치";
+            }
         }
 
 
