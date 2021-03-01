@@ -185,13 +185,13 @@ class StrategyBBShort extends StrategyBase
             return "[매도]1시간 RSI 에러";
         }
 
-//        if ($candle->tick >= 5)
-//        {
-//            if ($candle_15min->getMA(40) > $candle_1min->c)
-//            {
-//                return "[매도]BB 하단위치";
-//            }
-//        }
+        if ($candle->tick >= 5)
+        {
+            if ($candle_15min->getMA(20) > $candle_1min->c)
+            {
+                return "[매도]BB 하단위치";
+            }
+        }
 
 
         // 거래 중지 1시간
