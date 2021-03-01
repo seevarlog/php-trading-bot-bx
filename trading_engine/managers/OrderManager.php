@@ -4,9 +4,7 @@ namespace trading_engine\managers;
 
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
-use trading_engine\objects\LogTrade;
 use trading_engine\objects\Order;
-use trading_engine\objects\Position;
 use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
 use trading_engine\util\Notify;
@@ -185,15 +183,18 @@ class OrderManager extends Singleton
             {
                 if ($order->is_limit)
                 {
+                    $post = [
+                        'order_id'=>$order->order_id,
+                        'symbol'=>"BTCUSD",
+                        'p_r_price'=>$order->entry,
+                    ];
+                    if ($order->comment == "익절" && $order->filled_amount > 0)
+                    {
+                        $post['p_r_qty'] = abs($order->amount);
+                    }
+
                     var_dump("리미트");
-                    $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderReplace(
-                        [
-                            'order_id'=>$order->order_id,
-                            'symbol'=>"BTCUSD",
-                            'p_r_price'=>$order->entry,
-                            'p_r_qty'=>abs($order->amount)
-                        ]
-                    );
+                    $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderReplace($post);
                     var_dump($result);
                     Notify::sendTradeMsg(sprintf("주문 수정했다. 진입가 : %f", $order->entry));
                 }
