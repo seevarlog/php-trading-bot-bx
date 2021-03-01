@@ -303,24 +303,6 @@ class StrategyBB extends StrategyBase
             $action = "5분";
             $wait_min = 30;
         }
-        else if ($candle_5min->getBBDownCount($day, $k_down, 4) > 1)
-        {
-            // BB 밑이면 이미 하락 크게 진행 중
-            if ($candle_5min->getGoldenDeadState() == "gold" && $candle_5min->getBBDownLine($day, $k_up) > $candle->c &&
-                $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA(200) )
-            {
-                // 골크에 200일선과 300일선 사이라서 도박해본다
-                $stop_per = 0.015;
-                $buy_price = $candle_5min->getEMA(300);
-                $stop_price = $buy_price * (1 - $stop_per);
-                $action = "5분EMA";
-                $wait_min = 30;
-            }
-            else
-            {
-                return "5분봉 반전 노리기 실패";
-            }
-        }
 
         // 마지막 1분봉 저항선 근처라면 거래금지
         $state = $candle->getGoldenDeadState();
