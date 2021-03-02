@@ -188,7 +188,7 @@ class OrderManager extends Singleton
                         'symbol'=>"BTCUSD",
                         'p_r_price'=>$order->entry,
                     ];
-                    if ($order->comment == "익절" && $order->filled_amount > 0)
+                    if ($order->filled_amount > 0)
                     {
                         $post['p_r_qty'] = abs($order->amount);
                     }
