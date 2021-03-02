@@ -183,18 +183,15 @@ class OrderManager extends Singleton
             {
                 if ($order->is_limit)
                 {
-                    $post = [
-                        'order_id'=>$order->order_id,
-                        'symbol'=>"BTCUSD",
-                        'p_r_price'=>$order->entry,
-                    ];
-                    if ($order->comment == "익절" && $order->filled_amount > 0)
-                    {
-                        $post['p_r_qty'] = abs($order->amount);
-                    }
-
                     var_dump("리미트");
-                    $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderReplace($post);
+                    $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderReplace(
+                        [
+                            'order_id'=>$order->order_id,
+                            'symbol'=>"BTCUSD",
+                            'p_r_price'=>$order->entry,
+                            'p_r_qty'=>abs($order->amount)
+                        ]
+                    );
                     var_dump($result);
                     Notify::sendTradeMsg(sprintf("주문 수정했다. 진입가 : %f", $order->entry));
                 }
@@ -350,7 +347,7 @@ class OrderManager extends Singleton
                         {
                             $account = Account::getInstance();
                             $account->balance = GlobalVar::getInstance()->
-                                                getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
+                            getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
                             Notify::sendTradeMsg("지갑 동기화했다. usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
                         }
                         break;
