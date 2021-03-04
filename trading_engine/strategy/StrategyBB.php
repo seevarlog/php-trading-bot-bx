@@ -56,7 +56,7 @@ class StrategyBB extends StrategyBase
         $log_min = "11111111";
         $sideCount = $candle_60min->getSidewaysCount($this->side_length);
         $vol = $candle_60min->getAvgRealVolatilityPercent(40);
-        if ($sideCount <= $this->side_count && $vol > 0.018)
+        if ($sideCount <= $this->side_count && $vol > $this->sideways_per)
         {
             $log_min = "555555555";
             $candle = $candle_5min;
@@ -242,7 +242,7 @@ class StrategyBB extends StrategyBase
 
 
         // 거래 중지 1시간
-        if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) > 0.5)
+        if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 20) - $candle_60min->getRsiMA(14, 20) > 0.5)
         {
             // 하락 추세에서 반전의 냄새가 느껴지면 거래진입해서 큰 익절을 노림
             if ($candle_60min->getMinRsiBug(14, 7) < 35 && $candle_60min->getRsiInclinationSum(3) > 0 && $candle_60min->getGoldenDeadState() == "gold")
@@ -366,7 +366,7 @@ class StrategyBB extends StrategyBase
             }
         }
 
-        $log .= "k = ".$k_up. " DAY=".$day;
+        $log .= "k = ".$k_up. " DAY=".$day.$log_min;
 
 
         OrderManager::getInstance()->updateOrder(
