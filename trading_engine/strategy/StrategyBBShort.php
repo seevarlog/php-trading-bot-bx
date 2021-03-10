@@ -74,8 +74,8 @@ class StrategyBBShort extends StrategyBase
 
         $log_min .= "side_count:".$sideCount."vol:".$vol;
 
-        $per_1hour = $candle_60min->getAvgBugVolatilityPercent();
-        $k_up = 1.1 + ($per_1hour - 0.02) * 10;
+        $per_1hour = $candle_60min->getAvgRealVolatilityPercent(48);
+        $k_up = 1.1 + ($per_1hour - 0.02) * 15;
         $stop_per = $per_1hour * 1.5;
         if ($stop_per < 0.012)
         {
@@ -309,7 +309,7 @@ class StrategyBBShort extends StrategyBase
             }
             else
             {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.3;
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.1;
             }
         }
 
