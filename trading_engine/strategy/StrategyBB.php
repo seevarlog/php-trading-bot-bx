@@ -78,7 +78,7 @@ class StrategyBB extends StrategyBase
 
         $wait_min = 30;
         $k_up = 1.1 + ($per_1hour - 0.02) * 15;
-        $stop_per = $per_1hour * 2.1;
+        $stop_per = $per_1hour * 2.5;
         if ($stop_per < 0.012)
         {
             $stop_per = 0.012;
