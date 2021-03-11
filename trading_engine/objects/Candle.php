@@ -792,6 +792,11 @@ class Candle
 
     public function crossoverBBDownLineNew($day, $k, $r = 0)
     {
+        if ($this->tick == 1)
+        {
+            return $this->crossoverBBDownLine($day, $k);
+        }
+
         $per = $this->getAvgRealVolatilityPercent(20) / 14;
         if ($this->tick > 1)
         {
@@ -814,8 +819,7 @@ class Candle
                     }
                 }
             }
-
-            if ($this->getCandlePrev()->getCandlePrev()->crossoverBBDownLine($day, $k) == true)
+            else if ($this->getCandlePrev()->getCandlePrev()->crossoverBBDownLine($day, $k) == true)
             {
                 if($this->getClose() > $this->getBBDownLine($day, $k))
                 {
@@ -865,6 +869,11 @@ class Candle
 
     public function crossOverBBUpLineNew($day, $k, $r = 0)
     {
+        if ($this->tick == 1)
+        {
+            return $this->crossoverBBUpLine($day, $k);
+        }
+
         $per = $this->getAvgRealVolatilityPercent(20) / 14;
         if ($this->tick > 1)
         {
@@ -887,8 +896,7 @@ class Candle
                     }
                 }
             }
-
-            if ($this->getCandlePrev()->getCandlePrev()->crossoverBBUpLine($day, $k) == true)
+            else if ($this->getCandlePrev()->getCandlePrev()->crossoverBBUpLine($day, $k) == true)
             {
                 if($this->getClose() < $this->getBBUpLine($day, $k))
                 {
