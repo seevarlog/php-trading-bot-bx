@@ -83,6 +83,7 @@ $order_list = $bybit->privates()->getOrderList(
     ]
 );
 
+$order_list = [];
 
 $stop_list = $bybit->privates()->getStopOrderList(
     [
@@ -90,6 +91,8 @@ $stop_list = $bybit->privates()->getStopOrderList(
         'stop_order_status'=>'Untriggered'
     ]
 );
+
+$stop_list = [];
 
 $is_long_trade = true;
 
