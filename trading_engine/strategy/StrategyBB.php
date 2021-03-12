@@ -37,6 +37,7 @@ class StrategyBB extends StrategyBase
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
+        $candle_30min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 30)->getCandlePrev();
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
 
@@ -70,6 +71,9 @@ class StrategyBB extends StrategyBase
 
 
         $per_1hour = $candle_60min->getAvgRealVolatilityPercent(48);
+        $side_count_5min = $is_zigzag = $candle_5min->getSidewaysCount(100, 20);
+        $is_zigzag = $side_count_5min < $this->zigzag_count && $vol > $this->zigzag_per;
+        //$is_zigzag = $side_count_5min < $this->zigzag_count;
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
@@ -113,6 +117,12 @@ class StrategyBB extends StrategyBase
 
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount > 0)
         {
+            if ($is_zigzag && $candle_5min->getMA(40) - ($candle_5min->getStandardDeviationClose($day) * $k_up / 3 * 2) < $candle_1min->c)
+            {
+                return "[매수] 익절 패스";
+            }
+
+
             $sell_price = 0;
             $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
             if ($positionMng->getPosition($this->getStrategyKey())->action == "5분EMA")
@@ -240,6 +250,11 @@ class StrategyBB extends StrategyBase
             }
         }
 
+        if ($is_zigzag && $candle_5min->getMA(40) + ($candle_5min->getStandardDeviationClose($day) * $k_up / 3 * 2) < $candle_1min->c)
+        {
+            return "[매수] 위험구역";
+        }
+
 
         // 거래 중지 1시간
         if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 20) - $candle_60min->getRsiMA(14, 20) > 0.5)
@@ -362,7 +377,7 @@ class StrategyBB extends StrategyBase
             }
             else
             {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.1;
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.3;
             }
         }
 

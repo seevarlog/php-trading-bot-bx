@@ -44,6 +44,7 @@ class StrategyBBShort extends StrategyBase
         $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
+        $candle_30min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 30)->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
@@ -84,6 +85,9 @@ class StrategyBBShort extends StrategyBase
         $k_down = 1.3;
         $day = 40;
 
+        $side_count_5min = $is_zigzag = $candle_5min->getSidewaysCount(100, 20);
+        $is_zigzag = $side_count_5min < $this->zigzag_count && $vol > $this->zigzag_per;
+
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
         $positionMng = PositionManager::getInstance();
         $myPosition = $positionMng->getPosition($this->getStrategyKey());
@@ -115,6 +119,11 @@ class StrategyBBShort extends StrategyBase
 
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount < 0)
         {
+            if ($is_zigzag && $candle_5min->getMA(40) + ($candle_5min->getStandardDeviationClose($day) * $k_up / 3 * 2) > $candle_1min->c)
+            {
+                return "[매도] 익절 패스";
+            }
+
             $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
             $loop_msg .= "나머지익절";
             if ($candle_60min->getBBDownLine($day, $k_down) > $candle->c)
@@ -193,6 +202,11 @@ class StrategyBBShort extends StrategyBase
             }
         }
 
+
+        if ($is_zigzag && $candle_5min->getMA(40) - ($candle_5min->getStandardDeviationClose($day) * $k_down / 3 * 2) > $candle_1min->c)
+        {
+            return "[매도] 씹횡보 위험구역";
+        }
 
         // 거래 중지 1시간
         if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) < -0.5)
@@ -309,7 +323,7 @@ class StrategyBBShort extends StrategyBase
             }
             else
             {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.1;
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.3;
             }
         }
 

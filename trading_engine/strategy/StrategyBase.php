@@ -16,6 +16,8 @@ class StrategyBase extends Singleton
     public $day_day = 30;
     public $side_count = 56;
     public $side_length = 150;
+    public $zigzag_count = 30;
+    public $zigzag_per = 0.011;
 
 
     public function setMin1()
