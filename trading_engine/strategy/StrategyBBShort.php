@@ -177,7 +177,7 @@ class StrategyBBShort extends StrategyBase
         // BB 밑이면 이미 하락 크게 진행 중
 
         // 1차 합격
-        $buy_per = 0.0002;
+        $buy_per = 0.0001;
         // 1시간봉 과매수 거래 중지
 
         if ($candle_60min->getNewRsi(14) > 70)
