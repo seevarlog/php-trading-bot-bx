@@ -71,8 +71,15 @@ class StrategyBB extends StrategyBase
 
 
         $per_1hour = $candle_60min->getAvgRealVolatilityPercent(48);
-        $side_count_5min = $is_zigzag = $candle_5min->getSidewaysCount(100, 20);
-        $is_zigzag = $side_count_5min < $this->zigzag_count && $vol > $this->zigzag_per;
+        $side_count_5min = $candle_60min->getSidewaysCount(100, 20);
+        $is_zigzag = ($this->zigzag_min_count < $side_count_5min && $side_count_5min < $this->zigzag_max_count && $vol > $this->zigzag_per);
+        GlobalVar::getInstance()->CrossZigZag = $side_count_5min;
+        if ($is_zigzag)
+        {
+            $log_min .= "zigzig";
+        }
+        $log_min .= "zig:".$side_count_5min." ema:".$candle_60min->getEMA(50);
+
         //$is_zigzag = $side_count_5min < $this->zigzag_count;
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
@@ -117,7 +124,7 @@ class StrategyBB extends StrategyBase
 
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount > 0)
         {
-            if ($is_zigzag && $candle_5min->getMA(40) - ($candle_5min->getStandardDeviationClose($day) * $k_up / 3 * 2) < $candle_1min->c)
+            if ($is_zigzag && $candle_30min->getMA(40) - ($candle_30min->getStandardDeviationClose($day) * $k_up / 3 * 2) > $candle_1min->c)
             {
                 return "[매수] 익절 패스";
             }
@@ -237,7 +244,11 @@ class StrategyBB extends StrategyBase
         $buy_per = 0.0001;
         // 1시간봉 과매수 거래 중지
 
-        if ($candle_60min->getNewRsi(14) > 70)
+        if ($dayCandle->getMaxMinValueInLength(60)[0] < $candle_60min->getMaxMinValueInLength(10)[0] || $dayCandle->getMaxMinValueInLength(60)[0] < $candle_1min->c)
+        {
+            $is_zigzag = 0;
+        }
+        else if ($candle_60min->getNewRsi(14) > 70)
         {
             return "1시간 RSI 에러";
         }
@@ -250,7 +261,7 @@ class StrategyBB extends StrategyBase
             }
         }
 
-        if ($is_zigzag && $candle_5min->getMA(40) + ($candle_5min->getStandardDeviationClose($day) * $k_up / 3 * 2) < $candle_1min->c)
+        if ($is_zigzag && $candle_30min->getMA(40) + ($candle_30min->getStandardDeviationClose($day) * $k_up / 3 * 2) < $candle_1min->c)
         {
             return "[매수] 위험구역";
         }
@@ -282,12 +293,6 @@ class StrategyBB extends StrategyBase
         {
             return "크로스안함";
         }
-//
-//        if ($candle_5min->getMaxRealRsi(14, 10) > 65 && $candle_5min->getRsiMaInclination(2, 14, 14) < 0)
-//        {
-//            var_dump("check");
-//            return "5분봉 추세 전환";
-//        }
 
 
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
