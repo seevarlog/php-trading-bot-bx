@@ -126,7 +126,7 @@ class StrategyBB extends StrategyBase
         {
             if ($dayCandle->getMaxMinValueInLength(60)[0] < $candle_60min->getMaxMinValueInLength(10)[0] || $dayCandle->getMaxMinValueInLength(60)[0] < $candle_1min->c)
             {
-                $is_zigzag = 0;
+               //$is_zigzag = 0;
             }
 
             if ($is_zigzag && $candle_30min->getMA(40) - ($candle_30min->getStandardDeviationClose($day) * $k_up / 3 * 2) > $candle_1min->c)
@@ -251,7 +251,7 @@ class StrategyBB extends StrategyBase
 
         if ($dayCandle->getMaxMinValueInLength(60)[0] < $candle_60min->getMaxMinValueInLength(10)[0] || $dayCandle->getMaxMinValueInLength(60)[0] < $candle_1min->c)
         {
-            $is_zigzag = 0;
+            //$is_zigzag = 0;
         }
         else if ($candle_60min->getNewRsi(14) > 70)
         {
