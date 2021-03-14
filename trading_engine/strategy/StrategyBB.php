@@ -124,6 +124,11 @@ class StrategyBB extends StrategyBase
 
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount > 0)
         {
+            if ($dayCandle->getMaxMinValueInLength(60)[0] < $candle_60min->getMaxMinValueInLength(10)[0] || $dayCandle->getMaxMinValueInLength(60)[0] < $candle_1min->c)
+            {
+                $is_zigzag = 0;
+            }
+
             if ($is_zigzag && $candle_30min->getMA(40) - ($candle_30min->getStandardDeviationClose($day) * $k_up / 3 * 2) > $candle_1min->c)
             {
                 return "[매수] 익절 패스";
