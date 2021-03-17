@@ -79,7 +79,10 @@ class StrategyBB extends StrategyBase
         if ($is_zigzag)
         {
             $log_min .= "zigzig";
-            $candle = $candle_3min;
+            if ($candle->tick == 1)
+            {
+                $candle = $candle_3min;
+            }
         }
         $log_min .= "zig:".$side_count_5min." ema:".$candle_60min->getEMA(50);
 

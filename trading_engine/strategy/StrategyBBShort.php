@@ -93,7 +93,10 @@ class StrategyBBShort extends StrategyBase
         if ($is_zigzag)
         {
             $log_min .= "zigzig";
-            $candle = $candle_3min;
+            if ($candle->tick == 1)
+            {
+                $candle = $candle_3min;
+            }
         }
         $log_min .= "zig:".$side_count_5min;
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
