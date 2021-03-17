@@ -39,6 +39,8 @@ class StrategyBBShort extends StrategyBase
         }
 
 
+        $positionMng = PositionManager::getInstance();
+        $curPosition = $positionMng->getPosition($this->getStrategyKey());
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
         $candle_1min = $candle;
         $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
@@ -85,17 +87,23 @@ class StrategyBBShort extends StrategyBase
         $k_down = 1.3;
         $day = 40;
 
-        $side_count_5min = $is_zigzag = $candle_60min->getSidewaysCount(100, 20);
+        $side_count_5min = $candle_15min->getBBUpDownCrossDeltaCount();
         $is_zigzag = ($this->zigzag_min_count < $side_count_5min && $side_count_5min < $this->zigzag_max_count && $vol > $this->zigzag_per);
 
         if ($is_zigzag)
         {
             $log_min .= "zigzig";
+            $candle = $candle_3min;
         }
         $log_min .= "zig:".$side_count_5min;
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
         $positionMng = PositionManager::getInstance();
         $myPosition = $positionMng->getPosition($this->getStrategyKey());
+
+        if ($curPosition->entry_tick > 1)
+        {
+            $candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, $curPosition->entry_tick)->getCandlePrev();
+        }
 
         // 오래된 주문은 취소한다
         foreach ($order_list as $order)
@@ -124,7 +132,7 @@ class StrategyBBShort extends StrategyBase
 
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount < 0)
         {
-            if ($is_zigzag && $candle_30min->getMA(40) + ($candle_30min->getStandardDeviationClose($day) * $k_up / 3 * 2) < $candle_1min->c)
+            if ($is_zigzag && $candle_5min->getMA(40) + ($candle_5min->getStandardDeviationClose($day) * $k_up / 3 * 2) > $candle_1min->c)
             {
                 return "[매도] 익절 패스";
             }
@@ -208,7 +216,7 @@ class StrategyBBShort extends StrategyBase
         }
 
 
-        if ($is_zigzag && $candle_30min->getMA(40) - ($candle_30min->getStandardDeviationClose($day) * $k_down / 3 * 2) > $candle_1min->c)
+        if ($is_zigzag && $candle_5min->getMA(40) - ($candle_5min->getStandardDeviationClose($day) * $k_down / 3 * 2) > $candle_1min->c)
         {
             return "[매도] 씹횡보 위험구역";
         }

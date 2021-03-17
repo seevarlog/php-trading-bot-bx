@@ -42,6 +42,8 @@ class Candle
     public $av = 0;
     public $avDay = 0;
 
+    public $stddev = [];
+    public $ma = [];
     public $ema = [];
     public $rsi_ema = [];
 
@@ -609,6 +611,11 @@ class Candle
 
     public function getMA($day)
     {
+        if (isset($this->ma[$day]))
+        {
+            return $this->ma[$day];
+        }
+
         $sum = 0;
         $prev = $this;
         for ($i=0; $i<$day; $i++)
@@ -617,7 +624,9 @@ class Candle
             $prev = $prev->getCandlePrev();
         }
 
-        return $sum / $day;
+        $this->ma[$day] = $sum / $day;
+
+        return $this->ma[$day];
     }
 
     // 평균 변동성 구하기
@@ -641,6 +650,11 @@ class Candle
 
     public function getStandardDeviationClose($day)
     {
+        if (isset($this->stddev[$day]))
+        {
+            return $this->stddev[$day];
+        }
+
         // 1. 평균 구하기
         $sum = 0;
         $prev = $this->getCandlePrev();
@@ -662,6 +676,7 @@ class Candle
         }
 
         $ret = sqrt($sum / $day);
+        $this->stddev[$day] = $ret;
         return $ret;
     }
 
@@ -976,6 +991,28 @@ class Candle
 
         return $max;
     }
+
+    public function getBBUpDownCrossDeltaCount($length = 100, $day = 40, $k = 1.3)
+    {
+        $sum = 0;
+        $candle = $this;
+        for ($i=0; $i<$length; $i++)
+        {
+            if ($candle->getMA(40) < $candle->c)
+            {
+                $sum += 1;
+            }
+            else
+            {
+                $sum -= 1;
+            }
+
+            $candle = $candle->getCandlePrev();
+        }
+
+        return abs($sum);
+    }
+
 
     public function getSidewaysCount($length = 200, $ema_length = 30)
     {

@@ -26,6 +26,8 @@ class StrategyBB extends StrategyBase
         {
             $leverage = $this->test_leverage;
         }
+        $positionMng = PositionManager::getInstance();
+        $curPosition = $positionMng->getPosition($this->getStrategyKey());
         $orderMng = OrderManager::getInstance();
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
         if (count($order_list) > 0 && $orderMng->getOrder($this->getStrategyKey(), "손절")->amount > 0)
@@ -71,14 +73,22 @@ class StrategyBB extends StrategyBase
 
 
         $per_1hour = $candle_60min->getAvgRealVolatilityPercent(48);
-        $side_count_5min = $candle_60min->getSidewaysCount(100, 20);
+        $side_count_5min = $candle_15min->getBBUpDownCrossDeltaCount();
         $is_zigzag = ($this->zigzag_min_count < $side_count_5min && $side_count_5min < $this->zigzag_max_count && $vol > $this->zigzag_per);
         GlobalVar::getInstance()->CrossZigZag = $side_count_5min;
         if ($is_zigzag)
         {
             $log_min .= "zigzig";
+            $candle = $candle_3min;
         }
         $log_min .= "zig:".$side_count_5min." ema:".$candle_60min->getEMA(50);
+
+
+        if ($curPosition->entry_tick > 1)
+        {
+            $candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, $curPosition->entry_tick)->getCandlePrev();
+        }
+
 
         //$is_zigzag = $side_count_5min < $this->zigzag_count;
 
@@ -99,8 +109,6 @@ class StrategyBB extends StrategyBase
         $day = 40;
         $orderMng = OrderManager::getInstance();
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
-        $positionMng = PositionManager::getInstance();
-        $curPosition = $positionMng->getPosition($this->getStrategyKey());
 
         // 오래된 주문은 취소한다
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
@@ -124,12 +132,7 @@ class StrategyBB extends StrategyBase
 
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount > 0)
         {
-            if ($dayCandle->getMaxMinValueInLength(60)[0] < $candle_60min->getMaxMinValueInLength(10)[0] || $dayCandle->getMaxMinValueInLength(60)[0] < $candle_1min->c)
-            {
-               //$is_zigzag = 0;
-            }
-
-            if ($is_zigzag && $candle_30min->getMA(40) - ($candle_30min->getStandardDeviationClose($day) * $k_up / 3 * 2) > $candle_1min->c)
+            if ($is_zigzag && $candle_5min->getMA(40) - ($candle_5min->getStandardDeviationClose($day) * $k_up / 3 * 2) < $candle_1min->c)
             {
                 return "[매수] 익절 패스";
             }
@@ -266,7 +269,7 @@ class StrategyBB extends StrategyBase
             }
         }
 
-        if ($is_zigzag && $candle_30min->getMA(40) + ($candle_30min->getStandardDeviationClose($day) * $k_up / 3 * 2) < $candle_1min->c)
+        if ($is_zigzag && $candle_5min->getMA(40) + ($candle_5min->getStandardDeviationClose($day) * $k_up / 3 * 2) < $candle_1min->c)
         {
             return "[매수] 위험구역";
         }

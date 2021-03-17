@@ -16,8 +16,8 @@ class StrategyBase extends Singleton
     public $day_day = 30;
     public $side_count = 56;
     public $side_length = 150;
-    public $zigzag_max_count = 80;
-    public $zigzag_min_count = 40;
+    public $zigzag_max_count = 34;
+    public $zigzag_min_count = 0;
     public $zigzag_per = 0.011;
 
 
