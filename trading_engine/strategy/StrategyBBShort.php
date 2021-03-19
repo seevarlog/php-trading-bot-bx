@@ -96,7 +96,7 @@ class StrategyBBShort extends StrategyBase
             $log_min .= "zigzig";
             if ($candle->tick == 1)
             {
-                $candle = $candle_3min;
+                //$candle = $candle_3min;
             }
         }
         $log_min .= "zig:".$side_count_5min;
@@ -136,7 +136,7 @@ class StrategyBBShort extends StrategyBase
 
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount < 0)
         {
-            if ($is_zigzag && ($candle_zig->getMA(40) + ($candle_zig->getStandardDeviationClose($day) * $k_up / 3 * 2)) < $candle_1min->c)
+            if ($is_zigzag && ($candle_zig->getMA(40) - ($candle_zig->getStandardDeviationClose($day) * $k_up / 3 * 2)) < $candle_1min->c)
             {
                 return "[매도] 익절 패스";
             }
