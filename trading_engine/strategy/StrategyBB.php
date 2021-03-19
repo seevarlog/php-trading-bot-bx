@@ -42,6 +42,7 @@ class StrategyBB extends StrategyBase
         $candle_30min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 30)->getCandlePrev();
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
+        $candle_zig = CandleManager::getInstance()->getCurOtherMinCandle($candle, $this->zigzag_min)->getCandlePrev();
 
 //        $ema_count = $candle_60min->getEMACrossCount();
 //        $log_min = "111111111";
@@ -135,7 +136,7 @@ class StrategyBB extends StrategyBase
 
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount > 0)
         {
-            if ($is_zigzag && $candle_5min->getMA(40) - ($candle_5min->getStandardDeviationClose($day) * $k_up / 3 * 2) < $candle_1min->c)
+            if ($is_zigzag && ($candle_zig->getMA(40) - ($candle_zig->getStandardDeviationClose($day) * $k_up / 3 * 2)) > $candle_1min->c)
             {
                 return "[매수] 익절 패스";
             }
@@ -272,7 +273,7 @@ class StrategyBB extends StrategyBase
             }
         }
 
-        if ($is_zigzag && $candle_5min->getMA(40) + ($candle_5min->getStandardDeviationClose($day) * $k_up / 3 * 2) < $candle_1min->c)
+        if ($is_zigzag && ($candle_zig->getMA(40) + ($candle_zig->getStandardDeviationClose($day) * $k_up / 3 * 2)) < $candle_1min->c)
         {
             return "[매수] 위험구역";
         }
