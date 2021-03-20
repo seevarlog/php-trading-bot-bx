@@ -78,6 +78,18 @@ class StrategyBBShort extends StrategyBase
 
         $log_min .= "side_count:".$sideCount."vol:".$vol;
 
+        $side_count_5min = $candle_15min->getBBUpDownCrossDeltaCount($this->zigzag_length);
+        $is_zigzag = ($this->zigzag_min_count < $side_count_5min && $side_count_5min < $this->zigzag_max_count && $vol > $this->zigzag_per);
+
+        if ($is_zigzag)
+        {
+            $log_min .= "zigzig";
+            if ($candle->tick == 1)
+            {
+                //$candle = $candle_5min;
+            }
+        }
+
         $per_1hour = $candle_60min->getAvgRealVolatilityPercent(48);
         $k_up = 1.3;
         $stop_per = $per_1hour * 2.5;
@@ -88,17 +100,6 @@ class StrategyBBShort extends StrategyBase
         $k_down = 1.3;
         $day = 40;
 
-        $side_count_5min = $candle_15min->getBBUpDownCrossDeltaCount($this->zigzag_length);
-        $is_zigzag = ($this->zigzag_min_count < $side_count_5min && $side_count_5min < $this->zigzag_max_count && $vol > $this->zigzag_per);
-
-        if ($is_zigzag)
-        {
-            $log_min .= "zigzig";
-            if ($candle->tick == 1)
-            {
-                //$candle = $candle_3min;
-            }
-        }
         $log_min .= "zig:".$side_count_5min;
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
         $positionMng = PositionManager::getInstance();
@@ -221,7 +222,7 @@ class StrategyBBShort extends StrategyBase
         }
 
 
-        if ($is_zigzag && ($candle_zig->getMA(40) - ($candle_zig->getStandardDeviationClose($day) * $k_down / 5 * 4)) > $candle_1min->c)
+        if ($is_zigzag && ($candle_zig->getMA(40) + ($candle_zig->getStandardDeviationClose($day) * $k_down / 5 * 4)) > $candle_1min->c)
         {
             return "[매도] 씹횡보 위험구역";
         }
