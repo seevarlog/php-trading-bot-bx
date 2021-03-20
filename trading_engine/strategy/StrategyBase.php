@@ -19,7 +19,7 @@ class StrategyBase extends Singleton
     public $zigzag_length = 200;
     public $zigzag_max_count = 50;
     public $zigzag_min_count = 0;
-    public $zigzag_per = 0.011;
+    public $zigzag_per = 0.01;
     public $zigzag_min = 30;
 
     public function setMin1()

@@ -161,58 +161,30 @@ class StrategyBB extends StrategyBase
                     1000
                 );
             }
-            else if ($positionMng->getPosition($this->getStrategyKey())->action == "5분")
+            else if ($candle->crossOverBBUpLineNew($day, $k_up) == true)
             {
-                if ($candle->getNewRsi(14) > 60)
-                {
-                    [$max, $min] = $candle->getMaxMinValueInLength(5);
-                    // 골드 매도
-                    OrderManager::getInstance()->updateOrder(
-                        $candle->getTime(),
-                        $this->getStrategyKey(),
-                        $amount,
-                        ($max + $candle->getClose()) / 2,
-                        1,
-                        1,
-                        "익절",
-                        "5분익절",
-                        1000
-                    );
-                }
+                [$max, $min] = $candle->getMaxMinValueInLength(5);
+                // 골드 매도
+                OrderManager::getInstance()->updateOrder(
+                    $candle->getTime(),
+                    $this->getStrategyKey(),
+                    $amount,
+                    ($max + $candle_1min->getClose()) / 2,
+                    1,
+                    1,
+                    "익절",
+                    "골드"
+                );
             }
             else
             {
-                /**
-                 *  15분봉 끌기 전략
-                 *  약 10%의 수익률 상승이 있지만 승률이 5% 하라함.
-                 *  고배에서는 좋지 않은 전략으로 판단됨. 추후에 시드가 늘면 오픈
-                 */
-//                if ($candle_15min->crossoverBBUpLine($day, $k_up) == false && $candle_15min->getBBUpLine($day, $k_up) < $candle_15min->c)
-//                {
-//                    return "익절금지";
-//                }
-
-                if ($candle->crossOverBBUpLineNew($day, $k_up) == true)
-                {
-                    [$max, $min] = $candle->getMaxMinValueInLength(5);
-                    // 골드 매도
-                    OrderManager::getInstance()->updateOrder(
-                        $candle->getTime(),
-                        $this->getStrategyKey(),
-                        $amount,
-                        ($max + $candle_1min->getClose()) / 2,
-                        1,
-                        1,
-                        "익절",
-                        "골드"
-                    );
-                }
+                return "포지션 없음";
             }
         }
 
         if ($positionMng->getPosition($this->getStrategyKey())->amount > 0)
         {
-            return ;
+            return "익절 대기 중";
         }
 
         $action = "";
