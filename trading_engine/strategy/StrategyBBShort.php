@@ -88,7 +88,7 @@ class StrategyBBShort extends StrategyBase
         $k_down = 1.3;
         $day = 40;
 
-        $side_count_5min = $candle_15min->getBBUpDownCrossDeltaCount();
+        $side_count_5min = $candle_15min->getBBUpDownCrossDeltaCount($this->zigzag_length);
         $is_zigzag = ($this->zigzag_min_count < $side_count_5min && $side_count_5min < $this->zigzag_max_count && $vol > $this->zigzag_per);
 
         if ($is_zigzag)
@@ -136,10 +136,11 @@ class StrategyBBShort extends StrategyBase
 
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount < 0)
         {
-            if ($is_zigzag && ($candle_zig->getMA(40) - ($candle_zig->getStandardDeviationClose($day) * $k_up / 3 * 2)) < $candle_1min->c)
+            if ($is_zigzag && ($candle_zig->getMA(40) - ($candle_zig->getStandardDeviationClose($day) * $k_up / 5 * 4)) < $candle_1min->c)
             {
                 return "[매도] 익절 패스";
             }
+            $mag = $candle_zig->getMA(40);
 
             $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
             $loop_msg .= "나머지익절";
@@ -187,7 +188,7 @@ class StrategyBBShort extends StrategyBase
                     1,
                     1,
                     "익절",
-                    "마지막else".$candle->getDateTimeKST()
+                    "마지막else".$candle->getDateTimeKST()."ma:".$mag."zig:".$side_count_5min
                 );
             }
         }
@@ -220,7 +221,7 @@ class StrategyBBShort extends StrategyBase
         }
 
 
-        if ($is_zigzag && ($candle_zig->getMA(40) - ($candle_zig->getStandardDeviationClose($day) * $k_down / 3 * 2)) > $candle_1min->c)
+        if ($is_zigzag && ($candle_zig->getMA(40) - ($candle_zig->getStandardDeviationClose($day) * $k_down / 5 * 4)) > $candle_1min->c)
         {
             return "[매도] 씹횡보 위험구역";
         }

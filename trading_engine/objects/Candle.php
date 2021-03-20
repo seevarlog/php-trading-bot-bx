@@ -38,10 +38,6 @@ class Candle
     public $bd = 0; // BB day
     public $ba = 0; // BB Avg close
 
-    // 평균 변동성 캐시
-    public $av = 0;
-    public $avDay = 0;
-
     public $stddev = [];
     public $ma = [];
     public $ema = [];
@@ -281,7 +277,9 @@ class Candle
         }
 
         $rsi = 100-(100/(1+ $up / $du));
-        $this->r_rsi[$length] = $rsi;
+
+        if ($this->cn !== null)
+            $this->r_rsi[$length] = $rsi;
 
         return $rsi;
     }
@@ -320,8 +318,10 @@ class Candle
             return $this->r_au[$length];
         }
 
-        $this->r_au[$length] = (($this->getCandlePrev()->getNewUpAvg($length, $left - 1) * ($length - 1)) + $this->getAU()) / $length;
-        return $this->r_au[$length];
+        if ($this->cn !== null)
+            $this->r_au[$length] = (($this->getCandlePrev()->getNewUpAvg($length, $left - 1) * ($length - 1)) + $this->getAU()) / $length;
+
+        return (($this->getCandlePrev()->getNewUpAvg($length, $left - 1) * ($length - 1)) + $this->getAU()) / $length;
     }
 
     public function getNewDownAvg($length, $left)
@@ -349,9 +349,12 @@ class Candle
             $this->r_du[$length] = $sum / $length;
             return $this->r_du[$length];
         }
+        $ret = $this->r_du[$length] = (($this->getCandlePrev()->getNewDownAvg($length, $left - 1) * ($length - 1)) + $this->getDU()) / $length;
 
-        $this->r_du[$length] = (($this->getCandlePrev()->getNewDownAvg($length, $left - 1) * ($length - 1)) + $this->getDU()) / $length;
-        return $this->r_du[$length];
+        if ($this->cn !== null)
+            $this->r_du[$length] = $ret;
+
+        return $ret;
     }
 
 
@@ -463,7 +466,8 @@ class Candle
             $candle = $candle->getCandlePrev();
         }
 
-        $this->cross_ema[$length] = $sum_cross_count;
+        if ($this->cn !== null)
+            $this->cross_ema[$length] = $sum_cross_count;
 
         return $sum_cross_count;
     }
@@ -624,30 +628,11 @@ class Candle
             $prev = $prev->getCandlePrev();
         }
 
-        $this->ma[$day] = $sum / $day;
+        if ($this->cn !== null)
+            $this->ma[$day] = $sum / $day;
 
         return $this->ma[$day];
     }
-
-    // 평균 변동성 구하기
-    public function getAvgVolatility($day)
-    {
-        $sum = 0;
-        $prev = $this->getCandlePrev();
-        if ($prev->av != 0 && $prev->avDay == $day)
-        {
-
-        }
-
-        for ($i=0; $i<$day; $i++)
-        {
-            $sum += abs($prev->getHigh() - $prev->getLow());
-            $prev = $prev->getCandlePrev();
-        }
-
-        return $sum / $day;
-    }
-
     public function getStandardDeviationClose($day)
     {
         if (isset($this->stddev[$day]))
@@ -676,35 +661,12 @@ class Candle
         }
 
         $ret = sqrt($sum / $day);
-        $this->stddev[$day] = $ret;
+
+        if ($this->cn !== null)
+            $this->stddev[$day] = $ret;
         return $ret;
     }
 
-    // 평균 변동성 구하기 (종가 기준)
-    public function getAvgVolatilityClose($day)
-    {
-        $sum = 0;
-        $prev = $this->getCandlePrev();
-
-        if ($prev->bd == $day && $this->n > $day)
-        {
-            $this->bd = $day;
-            $this->ba = ($prev->ba * $day - self::getCandle($this->n - $day)->getClose() + $this->getClose()) / $day;
-
-            return $this->ba;
-        }
-
-        for ($i=0; $i<$day; $i++)
-        {
-            $sum += $prev->getClose();
-            $prev = $prev->getCandlePrev();
-        }
-
-        $this->bd = $day;
-        $this->ba = $sum / $day;
-
-        return $this->ba;
-    }
 
     public function getAvgRealVolatilityPercent($day = 12)
     {
@@ -743,43 +705,6 @@ class Candle
         }
 
         return $sum / $day;
-    }
-
-    public function getAvgVolatilityPercentForStop($day)
-    {
-        $sum = 0;
-        $prev = $this->getCandlePrev();
-
-        if ($prev->bd == $day && $this->n > $day)
-        {
-            $delta = abs($this->h - $this->l);
-
-            return $this->ba;
-        }
-
-        if ($this->c == 0)
-        {
-            return 0.0546;
-        }
-
-        // 평균 0.0546
-        // 표준편차 0.066
-        $sum_percent = 0;
-        for ($i=0; $i<$day; $i++)
-        {
-            if ($this->o == $this->c)
-            {
-                $sum_percent = 0;
-            }
-            else
-            {
-                $sum_percent += abs(($this->h - $this->l) / $this->c);
-            }
-            $prev = $prev->getCandlePrev();
-        }
-        $sum_percent /= $day;
-
-        return $sum_percent;
     }
 
     public function getBBUpLine($day, $k)
@@ -1086,7 +1011,9 @@ class Candle
 
         $exp = 2 / ($ema_length + 1);
         $ema = ($this->c * $exp) + ($this->getCandlePrev()->getRsiEMA($ema_length, $rsi_length,$n - 1) * (1 - $exp));
-        $this->rsi_ema[$ema_length] = $ema;
+
+        if ($this->cn !== null)
+            $this->rsi_ema[$ema_length] = $ema;
 
         return $ema;
     }
@@ -1117,7 +1044,12 @@ class Candle
 
         $exp = 2 / ($length + 1);
         $ema = ($this->c * $exp) + ($this->getCandlePrev()->getEMA($length, $n - 1) * (1 - $exp));
-        $this->ema[$length] = $ema;
+
+        if ($this->cn !== null)
+        {
+            $this->ema[$length] = $ema;
+        }
+
 
         return $ema;
     }

@@ -16,6 +16,7 @@ class GlobalVar extends Singleton
     public $candleTick;
     public $CrossCount = 0;
     public $vol_1hour = 0;
+    public $CrossZigZag = 0;
 
     public function setByBit($bybit)
     {
