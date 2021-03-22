@@ -83,8 +83,6 @@ $order_list = $bybit->privates()->getOrderList(
     ]
 );
 
-$order_list = [];
-
 $stop_list = $bybit->privates()->getStopOrderList(
     [
         'symbol' => 'BTCUSD',
@@ -92,7 +90,6 @@ $stop_list = $bybit->privates()->getStopOrderList(
     ]
 );
 
-$stop_list = [];
 
 $is_long_trade = true;
 
