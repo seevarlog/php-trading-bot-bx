@@ -49,6 +49,7 @@ class StrategyBBShort extends StrategyBase
         $candle_30min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 30)->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
         $candle_zig = CandleManager::getInstance()->getCurOtherMinCandle($candle, $this->zigzag_min)->getCandlePrev();
+        $candle_trend = $candle_60min;
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
@@ -88,18 +89,10 @@ class StrategyBBShort extends StrategyBase
         $k_down = 1.3;
         $day = 40;
 
-        $side_count_5min = $candle_15min->getBBUpDownCrossDeltaCount($this->zigzag_length);
-        $is_zigzag = ($this->zigzag_min_count < $side_count_5min && $side_count_5min < $this->zigzag_max_count && $vol > $this->zigzag_per);
 
-        if ($is_zigzag)
-        {
-            $log_min .= "zigzig";
-            if ($candle->tick == 1)
-            {
-                //$candle = $candle_3min;
-            }
-        }
-        $log_min .= "zig:".$side_count_5min;
+        $is_zigzag = 0;
+        $side_count_5min = 0;
+
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
         $positionMng = PositionManager::getInstance();
         $myPosition = $positionMng->getPosition($this->getStrategyKey());

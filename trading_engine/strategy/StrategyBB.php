@@ -43,6 +43,7 @@ class StrategyBB extends StrategyBase
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
         $candle_zig = CandleManager::getInstance()->getCurOtherMinCandle($candle, $this->zigzag_min)->getCandlePrev();
+        $candle_trend = $candle_60min;
 
 //        $ema_count = $candle_60min->getEMACrossCount();
 //        $log_min = "111111111";
@@ -73,18 +74,9 @@ class StrategyBB extends StrategyBase
         $log_min .= "side_count:".$sideCount."vol:".$vol;
 
 
+        $is_zigzag = 0;
         $per_1hour = $candle_60min->getAvgRealVolatilityPercent(24);
-        $side_count_5min = $candle_15min->getBBUpDownCrossDeltaCount($this->zigzag_length);
-        $is_zigzag = ($this->zigzag_min_count <= $side_count_5min && $side_count_5min <= $this->zigzag_max_count && $vol > $this->zigzag_per);
-        GlobalVar::getInstance()->CrossZigZag = $side_count_5min;
-        if ($is_zigzag)
-        {
-            $log_min .= "zigzig";
-            if ($candle->tick == 1)
-            {
-                //$candle = $candle_3min;
-            }
-        }
+        $side_count_5min = 0;
         $log_min .= "zig:".$side_count_5min." ema:".$candle_60min->getEMA(50);
 
 

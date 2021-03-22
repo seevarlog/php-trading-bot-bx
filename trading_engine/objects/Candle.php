@@ -171,6 +171,31 @@ class Candle
         return $count;
     }
 
+
+    /**
+     * BB 위에 몇 개의 캔들이 있나 체크
+     *
+     * @param $bb_day
+     * @param $k
+     * @param $length
+     * @return int
+     */
+    public function getBBUpCount($bb_day, $k, $length)
+    {
+        $count = 0;
+        $candle = $this;
+        for ($i=0; $i<$length; $i++)
+        {
+            if ($candle->getBBUpLine($bb_day, $k) < $candle->c)
+            {
+                $count += 1;
+            }
+            $candle = $this->getCandlePrev();
+        }
+
+        return $count;
+    }
+
     public function getRsiMA($rsi_length, $ma_length)
     {
         $sum = 0;
