@@ -73,7 +73,7 @@ class StrategyBB extends StrategyBase
         $log_min .= "side_count:".$sideCount."vol:".$vol;
 
 
-        $per_1hour = $candle_60min->getAvgRealVolatilityPercent(48);
+        $per_1hour = $candle_60min->getAvgRealVolatilityPercent(24);
         $side_count_5min = $candle_15min->getBBUpDownCrossDeltaCount($this->zigzag_length);
         $is_zigzag = ($this->zigzag_min_count <= $side_count_5min && $side_count_5min <= $this->zigzag_max_count && $vol > $this->zigzag_per);
         GlobalVar::getInstance()->CrossZigZag = $side_count_5min;
