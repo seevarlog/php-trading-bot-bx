@@ -134,6 +134,13 @@ class StrategyBBShort extends StrategyBase
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
         $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
 
+
+        // 밑으로 강하게 가면 지그재그 패스
+        if ($candle_60min->getBBDownCount(40, 1.3, 5) >= 2)
+        {
+            $is_zigzag = 0;
+        }
+
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount < 0)
         {
             if ($is_zigzag && ($candle_zig->getMA(40) - ($candle_zig->getStandardDeviationClose($day) * $k_up / 5 * 4)) < $candle_1min->c)

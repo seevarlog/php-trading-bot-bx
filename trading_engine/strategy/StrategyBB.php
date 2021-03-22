@@ -275,9 +275,9 @@ class StrategyBB extends StrategyBase
         if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 20) - $candle_60min->getRsiMA(14, 20) > 0.5)
         {
             // 하락 추세에서 반전의 냄새가 느껴지면 거래진입해서 큰 익절을 노림
-            if ($candle_60min->getMinRsiBug(14, 7) < 35 && $candle_60min->getRsiInclinationSum(3) > 0 && $candle_60min->getGoldenDeadState() == "gold")
+            if ($candle_60min->getMinRsiBug(14, 7) < 30 && $candle_60min->getRsiInclinationSum(3) > 0 && $candle_60min->getGoldenDeadState() == "gold")
             {
-                $stop_per = $per_1hour * 2;
+                $stop_per = $per_1hour * 3;
                 $buy_per = $per_1hour / 2;
                 $buy_price = $candle->getClose() * (1 - $buy_per);
                 $stop_price = $buy_price  * (1 - $stop_per);
