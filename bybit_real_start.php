@@ -423,6 +423,12 @@ try {
             else
             {
                 CandleManager::getInstance()->getLastCandle($min)->updateCandle($candle_1m->h, $candle_1m->l, $candle_1m->c);
+
+                if ($min == 60)
+                {
+                    Notify::sendTradeMsg(CandleManager::getInstance()->getLastCandle($min)->displayCandle());
+                    Notify::sendTradeMsg(CandleManager::getInstance()->getLastCandle($min)->getCandlePrev()->displayCandle());
+                }
             }
         }
 
