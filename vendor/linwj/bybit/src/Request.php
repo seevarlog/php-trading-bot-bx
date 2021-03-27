@@ -149,8 +149,13 @@ class Request
                 {
                     break;
                 }
-                
+
                 if ($ret['ret_code'] == 30004)
+                {
+                    break;
+                }
+
+                if ($ret['ret_code'] == 20001)
                 {
                     break;
                 }
