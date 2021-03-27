@@ -97,7 +97,7 @@ class StrategyBBShort extends StrategyBase
         $positionMng = PositionManager::getInstance();
         $myPosition = $positionMng->getPosition($this->getStrategyKey());
 
-        if ($curPosition->entry_tick > 1)
+        if ($curPosition->entry_tick > 1 && $curPosition->amount != 0)
         {
             $candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, $curPosition->entry_tick)->getCandlePrev();
         }

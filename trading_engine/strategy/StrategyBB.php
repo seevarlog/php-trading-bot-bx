@@ -80,7 +80,7 @@ class StrategyBB extends StrategyBase
         $log_min .= "zig:".$side_count_5min." ema:".$candle_60min->getEMA(50);
 
 
-        if ($curPosition->entry_tick > 1)
+        if ($curPosition->entry_tick > 1 && $curPosition->amount != 0)
         {
             $candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, $curPosition->entry_tick)->getCandlePrev();
         }
