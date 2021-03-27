@@ -414,6 +414,13 @@ try {
                 $_new_last_candle = new Candle($min);
                 $_new_last_candle->setData($candle_1m->t, $candle_1m->o, $candle_1m->h, $candle_1m->l, $candle_1m->c);
                 CandleManager::getInstance()->addNewCandle($_new_last_candle);
+
+                if ($min == 60)
+                {
+                    Notify::sendTradeMsg(CandleManager::getInstance()->getLastCandle($min)->displayCandle());
+                    Notify::sendTradeMsg(CandleManager::getInstance()->getLastCandle($min)->getCandlePrev()->displayCandle());
+                }
+
                 $_new_last_candle->cp = $_last_candle;
                 if ($_last_candle != null)
                 {
@@ -423,12 +430,6 @@ try {
             else
             {
                 CandleManager::getInstance()->getLastCandle($min)->updateCandle($candle_1m->h, $candle_1m->l, $candle_1m->c);
-
-                if ($min == 60)
-                {
-                    Notify::sendTradeMsg(CandleManager::getInstance()->getLastCandle($min)->displayCandle());
-                    Notify::sendTradeMsg(CandleManager::getInstance()->getLastCandle($min)->getCandlePrev()->displayCandle());
-                }
             }
         }
 
