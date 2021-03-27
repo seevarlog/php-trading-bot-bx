@@ -240,7 +240,7 @@ class StrategyBBShort extends StrategyBase
 
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         // 1시간봉 BB 밑이면 정지
-        if ($candle_60min->getBBUpLine(37, 0.95) < $candle_60min->c)
+        if ($candle_60min->getBBUpLine(37, 0.95) < $candle_60min->c && $candle_60min->getGoldenDeadState() == "gold")
         {
             return "[매도]1시간 BB 위에 있음";
         }
