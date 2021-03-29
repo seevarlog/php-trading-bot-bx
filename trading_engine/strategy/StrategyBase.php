@@ -10,7 +10,7 @@ class StrategyBase extends Singleton
 {
     public $min = 1;
     public $test_leverage = 1;
-    public $sideways_per = 0.07;
+    public $sideways_per = 0.008;
     public $side_candle_count = 12;
     public $day_per_1 = 0.3;
     public $day_per_2 = 0.4;
