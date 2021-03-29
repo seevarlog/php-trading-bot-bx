@@ -61,10 +61,18 @@ class StrategyBB extends StrategyBase
         $log_min = "11111111";
         $sideCount = $candle_60min->getSidewaysCount($this->side_length);
         $vol = $candle_60min->getAvgRealVolatilityPercent($this->side_candle_count);
-        if ($sideCount <= $this->side_count && $vol > $this->sideways_per)
+
+        if ($dayCandle->getBBDownLine(40, 1) > $candle_60min->c || $dayCandle->getBBUpLine(40, 1) < $candle_60min->c)
         {
-            $log_min = "555555555";
-            $candle = $candle_5min;
+
+        }
+        else
+        {
+            if ($sideCount <= $this->side_count && $vol > $this->sideways_per)
+            {
+                $log_min = "555555555";
+                $candle = $candle_5min;
+            }
         }
 
         GlobalVar::getInstance()->candleTick = $candle->tick;
