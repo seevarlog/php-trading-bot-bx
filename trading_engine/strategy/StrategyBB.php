@@ -64,7 +64,11 @@ class StrategyBB extends StrategyBase
 
         if ($dayCandle->getBBDownLine(40, 1.3) > $candle_60min->c || $dayCandle->getBBUpLine(40, 1.3) < $candle_60min->c)
         {
-
+            if ($sideCount <= $this->side_count && $vol > $this->sideways_per *1.4)
+            {
+                $log_min = "555555555";
+                $candle = $candle_5min;
+            }
         }
         else
         {
