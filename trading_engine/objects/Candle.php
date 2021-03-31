@@ -651,6 +651,7 @@ class Candle
 
         $this->ma[$day] = $sum / $day;
 
+
         return $this->ma[$day];
     }
 
