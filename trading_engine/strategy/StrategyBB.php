@@ -38,8 +38,7 @@ class StrategyBB extends StrategyBase
         $candle_1min = clone $candle;
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
-        $candle_3min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 3)->getCandlePrev();
-        $candle_30min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 30)->getCandlePrev();
+        $candle_240min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 240)->getCandlePrev();
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
         $candle_zig = CandleManager::getInstance()->getCurOtherMinCandle($candle, $this->zigzag_min)->getCandlePrev();
@@ -61,23 +60,22 @@ class StrategyBB extends StrategyBase
         $log_min = "11111111";
         $sideCount = $candle_60min->getSidewaysCount($this->side_length);
         $vol = $candle_60min->getAvgRealVolatilityPercent($this->side_candle_count);
-
+        $side_error = 0;
         if ($dayCandle->getBBDownLine(40, 1.3) > $candle_60min->c || $dayCandle->getBBUpLine(40, 1.3) < $candle_60min->c)
         {
-            if ($sideCount <= $this->side_count / 2 && $vol > $this->sideways_per *1.4)
-            {
-                $log_min = "555555555";
-                $candle = $candle_5min;
-            }
+
         }
-        else
+        else if ($sideCount <= $this->side_count)
         {
-            if ($sideCount <= $this->side_count)
+            $side_error = 1;
+            if ($vol >= $this->sideways_per)
             {
                 $log_min = "555555555";
                 $candle = $candle_5min;
+                $candle_trend = $candle_240min;
             }
         }
+
 
         GlobalVar::getInstance()->candleTick = $candle->tick;
         GlobalVar::getInstance()->CrossCount = $sideCount;
@@ -248,7 +246,7 @@ class StrategyBB extends StrategyBase
         }
 
         // 1차 합격
-        $buy_per = 0.01;
+        $buy_per = 0.0001;
         // 1시간봉 과매수 거래 중지
 
 
@@ -261,24 +259,23 @@ class StrategyBB extends StrategyBase
             return "1시간 RSI 에러";
         }
 
-        if ($candle->tick >= 5)
-        {
-            if ($candle_15min->getMA(40) < $candle_1min->c)
-            {
-                return "BB 상단위치";
-            }
-        }
 
-        if ($is_zigzag && ($candle_zig->getMA(40) + ($candle_zig->getStandardDeviationClose($day) * $k_up / 5 * 4)) < $candle_1min->c)
+        $rsi_ma_delta = 0.5;
+        if ($side_error)
         {
-            return "[매수] 위험구역";
+            $rsi_ma_delta = -0;
         }
-
 
         // 거래 중지 1시간
-        if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) > 0.5)
+        if ($candle_240min->getRsiMaInclination(1, 14, 17) < 0 && $side_error)
         {
-            // 하락 추세에서 반전의 냄새가 느껴지면 거래진입해서 큰 익절을 노림
+            return "4시간 트렌드 활성화";
+        }
+
+        $rsiMaInclination_60mim_result = $candle_60min->getRsiMaInclination(1, 14, 17);
+        if ($rsiMaInclination_60mim_result < $rsi_ma_delta)
+        {
+// 하락 추세에서 반전의 냄새가 느껴지면 거래진입해서 큰 익절을 노림
             if ($candle_60min->getMinRsiBug(14, 7) < 30 && $candle_60min->getRsiInclinationSum(3) > 0 && $candle_60min->getGoldenDeadState() == "gold")
             {
                 $stop_per = $per_1hour * 3;
@@ -293,7 +290,15 @@ class StrategyBB extends StrategyBase
             }
             else
             {
-                return "1시간반전 기회없음";
+                return "1시간봉 반전 기회 없음";
+            }
+        }
+
+        if ($rsiMaInclination_60mim_result < 1)
+        {
+            if ($candle_60min->getBBUpLine($day, 1) < $candle->c)
+            {
+                return "횡보 위험 1시간 위험 구역";
             }
         }
 

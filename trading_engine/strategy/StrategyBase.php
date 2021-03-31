@@ -10,7 +10,7 @@ class StrategyBase extends Singleton
 {
     public $min = 1;
     public $test_leverage = 15;
-    public $sideways_per = 0.008;
+    public $sideways_per = 0.014;
     public $side_candle_count = 12;
     public $day_per_1 = 0.3;
     public $day_per_2 = 0.4;
@@ -21,7 +21,7 @@ class StrategyBase extends Singleton
     public $zigzag_max_count = 60;
     public $zigzag_min_count = 0;
     public $zigzag_per = 0.010;
-    public $zigzag_min = 30;
+    public $zigzag_min = 60;
 
     public function setMin1()
     {
