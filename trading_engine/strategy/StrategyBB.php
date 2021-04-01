@@ -267,12 +267,12 @@ class StrategyBB extends StrategyBase
         }
 
         // 거래 중지 1시간
-        if ($candle_240min->getRsiMaInclination(1, 14, 17) < 0 && $side_error)
+        if ($candle_240min->getRsiMaInclination(2, 14, 17) < 0 && $side_error)
         {
             return "4시간 트렌드 활성화";
         }
 
-        $rsiMaInclination_60mim_result = $candle_60min->getRsiMaInclination(1, 14, 17);
+        $rsiMaInclination_60mim_result = $candle_60min->getRsiMaInclination(2, 14, 17);
         if ($rsiMaInclination_60mim_result < $rsi_ma_delta)
         {
 // 하락 추세에서 반전의 냄새가 느껴지면 거래진입해서 큰 익절을 노림
@@ -294,7 +294,7 @@ class StrategyBB extends StrategyBase
             }
         }
 
-        if ($rsiMaInclination_60mim_result < 1)
+        if ($rsiMaInclination_60mim_result < 1 && $side_error)
         {
             if ($candle_60min->getBBUpLine($day, 1) < $candle->c)
             {

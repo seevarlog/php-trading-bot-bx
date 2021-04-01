@@ -248,22 +248,22 @@ class StrategyBBShort extends StrategyBase
             }
         }
 
-        if ($candle_240min->getRsiMaInclination(1, 14, 17) > 0 && $side_error)
+        if ($candle_240min->getRsiMaInclination(2, 14, 17) > 0 && $side_error)
         {
             return "4시간 트렌드 활성화";
         }
 
         // 거래 중지 1시간
-        $rsiMaInclination_60mim_result = $candle_60min->getRsiMaInclination(1, 14, 17);
+        $rsiMaInclination_60mim_result = $candle_60min->getRsiMaInclination(2, 14, 17);
         if ($rsiMaInclination_60mim_result > $rsi_ma_delta)
         {
             return "[매도]1시간반전 기회없음";
         }
 
 
-        if ($rsiMaInclination_60mim_result > -1)
+        if ($rsiMaInclination_60mim_result > -1  && $side_error)
         {
-            if ($candle_60min->getBBDownLine($day, 1) > $candle->c)
+            if ($candle_60min->getBBDownLine($day, 1) > $candle->c )
             {
                 return "횡보 위험 1시간 위험 구역";
             }
