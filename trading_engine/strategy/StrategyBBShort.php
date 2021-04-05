@@ -83,6 +83,7 @@ class StrategyBBShort extends StrategyBase
                 $candle_trend = $candle_240min;
             }
         }
+        $side_error = 0;
 
         GlobalVar::getInstance()->candleTick = $candle->tick;
         GlobalVar::getInstance()->CrossCount = $sideCount;
@@ -232,7 +233,7 @@ class StrategyBBShort extends StrategyBase
         }
 
 
-        if ($side_error && ($candle_zig->getBBDownLine(40, 0.8)) > $candle_1min->c)
+        if ($side_error && ($candle_30min->getBBDownLine(40, 0.8)) > $candle_1min->c)
         {
             return "[매도] 씹횡보 위험구역";
         }
@@ -242,8 +243,9 @@ class StrategyBBShort extends StrategyBase
         if ($side_error)
         {
             $rsi_ma_delta = 0.4;
-            if ($candle_60min->getMA(40) > $candle_1min->c)
+            if ($candle_30min->getMA(40) > $candle_1min->c)
             {
+                var_dump("ghi");
                 return "위험";
             }
         }

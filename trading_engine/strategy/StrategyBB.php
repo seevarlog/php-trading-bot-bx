@@ -75,12 +75,12 @@ class StrategyBB extends StrategyBase
                 $candle_trend = $candle_240min;
             }
         }
+        $side_error = 0;
 
 
         GlobalVar::getInstance()->candleTick = $candle->tick;
         GlobalVar::getInstance()->CrossCount = $sideCount;
         GlobalVar::getInstance()->vol_1hour = $vol;
-
         $log_min .= "side_count:".$sideCount."vol:".$vol;
 
 
