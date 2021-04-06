@@ -1040,6 +1040,51 @@ class Candle
     }
 
 
+
+    public function getPrevBBDownLineCrossCheck($prev_length = 6, $day = 40, $k = 1.3)
+    {
+        $sum = 0;
+        $candle = $this;
+        for ($i=0; $i<$prev_length; $i++)
+        {
+            if ($candle->checkCross($candle->getBBUpLine($day, $k)))
+            {
+                return true;
+            }
+
+            $candle = $candle->getCandlePrev();
+        }
+
+        return false;
+    }
+
+    public function getPrevBBUpLineCrossCheck($prev_length = 6, $day = 40, $k = 1.3)
+    {
+        $candle = $this;
+        for ($i=0; $i<$prev_length; $i++)
+        {
+            if ($candle->checkCross($candle->getBBDownLine($day, $k)))
+            {
+                return true;
+            }
+
+            $candle = $candle->getCandlePrev();
+        }
+
+        return false;
+    }
+
+    public function getWaitMin(): int
+    {
+        if ($this->tick == 1)
+        {
+            return 120;
+        }
+
+        return 200;
+    }
+
+
     public function getSidewaysCount($length = 200, $ema_length = 30)
     {
         // 횡보는 1시간봉 EMA 30일 선을 기준으로 한다

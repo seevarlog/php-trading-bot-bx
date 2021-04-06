@@ -177,7 +177,7 @@ class StrategyBBShort extends StrategyBase
                         1,
                         1,
                         "익절",
-                        "성물익절".$candle->getDateTimeKST()
+                        "성물익절".$candle->getDateTimeKST(),
                     );
                 }
             }
@@ -260,6 +260,11 @@ class StrategyBBShort extends StrategyBase
         if ($rsiMaInclination_60mim_result > $rsi_ma_delta)
         {
             return "[매도]1시간반전 기회없음";
+        }
+
+        if ($candle_60min->getPrevBBDownLineCrossCheck(10) && $candle_240min->getGoldenDeadState() == "gold" && $rsiMaInclination_60mim_result <= 0)
+        {
+            return "[매도] 크로스된지 얼마 안됨";
         }
 
 
@@ -398,7 +403,7 @@ class StrategyBBShort extends StrategyBase
             "진입",
             $log,
             $action,
-            $wait_min
+            $candle->getWaitMin()
         );
 
         // 손절 주문
@@ -412,7 +417,7 @@ class StrategyBBShort extends StrategyBase
             "손절",
             $log,
             $action,
-            $wait_min
+            $candle->getWaitMin()
         );
 
         return "";

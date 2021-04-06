@@ -307,6 +307,11 @@ class StrategyBB extends StrategyBase
             return "크로스안함";
         }
 
+        if ($candle_60min->getPrevBBUpLineCrossCheck(10) && $candle_240min->getGoldenDeadState() == "dead")
+        {
+            return "[매수] 크로스된지 얼마 안됨";
+        }
+
 
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         // 1시간봉 BB 밑이면 정지
@@ -412,7 +417,7 @@ class StrategyBB extends StrategyBase
             "진입",
             $log,
             $action,
-            $wait_min
+            $candle->getWaitMin()
         );
 
         // 손절 주문
@@ -426,7 +431,7 @@ class StrategyBB extends StrategyBase
             "손절",
             $log,
             $action,
-            $wait_min
+            $candle->getWaitMin()
         );
 
         return "";
