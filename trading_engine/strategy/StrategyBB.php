@@ -75,7 +75,7 @@ class StrategyBB extends StrategyBase
                 $candle_trend = $candle_240min;
             }
         }
-        $side_error = 0;
+        $side_error = 1;
 
 
         GlobalVar::getInstance()->candleTick = $candle->tick;
@@ -259,57 +259,73 @@ class StrategyBB extends StrategyBase
             return "1시간 RSI 에러";
         }
 
+        if ($candle->tick >= 5)
+        {
+            if ($candle_15min->getMA(40) < $candle_1min->c)
+            {
+                return "BB 상단위치";
+            }
+        }
 
-        $rsi_ma_delta = 0.5;
+        if ($candle_60min->getPrevBBDownLineCrossCheck(10)  && $side_error)
+        {
+            return "[매수] 횡보 매수 금지";
+        }
+
+
+        // 거래 중지 1시간
         if ($side_error)
         {
             $rsi_ma_delta = -0;
-        }
-
-        // 거래 중지 1시간
-        if ($candle_240min->getRsiMaInclination(2, 14, 17) < 0 && $side_error)
-        {
-            return "4시간 트렌드 활성화";
-        }
-
-        $rsiMaInclination_60mim_result = $candle_60min->getRsiMaInclination(2, 14, 17);
-        if ($rsiMaInclination_60mim_result < $rsi_ma_delta)
-        {
+            $rsiMaInclination_60mim_result = $candle_60min->getRsiMaInclination(2, 14, 17);
+            if ($rsiMaInclination_60mim_result < $rsi_ma_delta)
+            {
 // 하락 추세에서 반전의 냄새가 느껴지면 거래진입해서 큰 익절을 노림
-            if ($candle_60min->getMinRsiBug(14, 7) < 30 && $candle_60min->getRsiInclinationSum(3) > 0 && $candle_60min->getGoldenDeadState() == "gold")
-            {
-                $stop_per = $per_1hour * 3;
-                $buy_per = $per_1hour / 2;
-                $buy_price = $candle->getClose() * (1 - $buy_per);
-                $stop_price = $buy_price  * (1 - $stop_per);
-                $wait_min = 180;
+                if ($candle_60min->getMinRsiBug(14, 7) < 30 && $candle_60min->getRsiInclinationSum(3) > 0 && $candle_60min->getGoldenDeadState() == "gold")
+                {
+                    $stop_per = $per_1hour * 3;
+                    $buy_per = $per_1hour / 2;
+                    $buy_price = $candle->getClose() * (1 - $buy_per);
+                    $stop_price = $buy_price  * (1 - $stop_per);
+                    $wait_min = 180;
 
-                $action = "1시간봉";
+                    $action = "1시간봉";
 
-                goto ENTRY;
-            }
-            else
-            {
-                return "1시간봉 반전 기회 없음";
+                    goto ENTRY;
+                }
+                else
+                {
+                    return "1시간봉 반전 기회 없음";
+                }
             }
         }
-
-        if ($rsiMaInclination_60mim_result < 1 && $side_error)
+        else
         {
-            if ($candle_60min->getBBUpLine($day, 1) < $candle->c)
+            if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) > 0.5)
             {
-                return "횡보 위험 1시간 위험 구역";
+                // 하락 추세에서 반전의 냄새가 느껴지면 거래진입해서 큰 익절을 노림
+                if ($candle_60min->getMinRsiBug(14, 7) < 30 && $candle_60min->getRsiInclinationSum(3) > 0 && $candle_60min->getGoldenDeadState() == "gold")
+                {
+                    $stop_per = $per_1hour * 3;
+                    $buy_per = $per_1hour / 2;
+                    $buy_price = $candle->getClose() * (1 - $buy_per);
+                    $stop_price = $buy_price  * (1 - $stop_per);
+                    $wait_min = 180;
+
+                    $action = "1시간봉";
+
+                    goto ENTRY;
+                }
+                else
+                {
+                    return "1시간반전 기회없음";
+                }
             }
         }
 
         if ($candle->crossoverBBDownLineNew($day, $k_down) == false)
         {
             return "크로스안함";
-        }
-
-        if ($candle_60min->getPrevBBUpLineCrossCheck(10) && $candle_240min->getGoldenDeadState() == "dead")
-        {
-            return "[매수] 크로스된지 얼마 안됨";
         }
 
 
@@ -356,6 +372,12 @@ class StrategyBB extends StrategyBase
             {
                 return "저항선 근처라 패스";
             }
+        }
+
+        // 빔이 너무 올라서 중앙값을 넘었으면 패스
+        if ($buy_price > $candle->getBBUpLine($day, $k_up))
+        {
+            return "MA값 너무 컸음";
         }
 
 

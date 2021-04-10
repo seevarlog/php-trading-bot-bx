@@ -73,7 +73,7 @@ class StrategyBBShort extends StrategyBase
         {
 
         }
-        else if ($sideCount <= $this->side_count)
+        else if ($sideCount >= -$this->side_count)
         {
             $side_error = 1;
             if ($vol >= $this->sideways_per)
@@ -83,7 +83,7 @@ class StrategyBBShort extends StrategyBase
                 $candle_trend = $candle_240min;
             }
         }
-        $side_error = 0;
+        $side_error = 1;
 
         GlobalVar::getInstance()->candleTick = $candle->tick;
         GlobalVar::getInstance()->CrossCount = $sideCount;
@@ -233,46 +233,28 @@ class StrategyBBShort extends StrategyBase
         }
 
 
-        if ($side_error && ($candle_30min->getBBDownLine(40, 0.8)) > $candle_1min->c)
-        {
-            return "[매도] 씹횡보 위험구역";
-        }
-
 
         $rsi_ma_delta = -0.5;
-        if ($side_error)
+        if ($candle_60min->getPrevBBUpLineCrossCheck(10) && $side_error)
         {
-            $rsi_ma_delta = 0.4;
-            if ($candle_30min->getMA(40) > $candle_1min->c)
-            {
-                var_dump("ghi");
-                return "위험";
-            }
-        }
-
-        if ($candle_240min->getRsiMaInclination(2, 14, 17) > 0 && $side_error)
-        {
-            return "4시간 트렌드 활성화";
+            return "[매도] 업라인 거래중지";
         }
 
         // 거래 중지 1시간
-        $rsiMaInclination_60mim_result = $candle_60min->getRsiMaInclination(2, 14, 17);
-        if ($rsiMaInclination_60mim_result > $rsi_ma_delta)
+        if ($side_error)
         {
-            return "[매도]1시간반전 기회없음";
-        }
-
-        if ($candle_60min->getPrevBBDownLineCrossCheck(10) && $candle_240min->getGoldenDeadState() == "gold" && $rsiMaInclination_60mim_result <= 0)
-        {
-            return "[매도] 크로스된지 얼마 안됨";
-        }
-
-
-        if ($rsiMaInclination_60mim_result > -1  && $side_error)
-        {
-            if ($candle_60min->getBBDownLine($day, 1) > $candle->c )
+            $rsiMaInclination_60mim_result = $candle_60min->getRsiMaInclination(2, 14, 17);
+            if ($rsiMaInclination_60mim_result > $rsi_ma_delta)
             {
-                return "횡보 위험 1시간 위험 구역";
+                return "[매도]1시간반전 기회없음";
+            }
+
+        }
+        else
+        {
+            if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) < -0.5)
+            {
+                return "[매도]1시간반전 기회없음";
             }
         }
 
@@ -295,6 +277,11 @@ class StrategyBBShort extends StrategyBase
         $stop_price = $buy_price  * (1 + $stop_per);
         $wait_min = 30;
 
+
+        if ($buy_price < $candle->getBBDownLine($day, $k_down))
+        {
+            return "MA값 너무 작음";
+        }
 
         // 5분봉 예외처리
         /*
