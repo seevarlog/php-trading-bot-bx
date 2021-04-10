@@ -1040,6 +1040,38 @@ class Candle
     }
 
 
+    public function getPrevBBDownLineCross($prev_length = 6, $day = 40, $k = 1.3)
+    {
+        $sum = 0;
+        $candle = $this;
+        for ($i=0; $i<$prev_length; $i++)
+        {
+            if ($candle->crossoverBBDownLineNew($day, $k))
+            {
+                return true;
+            }
+
+            $candle = $candle->getCandlePrev();
+        }
+
+        return false;
+    }
+
+    public function getPrevBBUpLineCross($prev_length = 6, $day = 40, $k = 1.3)
+    {
+        $candle = $this;
+        for ($i=0; $i<$prev_length; $i++)
+        {
+            if ($candle->crossoverBBUpLineNew($day, $k))
+            {
+                return true;
+            }
+
+            $candle = $candle->getCandlePrev();
+        }
+
+        return false;
+    }
 
     public function getPrevBBDownLineCrossCheck($prev_length = 6, $day = 40, $k = 1.3)
     {
@@ -1047,7 +1079,7 @@ class Candle
         $candle = $this;
         for ($i=0; $i<$prev_length; $i++)
         {
-            if ($candle->checkCross($candle->getBBUpLine($day, $k)))
+            if ($candle->checkCross($candle->getBBDownLine($day, $k)))
             {
                 return true;
             }
@@ -1063,7 +1095,7 @@ class Candle
         $candle = $this;
         for ($i=0; $i<$prev_length; $i++)
         {
-            if ($candle->checkCross($candle->getBBDownLine($day, $k)))
+            if ($candle->checkCross($candle->getBBUpLine($day, $k)))
             {
                 return true;
             }
@@ -1104,7 +1136,7 @@ class Candle
             $candle = $candle->getCandlePrev();
         }
 
-        return abs($sum);
+        return $sum;
     }
 
     public function getEMA50()
