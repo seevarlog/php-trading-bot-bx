@@ -234,7 +234,6 @@ class StrategyBBShort extends StrategyBase
 
 
 
-        $rsi_ma_delta = -0.5;
         if ($candle_60min->getPrevBBUpLineCrossCheck(10) && $side_error)
         {
             return "[매도] 업라인 거래중지";
@@ -243,6 +242,7 @@ class StrategyBBShort extends StrategyBase
         // 거래 중지 1시간
         if ($side_error)
         {
+            $rsi_ma_delta = 0;
             $rsiMaInclination_60mim_result = $candle_60min->getRsiMaInclination(2, 14, 17);
             if ($rsiMaInclination_60mim_result > $rsi_ma_delta)
             {
@@ -266,10 +266,22 @@ class StrategyBBShort extends StrategyBase
 
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         // 1시간봉 BB 밑이면 정지
-        if ($candle_60min->getBBUpLine(37, 0.95) < $candle_60min->c && $candle_60min->getGoldenDeadState() == "gold")
+
+        if ($side_error)
         {
-            return "[매도]1시간 BB 위에 있음";
+            if ($candle_60min->getBBUpLine(40, $k_down) < $candle_60min->c && $candle_60min->getGoldenDeadState() == "gold")
+            {
+                return "[매도]1시간 BB 위에 있음";
+            }
         }
+        else
+        {
+            if ($candle_60min->getBBUpLine(37, 0.95) < $candle_60min->c && $candle_60min->getGoldenDeadState() == "gold")
+            {
+                return "[매도]1시간 BB 위에 있음";
+            }
+        }
+
 
         $log = sprintf("buy_per:%f stop:%f", (1 + $buy_per), (1 + $stop_per));
 

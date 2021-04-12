@@ -276,7 +276,7 @@ class StrategyBB extends StrategyBase
         // 거래 중지 1시간
         if ($side_error)
         {
-            $rsi_ma_delta = -0;
+            $rsi_ma_delta = 0;
             $rsiMaInclination_60mim_result = $candle_60min->getRsiMaInclination(2, 14, 17);
             if ($rsiMaInclination_60mim_result < $rsi_ma_delta)
             {
