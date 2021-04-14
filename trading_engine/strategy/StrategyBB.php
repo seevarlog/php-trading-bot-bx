@@ -75,7 +75,7 @@ class StrategyBB extends StrategyBase
                 $candle_trend = $candle_240min;
             }
         }
-        $side_error = 1;
+        $side_error = 0;
 
 
         GlobalVar::getInstance()->candleTick = $candle->tick;
