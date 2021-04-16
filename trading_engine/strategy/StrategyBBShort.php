@@ -83,7 +83,7 @@ class StrategyBBShort extends StrategyBase
                 $candle_trend = $candle_240min;
             }
         }
-        $side_error = 0;
+        $side_error = 1;
 
         GlobalVar::getInstance()->candleTick = $candle->tick;
         GlobalVar::getInstance()->CrossCount = $sideCount;
@@ -161,7 +161,7 @@ class StrategyBBShort extends StrategyBase
             
             if ($power2 <= 0 && $power > 0.8 && $candle_3min->crossoverBBDownLineNew($day, $k_down) == true)
             {
-                [$max, $min] = $candle->getMaxMinValueInLength(5);
+                [$max, $min] = $candle->getMaxMinValueInLength(30);
                 $price = ($min + $candle->getClose()) / 2;
                 if ($price > $candle->c)
                 {
