@@ -290,7 +290,7 @@ class StrategyBBShort extends StrategyBase
         $wait_min = 30;
 
 
-        if ($buy_price < $candle->getBBDownLine($day, $k_down))
+        if ($candle_60min->getGoldenDeadState() == "gold" && $candle_5min->getGoldenDeadState() == "dead" && $candle->getEMA300() > $candle->c)
         {
             return "MA값 너무 작음";
         }
