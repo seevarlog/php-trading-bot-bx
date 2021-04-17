@@ -83,7 +83,7 @@ class StrategyBBShort extends StrategyBase
                 $candle_trend = $candle_240min;
             }
         }
-        $side_error = 1;
+        $side_error = 0;
 
         GlobalVar::getInstance()->candleTick = $candle->tick;
         GlobalVar::getInstance()->CrossCount = $sideCount;
@@ -152,6 +152,12 @@ class StrategyBBShort extends StrategyBase
             {
                 return "[매도] 익절 패스";
             }
+
+            if ($candle_60min->getBBUpLine(40, 1) < $candle->c)
+            {
+                return "[매도] 익절패스";
+            }
+
             $mag = $candle_zig->getMA(40);
             $power2 = $candle_240min->getRsiMaInclination(2, 14, 17);
             $power = $candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17);
@@ -268,10 +274,15 @@ class StrategyBBShort extends StrategyBase
         if ($side_error)
         {
             $rsi_ma_delta = 0;
-            $rsiMaInclination_60mim_result = $candle_60min->getRsiMaInclination(2, 14, 17);
-            if ($rsiMaInclination_60mim_result > $rsi_ma_delta)
+            $rsiMaInclination_240mim_result = $candle_240min->getRsiMaInclination(2, 14, 17);
+            if ($rsiMaInclination_240mim_result > $rsi_ma_delta)
             {
                 return "[매도]1시간반전 기회없음";
+            }
+
+            if ($candle_60min->getBBUpLine(40, 1) > $candle->c)
+            {
+                return "[매도] 위험 지역";
             }
 
         }
@@ -315,7 +326,7 @@ class StrategyBBShort extends StrategyBase
         $wait_min = 30;
 
 
-        if ($candle_60min->getGoldenDeadState() == "gold" && $candle_5min->getGoldenDeadState() == "dead" && $candle_5min->getEMA120() > $candle->c)
+        if ($candle_15min->getGoldenDeadState() == "gold" && $candle_5min->getGoldenDeadState() == "dead" && $candle_5min->getEMA120() > $candle->c)
         {
             return "MA값 너무 작음";
         }

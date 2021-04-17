@@ -75,7 +75,7 @@ class StrategyBB extends StrategyBase
                 $candle_trend = $candle_240min;
             }
         }
-        $side_error = 1;
+        $side_error = 0;
 
 
         GlobalVar::getInstance()->candleTick = $candle->tick;
@@ -154,6 +154,21 @@ class StrategyBB extends StrategyBase
             $power = $candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17);
 
             $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
+            
+            if ($side_error)
+            {
+                $rsi_ma_delta = 0;
+                $rsiMaInclination_240mim_result = $candle_240min->getRsiMaInclination(2, 14, 17);
+                if ($rsiMaInclination_240mim_result > $rsi_ma_delta)
+                {
+                    return "[매도]4시간반전 기회없음";
+                }
+
+                if ($candle_60min->getBBUpLine(40, 1) > $candle->c)
+                {
+                    return "[매수] 매도 금지";
+                }
+            }
 
             if ($power2 >= 0 && $power < -0.8 && $candle_5min->crossOverBBUpLineNew($day, $k_up) == true)
             {
@@ -302,28 +317,12 @@ class StrategyBB extends StrategyBase
         // 거래 중지 1시간
         if ($side_error)
         {
-            $rsi_ma_delta = 0;
-            $rsiMaInclination_60mim_result = $candle_60min->getRsiMaInclination(2, 14, 17);
-            if ($rsiMaInclination_60mim_result < $rsi_ma_delta)
+
+            if ($candle_60min->getBBDownLine(40, 1) < $candle->c)
             {
-// 하락 추세에서 반전의 냄새가 느껴지면 거래진입해서 큰 익절을 노림
-                if ($candle_60min->getMinRsiBug(14, 7) < 30 && $candle_60min->getRsiInclinationSum(3) > 0 && $candle_60min->getGoldenDeadState() == "gold")
-                {
-                    $stop_per = $per_1hour * 3;
-                    $buy_per = $per_1hour / 2;
-                    $buy_price = $candle->getClose() * (1 - $buy_per);
-                    $stop_price = $buy_price  * (1 - $stop_per);
-                    $wait_min = 180;
-
-                    $action = "1시간봉";
-
-                    goto ENTRY;
-                }
-                else
-                {
-                    return "1시간봉 반전 기회 없음";
-                }
+                return "[매수] 위험 지역";
             }
+
         }
         else
         {
