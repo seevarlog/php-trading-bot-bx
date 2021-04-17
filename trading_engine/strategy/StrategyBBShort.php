@@ -326,10 +326,7 @@ class StrategyBBShort extends StrategyBase
         $wait_min = 30;
 
 
-        if ($candle_15min->getGoldenDeadState() == "gold" && $candle_5min->getGoldenDeadState() == "dead" && $candle_5min->getEMA120() > $candle->c)
-        {
-            return "MA값 너무 작음";
-        }
+
 
         // 5분봉 예외처리
         /*
