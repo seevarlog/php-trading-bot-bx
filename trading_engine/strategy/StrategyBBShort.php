@@ -159,35 +159,10 @@ class StrategyBBShort extends StrategyBase
             }
 
             $mag = $candle_zig->getMA(40);
-            $power2 = $candle_240min->getRsiMaInclination(2, 14, 17);
-            $power = $candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17);
-
             $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
             $loop_msg .= "나머지익절";
             
-            if ($power2 <= 0 && $power > 0.8 && $candle_3min->crossoverBBDownLineNew($day, $k_down) == true)
-            {
-                [$max, $min] = $candle->getMaxMinValueInLength(30);
-                $price = ($min + $candle->getClose()) / 2;
-                if ($price > $candle->c)
-                {
-                    $price = $candle->c - 1;
-                    var_dump("사탄");
-                }
-
-                // 골드 매도
-                OrderManager::getInstance()->updateOrder(
-                    $candle->getTime(),
-                    $this->getStrategyKey(),
-                    $amount,
-                    $price,
-                    1,
-                    1,
-                    "익절",
-                    "파워".$candle->getDateTimeKST(),
-                );
-            }
-            else if ($candle_60min->getBBDownLine($day, $k_down) > $candle->c)
+            if ($candle_60min->getBBDownLine($day, $k_down) > $candle->c)
             {
                 if ($candle_3min->crossoverBBDownLineNew($day, $k_down) == true)
                 {

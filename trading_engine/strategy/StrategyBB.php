@@ -146,14 +146,6 @@ class StrategyBB extends StrategyBase
 
             $sell_price = 0;
             $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
-
-
-
-
-            $power2 = $candle_240min->getRsiMaInclination(2, 14, 17);
-            $power = $candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17);
-
-            $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
             
             if ($side_error)
             {
@@ -170,24 +162,7 @@ class StrategyBB extends StrategyBase
                 }
             }
 
-            if ($power2 >= 0 && $power < -0.8 && $candle_5min->crossOverBBUpLineNew($day, $k_up) == true)
-            {
-                [$max, $min] = $candle_5min->getMaxMinValueInLength(30);
-                // 골드 매도
-                OrderManager::getInstance()->updateOrder(
-                    $candle->getTime(),
-                    $this->getStrategyKey(),
-                    $amount,
-                    ($max + $candle_5min->getClose()) / 2,
-                    1,
-                    1,
-                    "익절",
-                    "골드",
-                    "파워익절",
-                    120
-                );
-            }
-            else if ($positionMng->getPosition($this->getStrategyKey())->action == "5분EMA")
+            if ($positionMng->getPosition($this->getStrategyKey())->action == "5분EMA")
             {
                 $min5 = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
 
@@ -397,12 +372,6 @@ class StrategyBB extends StrategyBase
             {
                 return "저항선 근처라 패스";
             }
-        }
-
-        // 빔이 너무 올라서 중앙값을 넘었으면 패스
-        if ($buy_price > $candle->getBBUpLine($day, $k_up))
-        {
-            return "MA값 너무 컸음";
         }
 
 
