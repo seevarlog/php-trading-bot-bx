@@ -91,7 +91,7 @@ class StrategyBBShort extends StrategyBase
 
         $log_min .= "side_count:".$sideCount."vol:".$vol;
 
-        $per_1hour = $candle_60min->getAvgRealVolatilityPercent(48);
+        $per_1hour = $candle_60min->getAvgRealVolatilityPercent(24);
         $k_up = 1.3;
         $stop_per = $per_1hour * 2.5;
         if ($stop_per < 0.012)
@@ -324,10 +324,6 @@ class StrategyBBShort extends StrategyBase
         $buy_price = $candle_1min->getClose() * (1 + $buy_per);
         $stop_price = $buy_price  * (1 + $stop_per);
         $wait_min = 30;
-
-
-
-
         // 5분봉 예외처리
         /*
         if ($candle_5min->getMinRealRsi(14, 5) < 30)
