@@ -69,7 +69,7 @@ class StrategyBBShort extends StrategyBase
         $sideCount = $candle_60min->getSidewaysCount($this->side_length);
         $vol = $candle_60min->getAvgRealVolatilityPercent($this->side_candle_count);
         $side_error = 0;
-        if ($dayCandle->getBBDownLine(40, 1.3) > $candle_60min->c || $dayCandle->getBBUpLine(40, 1.3) < $candle_60min->c)
+        if ($dayCandle->getBBDownLine(40, 1.3) > $dayCandle->c || $dayCandle->getBBUpLine(40, 1.3) < $dayCandle->c)
         {
 
         }
