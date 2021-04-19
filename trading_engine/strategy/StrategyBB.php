@@ -275,14 +275,6 @@ class StrategyBB extends StrategyBase
             return "1시간 RSI 에러";
         }
 
-        if ($candle->tick >= 5)
-        {
-            if ($candle_15min->getMA(40) < $candle_1min->c)
-            {
-                return "BB 상단위치";
-            }
-        }
-
         if ($candle_60min->getPrevBBDownLineCrossCheck(10)  && $side_error)
         {
             return "[매수] 횡보 매수 금지";
