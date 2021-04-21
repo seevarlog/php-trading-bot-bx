@@ -42,8 +42,6 @@ class Candle
     public $av = 0;
     public $avDay = 0;
 
-    public $stddev = [];
-    public $ma = [];
     public $ema = [];
     public $rsi_ema = [];
 
@@ -171,31 +169,6 @@ class Candle
         return $count;
     }
 
-
-    /**
-     * BB 위에 몇 개의 캔들이 있나 체크
-     *
-     * @param $bb_day
-     * @param $k
-     * @param $length
-     * @return int
-     */
-    public function getBBUpCount($bb_day, $k, $length)
-    {
-        $count = 0;
-        $candle = $this;
-        for ($i=0; $i<$length; $i++)
-        {
-            if ($candle->getBBUpLine($bb_day, $k) < $candle->c)
-            {
-                $count += 1;
-            }
-            $candle = $this->getCandlePrev();
-        }
-
-        return $count;
-    }
-
     public function getRsiMA($rsi_length, $ma_length)
     {
         $sum = 0;
@@ -209,7 +182,7 @@ class Candle
         return $sum / $ma_length;
     }
 
-    //  0보다 크면 상승중
+    // n 일동안의 기울기 합을 구함
     public function getRsiInclinationSum($n)
     {
         $sum = 0;
@@ -233,23 +206,22 @@ class Candle
 
     }
 
-    public function getMinRsiBug($rsi_length, $range_day)
+    public function getMinRealRsi($rsi_length, $range_day)
     {
         $min = 100;
         $candle = $this;
-        for ($i=0; $i<$range_day; $i++)
+        for ($i=0; $i<1; $i++)
         {
             $rsi = $candle->getNewRsi($rsi_length);
             if ($rsi < $min)
             {
                 $min = $rsi;
             }
-            $candle = $this->getCandlePrev();
+            $candle = $candle->getCandlePrev();
         }
 
         return $min;
     }
-
 
     public function getMinRsi($rsi_length, $range_day)
     {
@@ -270,6 +242,23 @@ class Candle
 
 
     public function getMaxRealRsi($rsi_length, $range_day)
+    {
+        $max = 0;
+        $candle = $this;
+        for ($i=0; $i<1; $i++)
+        {
+            $rsi = $candle->getNewRsi($rsi_length);
+            if ($rsi > $max)
+            {
+                $max = $rsi;
+            }
+            $candle = $this->getCandlePrev();
+        }
+
+        return $max;
+    }
+
+    public function getMaxRsi($rsi_length, $range_day)
     {
         $max = 0;
         $candle = $this;
@@ -381,72 +370,6 @@ class Candle
 
 
 
-
-    public function getRsi($day)
-    {
-        if ($this->getCandlePrev()->r != -1 && $this->rd == $day)
-        {
-            $prev = $this->getCandlePrev();
-            $delta = $this->c - $prev->c;
-            $up = $delta > 0 ? $delta : 0;
-            $down = $delta < 0 ? abs($delta) : 0;
-
-            $au = $prev->r * ($day - 1) + $up;
-            $du = $prev->r * ($day - 1) + $down;
-
-            $this->r = 100 * $au / ($au + $du);
-            $this->rd = $day;
-
-            return $this->r;
-        }
-
-        $first_candle = $this;
-        for ($i=0; $i<$day*3; $i++)
-        {
-            $first_candle = $first_candle->getCandlePrev();
-        }
-
-        // 최적화 가능한 부분
-        // 걍 처음부터 다시한다
-        $au = $first_candle->getUpAvg($day);
-        $ad = $first_candle->getDownAvg($day);
-        $first_candle->au = $au;
-        $first_candle->ad = $ad;
-        $first_candle->rd = $day;
-        if (($au + $ad) == 0)
-        {
-            $au = 1;
-            $ad = 1;
-        }
-        $first_candle->r = 100 * $au / ( $au + $ad );
-
-        $first_candle = $first_candle->getCandleNext();
-        for ($i=0; $i<$day*5; $i++)
-        {
-            $prev = $first_candle->getCandlePrev();
-            $delta = $first_candle->c - $prev->c;
-            $up = $delta > 0 ? $delta : 0;
-            $down = $delta < 0 ? abs($delta) : 0;
-
-            $first_candle->au = ($prev->au * ($day-1) + $up) / $day;
-            $first_candle->ad = ($prev->ad * ($day-1) + $down) / $day;
-
-            if (($first_candle->au + $first_candle->ad) == 0)
-            {
-                $first_candle->au = 1;
-                $first_candle->ad = 1;
-            }
-
-            $first_candle->r = 100 * $first_candle->au / ( $first_candle->au + $first_candle->ad );
-            $first_candle->rd = $day;
-
-            $first_candle = $first_candle->getCandleNext();
-        }
-
-        return $this->r;
-    }
-
-
     public function setData($time, $open, $high, $low, $close)
     {
         $this->t = (int)$time;
@@ -507,50 +430,6 @@ class Candle
         for($i=0; $i<$length; $i++)
         {
             $sum_cross_count += $candle->checkCross($candle->getEMA300());
-            $candle = $candle->getCandlePrev();
-        }
-
-        $this->cross_ema[$length] = $sum_cross_count;
-
-        return $sum_cross_count;
-    }
-
-
-    public function getEMA120Cross($length=20)
-    {
-        if (isset($this->cross_ema[$length]))
-        {
-            return $this->cross_ema[$length];
-        }
-
-        $sum_cross_count = 0;
-        $candle = $this;
-
-        for($i=0; $i<$length; $i++)
-        {
-            $sum_cross_count += $candle->checkCross($candle->getEMA120());
-            $candle = $candle->getCandlePrev();
-        }
-
-        $this->cross_ema[$length] = $sum_cross_count;
-
-        return $sum_cross_count;
-    }
-
-
-    public function getEMA240Cross($length=20)
-    {
-        if (isset($this->cross_ema[$length]))
-        {
-            return $this->cross_ema[$length];
-        }
-
-        $sum_cross_count = 0;
-        $candle = $this;
-
-        for($i=0; $i<$length; $i++)
-        {
-            $sum_cross_count += $candle->checkCross($candle->getEMA120());
             $candle = $candle->getCandlePrev();
         }
 
@@ -636,11 +515,6 @@ class Candle
 
     public function getMA($day)
     {
-        if (isset($this->ma[$day]))
-        {
-            return $this->ma[$day];
-        }
-
         $sum = 0;
         $prev = $this;
         for ($i=0; $i<$day; $i++)
@@ -649,10 +523,7 @@ class Candle
             $prev = $prev->getCandlePrev();
         }
 
-        $this->ma[$day] = $sum / $day;
-
-
-        return $this->ma[$day];
+        return $sum / $day;
     }
 
     // 평균 변동성 구하기
@@ -676,11 +547,6 @@ class Candle
 
     public function getStandardDeviationClose($day)
     {
-        if (isset($this->stddev[$day]))
-        {
-            return $this->stddev[$day];
-        }
-
         // 1. 평균 구하기
         $sum = 0;
         $prev = $this->getCandlePrev();
@@ -702,7 +568,6 @@ class Candle
         }
 
         $ret = sqrt($sum / $day);
-        $this->stddev[$day] = $ret;
         return $ret;
     }
 
@@ -732,26 +597,8 @@ class Candle
         return $this->ba;
     }
 
-    public function getAvgRealVolatilityPercent($day = 12)
-    {
-        if ($this->c == 0)
-        {
-            return 0.04;
-        }
 
-        $candle = $this;
-        $sum = 0;
-        for ($i=0; $i<$day; $i++)
-        {
-            $sum += abs(($candle->h / $candle->l) - 1);
-            $candle = $candle->getCandlePrev();
-        }
-
-        return $sum / $day;
-    }
-
-
-    public function getAvgBugVolatilityPercent($day = 12)
+    public function getAvgVolatilityPercent($day = 12)
     {
         $sum = 0;
         $prev = $this->getCandlePrev();
@@ -760,7 +607,7 @@ class Candle
         {
             return 0.04;
         }
-        $day = 1;
+
         $candle = $this;
         $sum = 0;
         for ($i=0; $i<$day; $i++)
@@ -831,70 +678,6 @@ class Candle
         return False;
     }
 
-    public function crossoverBBDownLineNew($day, $k, $r = 0)
-    {
-        if ($this->tick == 1)
-        {
-            return $this->crossoverBBDownLine($day, $k);
-        }
-
-        $per = $this->getAvgRealVolatilityPercent(20) / 14;
-        if ($this->tick > 1)
-        {
-            $per = 0.001 * $this->tick;
-        }
-
-        if ($r == 0)
-        {
-            if ($this->getCandlePrev()->crossoverBBDownLine($day, $k) == true)
-            {
-                if ($this->getCandlePrev()->crossoverBBDownLineNew($day, $k, 1) == false)
-                {
-                    $prev = $this->getCandlePrev()->getCandlePrev();
-                    if($prev->getClose() < $prev->getBBDownLine($day, $k))
-                    {
-                        if($this->getClose() * (1-$per*2) > $this->getBBDownLine($day, $k))
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            else if ($this->getCandlePrev()->getCandlePrev()->crossoverBBDownLine($day, $k) == true)
-            {
-                if($this->getClose() > $this->getBBDownLine($day, $k))
-                {
-                    return true;
-                }
-            }
-        }
-
-
-        $prev = $this->getCandlePrev();
-        if($prev->getClose() < $prev->getBBDownLine($day, $k))
-        {
-            $is_smooth = $this->getClose() * (1-$per) > $this->getBBDownLine($day, $k);
-            $is_base = $this->getClose() > $this->getBBDownLine($day, $k);
-            if ($is_base == true && $is_smooth == false)
-            {
-                $candle = $this->getCandlePrev();
-                for ($i=0; $i<5; $i++)
-                {
-                    if ($candle->crossoverBBDownLine($day, $k))
-                    {
-                        return true;
-                    }
-                    $candle = $candle->getCandlePrev();
-                }
-            }
-            else if ($is_base == true && $is_smooth == true)
-            {
-                return true;
-            }
-        }
-        return False;
-    }
-
     public function crossoverBBUpLine($day, $k)
     {
         $prev = $this->getCandlePrev();
@@ -903,70 +686,6 @@ class Candle
             if($this->getClose() < $this->getBBUpLine($day, $k))
             {
                 return True;
-            }
-        }
-        return False;
-    }
-
-    public function crossOverBBUpLineNew($day, $k, $r = 0)
-    {
-        if ($this->tick == 1)
-        {
-            return $this->crossoverBBUpLine($day, $k);
-        }
-
-        $per = $this->getAvgRealVolatilityPercent(20) / 14;
-        if ($this->tick > 1)
-        {
-            $per = 0.001 * $this->tick;
-        }
-
-        if ($r == 0)
-        {
-            if ($this->getCandlePrev()->crossoverBBUpLine($day, $k) == true)
-            {
-                if ($this->getCandlePrev()->crossoverBBUpLineNew($day, $k, 1) == false)
-                {
-                    $prev = $this->getCandlePrev()->getCandlePrev();
-                    if($prev->getClose() > $prev->getBBUpLine($day, $k))
-                    {
-                        if($this->getClose() * (1+$per*2) < $this->getBBUpLine($day, $k))
-                        {
-                            return True;
-                        }
-                    }
-                }
-            }
-            else if ($this->getCandlePrev()->getCandlePrev()->crossoverBBUpLine($day, $k) == true)
-            {
-                if($this->getClose() < $this->getBBUpLine($day, $k))
-                {
-                    return true;
-                }
-            }
-        }
-
-
-        $prev = $this->getCandlePrev();
-        if($prev->getClose() > $prev->getBBUpLine($day, $k))
-        {
-            $is_smooth = $this->getClose() * (1+$per) < $this->getBBUpLine($day, $k);
-            $is_base = $this->getClose() < $this->getBBUpLine($day, $k);
-            if ($is_base == true && $is_smooth == false)
-            {
-                $candle = $this->getCandlePrev();;
-                for ($i=0; $i<5; $i++)
-                {
-                    if ($candle->crossoverBBUpLine($day, $k))
-                    {
-                        return true;
-                    }
-                    $candle = $candle->getCandlePrev();
-                }
-            }
-            else if ($is_base == true && $is_smooth == true)
-            {
-                return true;
             }
         }
         return False;
@@ -1016,137 +735,6 @@ class Candle
         }
 
         return $max;
-    }
-
-    public function getBBUpDownCrossDeltaCount($length = 100, $day = 40, $k = 1.3)
-    {
-        $sum = 0;
-        $candle = $this;
-        for ($i=0; $i<$length; $i++)
-        {
-            if ($candle->getMA(40) < $candle->c)
-            {
-                $sum += 1;
-            }
-            else
-            {
-                $sum -= 1;
-            }
-
-            $candle = $candle->getCandlePrev();
-        }
-
-        return abs($sum);
-    }
-
-
-    public function getPrevBBDownLineCross($prev_length = 6, $day = 40, $k = 1.3)
-    {
-        $sum = 0;
-        $candle = $this;
-        for ($i=0; $i<$prev_length; $i++)
-        {
-            if ($candle->crossoverBBDownLineNew($day, $k))
-            {
-                return true;
-            }
-
-            $candle = $candle->getCandlePrev();
-        }
-
-        return false;
-    }
-
-    public function getPrevBBUpLineCross($prev_length = 6, $day = 40, $k = 1.3)
-    {
-        $candle = $this;
-        for ($i=0; $i<$prev_length; $i++)
-        {
-            if ($candle->crossoverBBUpLineNew($day, $k))
-            {
-                return true;
-            }
-
-            $candle = $candle->getCandlePrev();
-        }
-
-        return false;
-    }
-
-    public function getPrevBBDownLineCrossCheck($prev_length = 6, $day = 40, $k = 1.3)
-    {
-        $sum = 0;
-        $candle = $this;
-        for ($i=0; $i<$prev_length; $i++)
-        {
-            if ($candle->checkCross($candle->getBBDownLine($day, $k)))
-            {
-                return true;
-            }
-
-            $candle = $candle->getCandlePrev();
-        }
-
-        return false;
-    }
-
-    public function getPrevBBUpLineCrossCheck($prev_length = 6, $day = 40, $k = 1.3)
-    {
-        $candle = $this;
-        for ($i=0; $i<$prev_length; $i++)
-        {
-            if ($candle->checkCross($candle->getBBUpLine($day, $k)))
-            {
-                return true;
-            }
-
-            $candle = $candle->getCandlePrev();
-        }
-
-        return false;
-    }
-
-    public function getWaitMin(): int
-    {
-        if ($this->tick == 1)
-        {
-            return 120;
-        }
-
-        return 200;
-    }
-
-
-    public function getSidewaysCount($length = 200, $ema_length = 30)
-    {
-        // 횡보는 1시간봉 EMA 30일 선을 기준으로 한다
-        $sum = 0;
-        $candle = $this;
-        for ($i=0; $i<$length; $i++)
-        {
-            if ($candle->getEMA($ema_length) > $candle->c)
-            {
-                $sum -= 1;
-            }
-            else
-            {
-                $sum += 1;
-            }
-
-            $candle = $candle->getCandlePrev();
-        }
-
-        return $sum;
-    }
-
-    public function getEMA50()
-    {
-        return $this->getEMA(50);
-    }
-
-    public function getEMA20()
-    {
-        return $this->getEMA(20);
     }
 
     public function getEMA300()

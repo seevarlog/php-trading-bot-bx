@@ -9,19 +9,9 @@ use trading_engine\util\Singleton;
 class StrategyBase extends Singleton
 {
     public $min = 1;
-    public $test_leverage = 1;
-    public $sideways_per = 0.014;
-    public $side_candle_count = 24;
-    public $day_per_1 = 0.3;
-    public $day_per_2 = 0.4;
-    public $day_day = 30;
-    public $side_count = 56;
-    public $side_length = 150;
-    public $zigzag_length = 200;
-    public $zigzag_max_count = 60;
-    public $zigzag_min_count = 0;
-    public $zigzag_per = 0.010;
-    public $zigzag_min = 60;
+    public $ema_count = 40;
+    public $ema_5m_count = 90;
+    public $avg_limit = 0.008;
 
     public function setMin1()
     {
