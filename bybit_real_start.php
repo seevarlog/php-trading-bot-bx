@@ -442,7 +442,6 @@ try {
         $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
         $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
         Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".$global_var->candleTick."cross:".$global_var->CrossCount."1hour_per:".$global_var->vol_1hour." buy:".$buy_msg." sell:".$sell_msg);
-        Notify::sendMsg("zigzag:".GlobalVar::getInstance()->CrossZigZag);
 
 
 
