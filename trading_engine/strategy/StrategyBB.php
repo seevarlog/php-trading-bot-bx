@@ -21,7 +21,7 @@ class StrategyBB extends StrategyBase
     public function BBS(Candle $candle)
     {
         $per = log(exp(1)+$candle->tick);
-        $leverage = 15;
+        $leverage = 18;
         if (!Config::getInstance()->isRealTrade())
         {
             $leverage = $this->test_leverage;
