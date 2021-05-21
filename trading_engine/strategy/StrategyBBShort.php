@@ -16,7 +16,7 @@ class StrategyBBShort extends StrategyBase
 {
     public static $last_last_entry = "sideways";
     public static $order_action = "";
-    public $leverage = 15;
+    public $leverage = 18;
 
     public function __construct()
     {
