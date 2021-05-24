@@ -42,8 +42,6 @@ class Candle
     public $av = 0;
     public $avDay = 0;
 
-    public $stddev = [];
-    public $ma = [];
     public $ema = [];
     public $rsi_ema = [];
 
@@ -162,31 +160,6 @@ class Candle
         for ($i=0; $i<$length; $i++)
         {
             if ($candle->getBBDownLine($bb_day, $k) > $candle->c)
-            {
-                $count += 1;
-            }
-            $candle = $this->getCandlePrev();
-        }
-
-        return $count;
-    }
-
-
-    /**
-     * BB 위에 몇 개의 캔들이 있나 체크
-     *
-     * @param $bb_day
-     * @param $k
-     * @param $length
-     * @return int
-     */
-    public function getBBUpCount($bb_day, $k, $length)
-    {
-        $count = 0;
-        $candle = $this;
-        for ($i=0; $i<$length; $i++)
-        {
-            if ($candle->getBBUpLine($bb_day, $k) < $candle->c)
             {
                 $count += 1;
             }
@@ -636,11 +609,6 @@ class Candle
 
     public function getMA($day)
     {
-        if (isset($this->ma[$day]))
-        {
-            return $this->ma[$day];
-        }
-
         $sum = 0;
         $prev = $this;
         for ($i=0; $i<$day; $i++)
@@ -649,10 +617,7 @@ class Candle
             $prev = $prev->getCandlePrev();
         }
 
-        $this->ma[$day] = $sum / $day;
-
-
-        return $this->ma[$day];
+        return $sum / $day;
     }
 
     // 평균 변동성 구하기
@@ -676,11 +641,6 @@ class Candle
 
     public function getStandardDeviationClose($day)
     {
-        if (isset($this->stddev[$day]))
-        {
-            return $this->stddev[$day];
-        }
-
         // 1. 평균 구하기
         $sum = 0;
         $prev = $this->getCandlePrev();
@@ -702,7 +662,6 @@ class Candle
         }
 
         $ret = sqrt($sum / $day);
-        $this->stddev[$day] = $ret;
         return $ret;
     }
 
@@ -833,11 +792,6 @@ class Candle
 
     public function crossoverBBDownLineNew($day, $k, $r = 0)
     {
-        if ($this->tick == 1)
-        {
-            return $this->crossoverBBDownLine($day, $k);
-        }
-
         $per = $this->getAvgRealVolatilityPercent(20) / 14;
         if ($this->tick > 1)
         {
@@ -860,7 +814,8 @@ class Candle
                     }
                 }
             }
-            else if ($this->getCandlePrev()->getCandlePrev()->crossoverBBDownLine($day, $k) == true)
+
+            if ($this->getCandlePrev()->getCandlePrev()->crossoverBBDownLine($day, $k) == true)
             {
                 if($this->getClose() > $this->getBBDownLine($day, $k))
                 {
@@ -910,11 +865,6 @@ class Candle
 
     public function crossOverBBUpLineNew($day, $k, $r = 0)
     {
-        if ($this->tick == 1)
-        {
-            return $this->crossoverBBUpLine($day, $k);
-        }
-
         $per = $this->getAvgRealVolatilityPercent(20) / 14;
         if ($this->tick > 1)
         {
@@ -937,7 +887,8 @@ class Candle
                     }
                 }
             }
-            else if ($this->getCandlePrev()->getCandlePrev()->crossoverBBUpLine($day, $k) == true)
+
+            if ($this->getCandlePrev()->getCandlePrev()->crossoverBBUpLine($day, $k) == true)
             {
                 if($this->getClose() < $this->getBBUpLine($day, $k))
                 {
@@ -1018,113 +969,14 @@ class Candle
         return $max;
     }
 
-    public function getBBUpDownCrossDeltaCount($length = 100, $day = 40, $k = 1.3)
-    {
-        $sum = 0;
-        $candle = $this;
-        for ($i=0; $i<$length; $i++)
-        {
-            if ($candle->getMA(40) < $candle->c)
-            {
-                $sum += 1;
-            }
-            else
-            {
-                $sum -= 1;
-            }
-
-            $candle = $candle->getCandlePrev();
-        }
-
-        return abs($sum);
-    }
-
-
-    public function getPrevBBDownLineCross($prev_length = 6, $day = 40, $k = 1.3)
-    {
-        $sum = 0;
-        $candle = $this;
-        for ($i=0; $i<$prev_length; $i++)
-        {
-            if ($candle->crossoverBBDownLineNew($day, $k))
-            {
-                return true;
-            }
-
-            $candle = $candle->getCandlePrev();
-        }
-
-        return false;
-    }
-
-    public function getPrevBBUpLineCross($prev_length = 6, $day = 40, $k = 1.3)
-    {
-        $candle = $this;
-        for ($i=0; $i<$prev_length; $i++)
-        {
-            if ($candle->crossoverBBUpLineNew($day, $k))
-            {
-                return true;
-            }
-
-            $candle = $candle->getCandlePrev();
-        }
-
-        return false;
-    }
-
-    public function getPrevBBDownLineCrossCheck($prev_length = 6, $day = 40, $k = 1.3)
-    {
-        $sum = 0;
-        $candle = $this;
-        for ($i=0; $i<$prev_length; $i++)
-        {
-            if ($candle->checkCross($candle->getBBDownLine($day, $k)))
-            {
-                return true;
-            }
-
-            $candle = $candle->getCandlePrev();
-        }
-
-        return false;
-    }
-
-    public function getPrevBBUpLineCrossCheck($prev_length = 6, $day = 40, $k = 1.3)
-    {
-        $candle = $this;
-        for ($i=0; $i<$prev_length; $i++)
-        {
-            if ($candle->checkCross($candle->getBBUpLine($day, $k)))
-            {
-                return true;
-            }
-
-            $candle = $candle->getCandlePrev();
-        }
-
-        return false;
-    }
-
-    public function getWaitMin(): int
-    {
-        if ($this->tick == 1)
-        {
-            return 120;
-        }
-
-        return 200;
-    }
-
-
-    public function getSidewaysCount($length = 200, $ema_length = 30)
+    public function getSidewaysCount($length = 200)
     {
         // 횡보는 1시간봉 EMA 30일 선을 기준으로 한다
         $sum = 0;
         $candle = $this;
         for ($i=0; $i<$length; $i++)
         {
-            if ($candle->getEMA($ema_length) > $candle->c)
+            if ($candle->getEMA(30) > $candle->c)
             {
                 $sum -= 1;
             }
@@ -1136,7 +988,7 @@ class Candle
             $candle = $candle->getCandlePrev();
         }
 
-        return $sum;
+        return abs($sum);
     }
 
     public function getEMA50()

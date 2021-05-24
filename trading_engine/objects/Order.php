@@ -26,7 +26,6 @@ class Order
     public $log;
     public $action;
     public $wait_min;
-    public $tick = 1;
 
 
     public static function getNewOrderObj($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment, $log, $action = "", $wait_min =30)

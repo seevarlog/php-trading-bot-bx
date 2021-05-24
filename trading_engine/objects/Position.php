@@ -17,7 +17,6 @@ class Position
     public $log = [];
     public $last_execition_time = 0;
     public $action = "";
-    public $entry_tick = 1;
 
     public function addLog($log)
     {
@@ -169,7 +168,6 @@ class Position
         {
             StrategyBB::$last_last_entry = $candle->getGoldenDeadState();
             $this->action = $order->action;
-            $this->entry_tick = $order->tick;
         }
 
         $account = Account::getInstance();
