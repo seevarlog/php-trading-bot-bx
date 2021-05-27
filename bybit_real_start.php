@@ -83,13 +83,13 @@ $order_list = $bybit->privates()->getOrderList(
     ]
 );
 
-
 $stop_list = $bybit->privates()->getStopOrderList(
     [
         'symbol' => 'BTCUSD',
         'stop_order_status'=>'Untriggered'
     ]
 );
+
 
 $is_long_trade = true;
 
@@ -414,6 +414,13 @@ try {
                 $_new_last_candle = new Candle($min);
                 $_new_last_candle->setData($candle_1m->t, $candle_1m->o, $candle_1m->h, $candle_1m->l, $candle_1m->c);
                 CandleManager::getInstance()->addNewCandle($_new_last_candle);
+
+                if ($min == 60)
+                {
+                    Notify::sendTradeMsg(CandleManager::getInstance()->getLastCandle($min)->displayCandle());
+                    Notify::sendTradeMsg(CandleManager::getInstance()->getLastCandle($min)->getCandlePrev()->displayCandle());
+                }
+
                 $_new_last_candle->cp = $_last_candle;
                 if ($_last_candle != null)
                 {
@@ -435,7 +442,6 @@ try {
         $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
         $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
         Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".$global_var->candleTick."cross:".$global_var->CrossCount."1hour_per:".$global_var->vol_1hour." buy:".$buy_msg." sell:".$sell_msg);
-        Notify::sendMsg("5m candle:".$candle_mng->getCurOtherMinCandle($candle_prev_1m, 5)->displayCandle());
 
 
 
