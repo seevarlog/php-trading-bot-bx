@@ -192,13 +192,21 @@ class Order
                     {
                         if ($exec_amount > 0)
                         {
-                            //$this->amount = $exec_amount;
-                            $this->filled_start_time = time();
-                            $this->filled_amount = $exec_amount;
-                            //OrderManager::getInstance()->cancelOrder($this);
-                            OrderManager::getInstance()->modifyAmount($this->strategy_key, $exec_amount, '손절');
-                            Notify::sendTradeMsg("거래가 일부만 채워졌다. prev:".$this->amount." filled:".$exec_amount);
-                            return false;
+                            if ($exec_amount == abs($this->amount))
+                            {
+                                Notify::sendTradeMsg($this->comment."거래가 전부 채워졌습니다. order : ".$this->amount);
+                                return true;
+                            }
+                            else
+                            {
+                                //$this->amount = $exec_amount;
+                                $this->filled_start_time = time();
+                                $this->filled_amount = $exec_amount;
+                                //OrderManager::getInstance()->cancelOrder($this);
+                                OrderManager::getInstance()->modifyAmount($this->strategy_key, $exec_amount, '손절');
+                                Notify::sendTradeMsg("거래가 일부만 채워졌다. prev:".$this->amount." filled:".$exec_amount);
+                                return false;
+                            }
                         }
                     }
                     else if ($this->comment == "익절")

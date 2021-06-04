@@ -349,7 +349,7 @@ class OrderManager extends Singleton
                             $account = Account::getInstance();
                             $account->balance = GlobalVar::getInstance()->
                             getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
-                            Notify::sendTradeMsg("지갑 동기화했다. usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
+                            Notify::sendMsg("지갑 동기화했다. usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
                         }
                         break;
                     }

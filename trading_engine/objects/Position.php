@@ -191,11 +191,12 @@ MSG;
                 $last_msg_profit = $profit_balance_usd + $profit_fee_usd;
                 $profit_per = round((($exec_order_price / $prev_entry) - 1) * 100, 2);
                 $msg .= "수익 : ".$last_msg_profit."(".$profit_per.")";
+                Notify::sendMsg($msg);
             }
-
-
-
-            Notify::sendTradeMsg($msg);
+            else
+            {
+                Notify::sendTradeMsg($msg);
+            }
         }
 
         $log = new LogTrade();
