@@ -20,8 +20,6 @@ class StrategyBB extends StrategyBase
 
     public function BBS(Candle $candle)
     {
-        $per = log(exp(1)+$candle->tick);
-        $leverage = 18;
         if (!Config::getInstance()->isRealTrade())
         {
             $leverage = $this->test_leverage;
@@ -67,15 +65,12 @@ class StrategyBB extends StrategyBase
         }
         else if ($sideCount <= $this->side_count)
         {
-            $side_error = 1;
             if ($vol >= $this->sideways_per)
             {
                 $log_min = "555555555";
                 $candle = $candle_5min;
-                $candle_trend = $candle_240min;
             }
         }
-        $side_error = 0;
 
 
         GlobalVar::getInstance()->candleTick = $candle->tick;
@@ -138,31 +133,32 @@ class StrategyBB extends StrategyBase
 
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount > 0)
         {
-            if ($is_zigzag && ($candle_zig->getMA(40) + ($candle_zig->getStandardDeviationClose($day) * $k_up / 5 * 4)) > $candle_1min->c)
-            {
-                return "[매수] 익절 패스";
-            }
 
 
             $sell_price = 0;
-            $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
+            $stop_order = $orderMng->getOrder($this->getStrategyKey(), "손절");
+            $amount = $stop_order->amount;
 
-            if ($side_error)
+            if ($candle_15min->getBBUpLine($day, $k_up) < $candle->c)
             {
-                $rsi_ma_delta = 0;
-                $rsiMaInclination_240mim_result = $candle_240min->getRsiMaInclination(2, 14, 17);
-                if ($rsiMaInclination_240mim_result > $rsi_ma_delta)
+                if ($candle_5min->crossoverBBUpLineAfterCenterLine($day, $k_down, $stop_order->date) == true)
                 {
-                    return "[매도]4시간반전 기회없음";
-                }
-
-                if ($candle_60min->getBBUpLine(40, 1) > $candle->c)
-                {
-                    return "[매수] 매도 금지";
+                    [$max, $min] = $candle_1min->getMaxMinValueInLength(5);
+                    $price = ($max + $candle_1min->getClose()) / 2;
+                    // 골드 매도
+                    OrderManager::getInstance()->updateOrder(
+                        $candle->getTime(),
+                        $this->getStrategyKey(),
+                        $amount,
+                        $price,
+                        1,
+                        1,
+                        "익절",
+                        "성물익절".$candle->getDateTimeKST(),
+                    );
                 }
             }
-
-            if ($positionMng->getPosition($this->getStrategyKey())->action == "5분EMA")
+            else if ($positionMng->getPosition($this->getStrategyKey())->action == "5분EMA")
             {
                 $min5 = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
 
@@ -179,25 +175,6 @@ class StrategyBB extends StrategyBase
                     "5분익절",
                     1000
                 );
-            }
-            else if ($positionMng->getPosition($this->getStrategyKey())->action == "5분")
-            {
-                if ($candle->getNewRsi(14) > 60)
-                {
-                    [$max, $min] = $candle->getMaxMinValueInLength(5);
-                    // 골드 매도
-                    OrderManager::getInstance()->updateOrder(
-                        $candle->getTime(),
-                        $this->getStrategyKey(),
-                        $amount,
-                        ($max + $candle->getClose()) / 2,
-                        1,
-                        1,
-                        "익절",
-                        "5분익절",
-                        1000
-                    );
-                }
             }
             else if ($candle->crossOverBBUpLineNew($day, $k_up) == true)
             {

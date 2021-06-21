@@ -831,6 +831,79 @@ class Candle
         return False;
     }
 
+
+    public function crossoverBBCenter($day, $k)
+    {
+        $prev = $this->getCandlePrev();
+        if($prev->getClose() < $prev->getMA($day))
+        {
+            if($this->getClose() > $this->getMA($day))
+            {
+                return True;
+            }
+        }
+        return False;
+    }
+
+
+    public function crossoverBBDownLineAfterCenterLine($day, $k, $start_time)
+    {
+        $candle = $this;
+        $is_cross_down = false;
+        for ($i=0; $i<60; $i++)
+        {
+            $is_cross_down = $candle->crossoverBBDownLine($day, $k);
+            if ($is_cross_down == true)
+            {
+                break;
+            }
+
+            if ($candle->t <= $start_time)
+            {
+                break;
+            }
+
+            $candle = $candle->getCandlePrev();
+        }
+
+        if ($is_cross_down == false)
+        {
+            return false;
+        }
+
+        return $this->crossoverBBCenter($day, $k);
+    }
+
+
+
+    public function crossoverBBUpLineAfterCenterLine($day, $k, $start_time)
+    {
+        $candle = $this;
+        $is_cross_down = false;
+        for ($i=0; $i<60; $i++)
+        {
+            $is_cross_down = $candle->crossoverBBUpLine($day, $k);
+            if ($is_cross_down == true)
+            {
+                break;
+            }
+
+            if ($candle->t <= $start_time)
+            {
+                break;
+            }
+
+            $candle = $candle->getCandlePrev();
+        }
+
+        if ($is_cross_down == false)
+        {
+            return false;
+        }
+
+        return $this->crossoverBBCenter($day, $k);
+    }
+
     public function crossoverBBDownLineNew($day, $k, $r = 0)
     {
         if ($this->tick == 1)

@@ -159,12 +159,14 @@ class StrategyBBShort extends StrategyBase
             }
 
             $mag = $candle_zig->getMA(40);
-            $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
+            $stop_order = $orderMng->getOrder($this->getStrategyKey(), "손절");
+            $amount = $stop_order->amount;
             $loop_msg .= "나머지익절";
+
 
             if ($candle_60min->getBBDownLine($day, $k_down) > $candle->c)
             {
-                if ($candle_3min->crossoverBBDownLineNew($day, $k_down) == true)
+                if ($candle_5min->crossoverBBDownLineAfterCenterLine($day, $k_down, $stop_order->date) == true)
                 {
                     [$max, $min] = $candle->getMaxMinValueInLength(5);
                     $price = ($min + $candle->getClose()) / 2;
