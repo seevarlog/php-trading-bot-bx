@@ -18,6 +18,8 @@ class Candle
     public $p;
     public $n;
 
+    public $ho = -1;
+
     public $tick;
     public $idx;
 
@@ -42,6 +44,11 @@ class Candle
     public $av = 0;
     public $avDay = 0;
 
+    // ATR
+    public $atr_set = 0;
+    public $atr_tr = 0;
+    public $atr = [];
+
     public $stddev = [];
     public $ma = [];
     public $ema = [];
@@ -58,6 +65,125 @@ class Candle
     public function getDateTime()
     {
         return $datetime = date('Y-m-d H:i:s', $this->t);
+    }
+
+    public function heiAshiClose()
+    {
+        return ($this->o + $this->c + $this->l + $this->h) / 4;
+    }
+
+    public function heiAshiOpen($limit = 30)
+    {
+        if ($this->ho != -1)
+        {
+            return $this->ho;
+        }
+
+        if ($limit == 0)
+        {
+            return $this->o;
+        }
+
+        return ($this->getCandlePrev()->heiAshiOpen($limit - 1) + $this->getCandlePrev()->heiAshiClose()) / 2;
+    }
+
+    public function heiAshiHigh()
+    {
+        $ret = $this->h;
+        if ($ret < $this->heiAshiClose())
+        {
+            $ret = $this->heiAshiClose();
+        }
+        if ($ret < $this->heiAshiOpen())
+        {
+            $ret = $this->heiAshiOpen();
+        }
+
+        return $ret;
+    }
+
+    public function heiAshiLow()
+    {
+        $ret = $this->l;
+        if ($ret > $this->heiAshiClose())
+        {
+            $ret = $this->heiAshiClose();
+        }
+        if ($ret > $this->heiAshiOpen())
+        {
+            $ret = $this->heiAshiOpen();
+        }
+
+        return $ret;
+    }
+
+    public function getAtrTR()
+    {
+        if ($this->atr_set)
+        {
+            return $this->atr_tr;
+        }
+
+        if ($this->getCandlePrev()->t == $this->t)
+        {
+            return $this->h - $this->l;
+        }
+
+        $max = -1000000000;
+        $temp = $this->h - $this->l;
+        if ($max < $temp)
+        {
+            $max = $temp;
+        }
+
+        $temp = $this->h - $this->getCandlePrev()->c;
+        if ($max < $temp)
+        {
+            $max = $temp;
+        }
+
+        $temp = $this->getCandlePrev()->c - $this->l;
+        if ($max < $temp)
+        {
+            $max = $temp;
+        }
+
+        $this->atr_set = 1;
+        $this->atr_tr = $max;
+
+        return $max;
+    }
+
+    public function getATR($length=14, $left = 14)
+    {
+        if (isset($this->r_du[$length]))
+        {
+            return $this->r_du[$length];
+        }
+
+        if ($this->cp == null)
+        {
+            return 0;
+        }
+
+        if ($left == -$length * 2)
+        {
+            $sum = 0;
+            $candle = $this;
+            for ($i=0; $i<$length; $i++)
+            {
+                $sum += $candle->getAtrTR();
+                $candle = $candle->getCandlePrev();
+            }
+            // 평균 구하고 리턴
+            $this->atr[$length] = $sum / $length;
+            return $this->atr[$length];
+        }
+
+
+        $this->r_du[$length] = (($this->getCandlePrev()->getATR($length, $length - 1) * 13) + $this->getAtrTR()) / $length;
+        return $this->r_du[$length];
+
     }
 
     public function getDateTimeKST()

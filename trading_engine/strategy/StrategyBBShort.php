@@ -79,7 +79,7 @@ class StrategyBBShort extends StrategyBase
             if ($vol >= $this->sideways_per)
             {
                 $log_min = "555555555";
-                $candle = $candle_5min;
+                //$candle = $candle_5min;
                 $candle_trend = $candle_240min;
             }
         }
@@ -153,10 +153,6 @@ class StrategyBBShort extends StrategyBase
                 return "[매도] 익절 패스";
             }
 
-            if ($candle_60min->getBBUpLine(40, 1) < $candle->c)
-            {
-                return "[매도] 익절패스";
-            }
 
             $mag = $candle_zig->getMA(40);
             $stop_order = $orderMng->getOrder($this->getStrategyKey(), "손절");

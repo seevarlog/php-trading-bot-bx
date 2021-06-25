@@ -68,7 +68,7 @@ class StrategyBB extends StrategyBase
             if ($vol >= $this->sideways_per)
             {
                 $log_min = "555555555";
-                $candle = $candle_5min;
+                //$candle = $candle_5min;
             }
         }
 
@@ -176,7 +176,7 @@ class StrategyBB extends StrategyBase
                     1000
                 );
             }
-            else if ($candle->crossOverBBUpLineNew($day, $k_up) == true)
+            else if ($candle->crossoverBBUpLineAfterCenterLine($day, $k_up, $stop_order->t) == true)
             {
                 [$max, $min] = $candle->getMaxMinValueInLength(5);
                 // 골드 매도
