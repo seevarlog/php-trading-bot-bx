@@ -20,6 +20,7 @@ class StrategyBB extends StrategyBase
 
     public function BBS(Candle $candle)
     {
+        $leverage = $this->test_leverage;
         if (!Config::getInstance()->isRealTrade())
         {
             $leverage = $this->test_leverage;
@@ -54,49 +55,9 @@ class StrategyBB extends StrategyBase
 //            }
 //        }
 
-
-        $log_min = "11111111";
-        $sideCount = $candle_60min->getSidewaysCount($this->side_length);
-        $vol = $candle_60min->getAvgRealVolatilityPercent($this->side_candle_count);
-        $side_error = 0;
-        if ($dayCandle->getBBDownLine(40, 1.3) > $dayCandle->c || $dayCandle->getBBUpLine(40, 1.3) < $dayCandle->c)
-        {
-
-        }
-        else if ($sideCount <= $this->side_count)
-        {
-            if ($vol >= $this->sideways_per)
-            {
-                $log_min = "555555555";
-                //$candle = $candle_5min;
-            }
-        }
-
-
         GlobalVar::getInstance()->candleTick = $candle->tick;
-        GlobalVar::getInstance()->CrossCount = $sideCount;
-        GlobalVar::getInstance()->vol_1hour = $vol;
-        $log_min .= "side_count:".$sideCount."vol:".$vol;
-
-
-        $is_zigzag = 0;
         $per_1hour = $candle_60min->getAvgRealVolatilityPercent(24);
-        $side_count_5min = 0;
-        $log_min .= "zig:".$side_count_5min." ema:".$candle_60min->getEMA(50);
 
-
-        if ($curPosition->entry_tick > 1 && $curPosition->amount != 0)
-        {
-            $candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, $curPosition->entry_tick)->getCandlePrev();
-        }
-
-
-        //$is_zigzag = $side_count_5min < $this->zigzag_count;
-
-        //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
-        //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;
-
-        //$k_up = 1.3;
 
         $wait_min = 30;
         $k_up = 1.3;
@@ -131,70 +92,24 @@ class StrategyBB extends StrategyBase
             }
         }
 
-        if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount > 0)
+        // 안팔리면 계속 파는 로직 필요
+        if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount > 0 && $candle->UTBotIsSellEntry())
         {
-
-
             $sell_price = 0;
             $stop_order = $orderMng->getOrder($this->getStrategyKey(), "손절");
             $amount = $stop_order->amount;
-
-            if ($candle_15min->getBBUpLine($day, $k_up) < $candle->c)
-            {
-                if ($candle_5min->crossoverBBUpLineAfterCenterLine($day, $k_down, $stop_order->date) == true)
-                {
-                    [$max, $min] = $candle_1min->getMaxMinValueInLength(5);
-                    $price = ($max + $candle_1min->getClose()) / 2;
-                    // 골드 매도
-                    OrderManager::getInstance()->updateOrder(
-                        $candle->getTime(),
-                        $this->getStrategyKey(),
-                        $amount,
-                        $price,
-                        1,
-                        1,
-                        "익절",
-                        "성물익절".$candle->getDateTimeKST(),
-                    );
-                }
-            }
-            else if ($positionMng->getPosition($this->getStrategyKey())->action == "5분EMA")
-            {
-                $min5 = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
-
-                $sell_price = $min5->getMA(240) + $min5->getEMA(120) - $min5->getMA(300);
-
-                OrderManager::getInstance()->updateOrder(
-                    $candle->getTime(),
-                    $this->getStrategyKey(),
-                    $amount,
-                    $sell_price,
-                    1,
-                    1,
-                    "익절",
-                    "5분익절",
-                    1000
-                );
-            }
-            else if ($candle->crossoverBBUpLineAfterCenterLine($day, $k_up, $stop_order->t) == true)
-            {
-                [$max, $min] = $candle->getMaxMinValueInLength(5);
-                // 골드 매도
-                OrderManager::getInstance()->updateOrder(
-                    $candle->getTime(),
-                    $this->getStrategyKey(),
-                    $amount,
-                    ($max + $candle_1min->getClose()) / 2,
-                    1,
-                    1,
-                    "익절",
-                    "골드"
-                );
-            }
-            else
-            {
-                return "매도 불가";
-            }
+            [$max, $min] = $candle->getMaxMinValueInLength(5);
+            // 골드 매도
+            OrderManager::getInstance()->updateOrder(
+                $candle->getTime(),
+                $this->getStrategyKey(),
+                $amount,
+                ($candle_1min->getClose() + $max) / 2,
+                1,
+                1,
+                "익절",
+                "골드"
+            );
         }
 
         if ($positionMng->getPosition($this->getStrategyKey())->amount > 0)
@@ -202,177 +117,15 @@ class StrategyBB extends StrategyBase
             return "포지션 점유증";
         }
 
+        if (!$candle->UTBotIsLongEntry())
+        {
+            return "진입 ";
+        }
         $action = "";
         $log = "";
-        $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
-        // BB 밑이면 이미 하락 크게 진행 중
-        if ($candle_5min->getGoldenDeadState() == "gold" && $candle_5min->getEMA300Cross(20) <= 0 &&
-            $candle_5min->getEMA(300) < $candle->c &&  $candle->c < $candle_5min->getEMA(200) )
-        {
-            // 골크에 200일선과 300일선 사이라서 도박해본다
-            if ($dayCandle->getAvgBugVolatilityPercent(3) > 0.12)
-            {
-                $stop_per = 0.08;
-            }
-            else if ($dayCandle->getAvgBugVolatilityPercent(3) > 0.09)
-            {
-                $stop_per = 0.06;
-            }
-            else if ($dayCandle->getAvgBugVolatilityPercent(3) > 0.075)
-            {
-                $stop_per = 0.045;
-            }
-            else if ($dayCandle->getAvgBugVolatilityPercent(3) > 0.05)
-            {
-                $stop_per = 0.035;
-            }
 
-            $max_per = $candle_5min->getMaxIntervalEMA(300, 200);
-            $stop_per = 0.03;
-
-            //$buy_price = $candle_5min->getEMA(300) * (1 - ($max_per * 0.5));
-            $buy_price = $candle_5min->getEMA(300);
-            $stop_price = $buy_price * (1 - $stop_per);
-            $action = "필살5분EMA";
-            $wait_min = 30;
-            GOTO ENTRY;
-        }
-
-        // 1차 합격
-        $buy_per = 0.0001;
-        // 1시간봉 과매수 거래 중지
-
-
-        if ($dayCandle->getMaxMinValueInLength(60)[0] < $candle_60min->getMaxMinValueInLength(10)[0] || $dayCandle->getMaxMinValueInLength(60)[0] < $candle_1min->c)
-        {
-            //$is_zigzag = 0;
-        }
-        else if ($candle_60min->getNewRsi(14) > 70)
-        {
-            return "1시간 RSI 에러";
-        }
-
-        if ($candle_60min->getPrevBBDownLineCrossCheck(10)  && $side_error)
-        {
-            return "[매수] 횡보 매수 금지";
-        }
-
-
-        // 거래 중지 1시간
-        if ($side_error)
-        {
-
-            if ($candle_60min->getBBDownLine(40, 1) < $candle->c)
-            {
-                return "[매수] 위험 지역";
-            }
-
-        }
-        else
-        {
-            if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) > 0.5)
-            {
-                // 하락 추세에서 반전의 냄새가 느껴지면 거래진입해서 큰 익절을 노림
-                if ($candle_60min->getMinRsiBug(14, 7) < 30 && $candle_60min->getRsiInclinationSum(3) > 0 && $candle_60min->getGoldenDeadState() == "gold")
-                {
-                    $stop_per = $per_1hour * 3;
-                    $buy_per = $per_1hour / 2;
-                    $buy_price = $candle->getClose() * (1 - $buy_per);
-                    $stop_price = $buy_price  * (1 - $stop_per);
-                    $wait_min = 180;
-
-                    $action = "1시간봉";
-
-                    goto ENTRY;
-                }
-                else
-                {
-                    return "1시간반전 기회없음";
-                }
-            }
-        }
-
-        if ($candle->crossoverBBDownLineNew($day, $k_down) == false)
-        {
-            return "크로스안함";
-        }
-
-
-        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
-        // 1시간봉 BB 밑이면 정지
-        if ($candle_60min->getBBDownLine(37, 0.95) > $candle_60min->c)
-        {
-            return "1시간 BB 아래에 있음";
-        }
-
-        if ($candle_60min)
-
-            $log_plus="";
-
-        $log = sprintf("buy_per:%f stop:%f".$log_plus, (1 - $buy_per), (1 - $stop_per));
-
-        $buy_price = $candle_1min->getClose() * (1 - $buy_per);
-        $stop_price = $buy_price  * (1 - $stop_per);
-        $wait_min = 30;
-
-
-        // 5분봉 예외처리
-        if ($candle_5min->getMinRsi(14, 5) < 30)
-        {
-            $stop_per += 0.005;
-            [$max_5min, $min_5min] = $candle_5min->getMaxMinValueInLength(90);
-            $buy_price = $min_5min;
-            $stop_price = $buy_price * (1 - $stop_per);
-            $action = "5분";
-            $wait_min = 30;
-        }
-
-        // 마지막 1분봉 저항선 근처라면 거래금지
-        $state = $candle->getGoldenDeadState();
-        if ($state == "dead")
-        {
-            $ema240 = $candle->getEMA(240);
-            $ema300 = $candle->getEMA(300);
-            $ema300_min = $ema300 * 0.9975;
-            $ema300_max = $ema300 * 1.0025;
-
-            // 혹시라도 진입했는데 저항선 근처라면 패스
-            if ($ema300 < $candle->c)
-            {
-                return "저항선 근처라 패스";
-            }
-        }
-
-
-
-        $log .= $state;
-        if ($buy_price > $candle_1min->c)
-        {
-            $buy_price = $candle_1min->c - 1;
-            var_dump("buy 사탄".$buy_price."-".$candle->c);
-        }
-        if ($stop_price > $candle_1min->c)
-        {
-            $stop_price = $candle_1min->c - 1;
-            var_dump("stop 사탄".$stop_price."-".$candle->c);
-        }
-
-
-        if ($candle_15min->getGoldenDeadState() == "dead" && $candle_60min->getGoldenDeadState() == "gold")
-        {
-            $ema240 = $candle_15min->getEMA(240);
-
-            // 혹시라도 진입했는데 저항선 근처라면 패스
-            if ($ema240 < $candle->c)
-            {
-                return "저항선 근처라 패스";
-            }
-        }
-
-        ENTRY:
-        // 매수 시그널, 아래서 위로 BB를 뚫음
-        // 매수 주문
-
+        $buy_price = $candle->c * 0.9999;
+        $stop_price = $candle->c * 0.9;
 
         $leverage_correct = $leverage;
         if ($leverage > 1)
@@ -389,7 +142,7 @@ class StrategyBB extends StrategyBase
             }
         }
 
-        $log .= "k = ".$k_up. " DAY=".$day.$log_min;
+        $log .= "k = ".$k_up. " DAY=".$day;
 
 
         OrderManager::getInstance()->updateOrder(

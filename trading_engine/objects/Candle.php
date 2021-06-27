@@ -23,6 +23,14 @@ class Candle
     public $tick;
     public $idx;
 
+    // UT Bot Strategy
+    public $ut_long_start = 0;
+    public $ut_short_start = 0;
+    public $ut_short_drag = 0;
+    public $ut_long_drag = 0;
+    public $xATRailingStop = 0.0;
+    public $pos = 0;
+
     public $cn = null;
     public $cp = null;
 
@@ -51,7 +59,9 @@ class Candle
 
     public $stddev = [];
     public $ma = [];
+    public $h_ma = [];
     public $ema = [];
+    public $h_ema = [];
     public $rsi_ema = [];
 
     public $cross_ema = [];
@@ -72,8 +82,13 @@ class Candle
         return ($this->o + $this->c + $this->l + $this->h) / 4;
     }
 
-    public function heiAshiOpen($limit = 30)
+    public function heiAshiOpen($limit = -1)
     {
+        if ($limit == -1)
+        {
+            $limit = 30;
+        }
+
         if ($this->ho != -1)
         {
             return $this->ho;
@@ -89,17 +104,7 @@ class Candle
 
     public function heiAshiHigh()
     {
-        $ret = $this->h;
-        if ($ret < $this->heiAshiClose())
-        {
-            $ret = $this->heiAshiClose();
-        }
-        if ($ret < $this->heiAshiOpen())
-        {
-            $ret = $this->heiAshiOpen();
-        }
-
-        return $ret;
+        return max ($this->h, $this->heiAshiClose(), $this->heiAshiOpen());
     }
 
     public function heiAshiLow()
@@ -114,7 +119,7 @@ class Candle
             $ret = $this->heiAshiOpen();
         }
 
-        return $ret;
+        return min ($this->l, $this->heiAshiClose(), $this->heiAshiOpen());
     }
 
     public function getAtrTR()
@@ -130,19 +135,19 @@ class Candle
         }
 
         $max = -1000000000;
-        $temp = $this->h - $this->l;
+        $temp = $this->heiAshiHigh() - $this->heiAshiLow();
         if ($max < $temp)
         {
             $max = $temp;
         }
 
-        $temp = $this->h - $this->getCandlePrev()->c;
+        $temp = $this->heiAshiHigh() - $this->getCandlePrev()->heiAshiClose();
         if ($max < $temp)
         {
             $max = $temp;
         }
 
-        $temp = $this->getCandlePrev()->c - $this->l;
+        $temp = $this->getCandlePrev()->heiAshiClose() - $this->heiAshiLow();
         if ($max < $temp)
         {
             $max = $temp;
@@ -154,11 +159,16 @@ class Candle
         return $max;
     }
 
-    public function getATR($length=14, $left = 14)
+    public function getATR($length=14, $left = -1)
     {
-        if (isset($this->r_du[$length]))
+        if ($left == -1)
         {
-            return $this->r_du[$length];
+            $left = $length * 2;
+        }
+
+        if (isset($this->atr[$length]))
+        {
+            return $this->atr[$length];
         }
 
         if ($this->cp == null)
@@ -166,7 +176,7 @@ class Candle
             return 0;
         }
 
-        if ($left == -$length * 2)
+        if ($left == 0)
         {
             $sum = 0;
             $candle = $this;
@@ -180,9 +190,9 @@ class Candle
             return $this->atr[$length];
         }
 
+        $this->atr[$length] = (($this->getCandlePrev()->getATR($length, $left - 1) * ($length - 1)) + $this->getAtrTR()) / $length;
 
-        $this->r_du[$length] = (($this->getCandlePrev()->getATR($length, $length - 1) * 13) + $this->getAtrTR()) / $length;
-        return $this->r_du[$length];
+        return $this->atr[$length];
 
     }
 
@@ -194,6 +204,10 @@ class Candle
     public function displayCandle()
     {
         return "t:".$this->getDateTime()."  h:".$this->h." l:".$this->l." c:".$this->c." o:".$this->o. "tick:".$this->tick;
+    }
+    public function displayHeikenAshiCandle()
+    {
+        return "t:".$this->getDateTimeKST()."  o:".$this->heiAshiOpen()." h:".$this->heiAshiHigh()." l:".$this->heiAshiLow()." c:".$this->heiAshiClose();
     }
 
     public function getTime()
@@ -781,6 +795,28 @@ class Candle
         return $this->ma[$day];
     }
 
+
+    public function getHeiMA($day)
+    {
+        if (isset($this->h_ma[$day]))
+        {
+            return $this->h_ma[$day];
+        }
+
+        $sum = 0;
+        $prev = $this;
+        for ($i=0; $i<$day; $i++)
+        {
+            $sum += $prev->heiAshiClose();
+            $prev = $prev->getCandlePrev();
+        }
+
+        $this->h_ma[$day] = $sum / $day;
+
+
+        return $this->h_ma[$day];
+    }
+
     // 평균 변동성 구하기
     public function getAvgVolatility($day)
     {
@@ -934,6 +970,16 @@ class Candle
         return $sum_percent;
     }
 
+    public function UTBotIsSellEntry()
+    {
+        return $this->ut_short_start && $this->ut_short_drag;
+    }
+
+    public function UTBotIsLongEntry()
+    {
+        return $this->ut_long_start && $this->ut_long_drag;
+    }
+
     public function getBBUpLine($day, $k)
     {
         return $this->getMA($day) + ($this->getStandardDeviationClose($day) * $k);
@@ -942,19 +988,6 @@ class Candle
     public function getBBDownLine($day, $k)
     {
         return $this->getMA($day) - ($this->getStandardDeviationClose($day) * $k);
-    }
-
-    public function crossoverBBDownLine($day, $k)
-    {
-        $prev = $this->getCandlePrev();
-        if($prev->getClose() < $prev->getBBDownLine($day, $k))
-        {
-            if($this->getClose() > $this->getBBDownLine($day, $k))
-            {
-                return True;
-            }
-        }
-        return False;
     }
 
 
@@ -1093,6 +1126,47 @@ class Candle
         }
         return False;
     }
+
+    public function crossoverHeiEmaATRTrailingStop()
+    {
+        $prev = $this->getCandlePrev();
+        if($prev->getHeiEMA(1) < $prev->xATRailingStop)
+        {
+            if($this->getHeiEMA(1) > $this->xATRailingStop)
+            {
+                return True;
+            }
+        }
+        return False;
+    }
+
+    public function crossoverATRTrailingStopHeiEma()
+    {
+        $prev = $this->getCandlePrev();
+        if($prev->xATRailingStop < $prev->getHeiEMA(1))
+        {
+            if($this->xATRailingStop > $this->getHeiEMA(1))
+            {
+                return True;
+            }
+        }
+        return False;
+    }
+
+
+    public function crossoverBBDownLine($day, $k)
+    {
+        $prev = $this->getCandlePrev();
+        if($prev->getClose() < $prev->getBBDownLine($day, $k))
+        {
+            if($this->getClose() > $this->getBBDownLine($day, $k))
+            {
+                return True;
+            }
+        }
+        return False;
+    }
+
 
     public function crossoverBBUpLine($day, $k)
     {
@@ -1393,6 +1467,39 @@ class Candle
         return $ema;
     }
 
+    public function getHeiEMA($length, $n = -1)
+    {
+        if ($n == -1)
+        {
+            $n = $length * 2;
+            if ($n < 10)
+            {
+                $n = 10;
+            }
+        }
+
+        if (isset($this->h_ema[$length]))
+        {
+            return $this->h_ema[$length];
+        }
+
+        if ($n == 0)
+        {
+            $ma = $this->getHeiMA($length);
+            if ($ma == 0)
+            {
+                return $this->heiAshiClose();
+            }
+
+            return $ma;
+        }
+
+        $exp = 2 / ($length + 1);
+        $ema = ($this->heiAshiClose() * $exp) + ($this->getCandlePrev()->getHeiEMA($length, $n - 1) * (1 - $exp));
+        $this->h_ema[$length] = $ema;
+
+        return $ema;
+    }
 
     public function getEMA($length, $n = -1)
     {

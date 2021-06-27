@@ -216,6 +216,10 @@ class OrderManager extends Singleton
         return $order;
     }
 
+    /**
+     * @param $name
+     * @return Order[]
+     */
     public function getOrderList($name)
     {
         if (isset($this->order_list[$name]))
@@ -339,10 +343,26 @@ class OrderManager extends Singleton
                     //var_dump($position);
                     //var_dump($order);
 
+                    /*
                     $position->addPositionByOrder($order, $last_candle);
                     if ($position->amount == 0)
                     {
                         $this->clearAllOrder($order->strategy_key);
+                        // 밸런스 동기화
+                        if (Config::getInstance()->isRealTrade())
+                        {
+                            $account = Account::getInstance();
+                            $account->balance = GlobalVar::getInstance()->
+                            getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
+                            Notify::sendMsg("지갑 동기화했다. usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
+                        }
+                        break;
+                    }
+                    */
+
+                    $position->addPositionByOrderUT($order, $last_candle);
+                    if ($position->amount == 0)
+                    {
                         // 밸런스 동기화
                         if (Config::getInstance()->isRealTrade())
                         {
