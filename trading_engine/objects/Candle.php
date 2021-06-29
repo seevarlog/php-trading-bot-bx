@@ -109,16 +109,6 @@ class Candle
 
     public function heiAshiLow()
     {
-        $ret = $this->l;
-        if ($ret > $this->heiAshiClose())
-        {
-            $ret = $this->heiAshiClose();
-        }
-        if ($ret > $this->heiAshiOpen())
-        {
-            $ret = $this->heiAshiOpen();
-        }
-
         return min ($this->l, $this->heiAshiClose(), $this->heiAshiOpen());
     }
 
@@ -198,7 +188,7 @@ class Candle
 
     public function getDateTimeKST()
     {
-        return $datetime = date('Y-m-d H:i:s', $this->t + 3600 * 9);
+        return date('Y-m-d H:i:s', $this->t + 3600 * 9);
     }
 
     public function displayCandle()

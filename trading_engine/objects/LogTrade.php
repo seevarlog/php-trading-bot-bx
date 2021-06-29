@@ -9,6 +9,7 @@ class LogTrade
     public $date_order;               // 최초 주문 시간
     public $strategy_name;
     public $amount;
+    public $left_amount;
     public $entry;
     public $profit_balance;
     public $trade_fees;

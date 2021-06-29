@@ -46,6 +46,7 @@ class TradeLogManager extends Singleton
         <td>거래시간</td>
         <td>소요시간</td>
         <td>거래량</td>
+        <td>남은량</td>
         <td>진입가</td>
         <td>진입수수료</td>
         <td>수익</td>
@@ -72,6 +73,7 @@ HTML;
         <td>{$order}</td>
         <td>소요시간</td>
         <td>{$log->amount}</td>
+        <td>{$log->left_amount}</td>
         <td>{$log->entry}</td>
         <td>{$log->trade_fees}</td>
         <td>{$log->profit_balance}</td>

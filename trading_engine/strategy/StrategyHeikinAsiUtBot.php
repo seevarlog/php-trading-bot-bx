@@ -9,6 +9,7 @@ use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
+use trading_engine\util\CoinPrice;
 use trading_engine\util\Config;
 
 
@@ -34,19 +35,10 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
         $orderMng = OrderManager::getInstance();
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
-        if (count($order_list) > 0 && $orderMng->getOrder($this->getStrategyKey(), "손절")->amount > 0)
-        {
-            return "매도포지션 점유 중";
-        }
 
         $candle_1min = clone $candle;
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
-        $candle_240min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 240)->getCandlePrev();
-        $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
-        $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
-        $candle_zig = CandleManager::getInstance()->getCurOtherMinCandle($candle, $this->zigzag_min)->getCandlePrev();
-        $candle_trend = $candle_60min;
 
 //        $ema_count = $candle_60min->getEMACrossCount();
 //        $log_min = "111111111";
@@ -60,17 +52,18 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 //            }
 //        }
 
-        $candle = $candle;
-        $per_1hour = 1;
-        $wait_min = 30;
-        $k_up = 1.3;
-        $stop_per = 20;
+        /*******************************
+         *  셋팅
+         *
+         *********************************************/
+        $candle_min = 1;
+        $candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, $candle_min)->getCandlePrev();
 
         $orderMng = OrderManager::getInstance();
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
 
         $xATR = $candle->getATR(10);
-        $nLoss = 1.0 * $xATR;
+        $nLoss = 1 * $xATR;
 
         $src_1 = $candle->getCandlePrev()->heiAshiClose();
         $src = $candle->heiAshiClose();
@@ -93,22 +86,19 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $buy  = $src > $xATRTrailingStop && $above;
         $sell = $src < $xATRTrailingStop && $below;
 
+
         if ($candle_1min->t % (60 * 60 * 4) == 0)
         {
-
-//            var_dump($candle->getHeiEMA(1));
-            //echo("l:".(string)($src > $xATRTrailingStop). " => ". $above."\r\n");
-
             if ($buy)
             {
-                var_dump($candle->displayHeikenAshiCandle());
-                var_dump("롱진입");
+                //var_dump($candle->displayHeikenAshiCandle());
+//                var_dump("롱진입");
             }
 
             if ($sell)
             {
-                var_dump($candle->displayHeikenAshiCandle());
-                var_dump("숏진입");
+//                var_dump($candle->displayHeikenAshiCandle());
+//                var_dump("숏진입");
             }
 
         }
@@ -134,149 +124,176 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             }
         }
 
+        if ($buy == 0 && $sell == 0)
+        {
+            $curPosition->no_trade_tick_count += 1;
+            if ($curPosition->last_buy_sell_command == "buy" && $curPosition->amount <= 0)
+            {
+                $this->buyBit($candle);
+            }
+            else if ($curPosition->last_buy_sell_command == "sell" && $curPosition->amount >= 0)
+            {
+                $this->sellBit($candle);
+            }
+        }
 
         if ($sell)
         {
-            $action = "";
-            $log = "";
-            if ($candle_60min)
-
-                $log_plus="";
-
-            $log = "";
-
-            $buy_per = 0.001;
-            $buy_price = $candle_1min->getClose() * (1 + $buy_per);
-            $stop_price = $buy_price  * (1 + 0.1);
-            $wait_min = 30;
-
-            if ($buy_price < $candle_1min->c)
+            if (count($order_list) > 0 && $orderMng->getOrder($this->getStrategyKey(), "손절")->amount > 0)
             {
-                $buy_price = $candle_1min->c + 1;
-                var_dump("buy 사탄".$buy_price."-".$candle->c);
+                return "매도포지션 점유 중";
             }
-            if ($stop_price < $candle_1min->c)
-            {
-                $stop_price = $candle_1min->c + 1;
-                var_dump("stop 사탄".$stop_price."-".$candle->c);
-            }
+            $curPosition->last_buy_sell_command = "sell";
+            $curPosition->no_trade_tick_count = 0;
 
-            $leverage_correct = $leverage;
-            if ($leverage > 1)
-            {
-                $leverage_standard_stop_per = 0.013;
-                $leverage_stop_per = $buy_price / $stop_price - 1;
-                if ($leverage_stop_per < $leverage_standard_stop_per)
-                {
-                    $leverage_correct = $leverage;
-                }
-                else
-                {
-                    $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.15;
-                }
-            }
-
-
-            OrderManager::getInstance()->updateOrder(
-                $candle->getTime(),
-                $this->getStrategyKey(),
-                -Account::getInstance()->getUSDBalance() * $leverage_correct,
-                $buy_price,
-                1,
-                0,
-                "진입",
-                $log,
-                $action,
-                $candle->getWaitMin()
-            );
-
-            // 손절 주문
-            OrderManager::getInstance()->updateOrder(
-                $candle->getTime(),
-                $this->getStrategyKey(),
-                Account::getInstance()->getUSDBalance() * $leverage_correct,
-                $stop_price,
-                0,
-                1,
-                "손절",
-                $log,
-                $action,
-                $candle->getWaitMin()
-            );
+            $this->sellBit($candle);
         }
         else if ($buy)
         {
-            $action = "";
-            $log = "";
-            if ($candle_60min)
-
-                $log_plus="";
-
-            $log = "";
-
-            $buy_per = 0.001;
-            $buy_price = $candle_1min->getClose() * (1 - $buy_per);
-            $stop_price = $buy_price  * (1 - 0.1);
-            $wait_min = 30;
-
-            if ($buy_price > $candle_1min->c)
+            if (count($order_list) > 0 && $orderMng->getOrder($this->getStrategyKey(), "손절")->amount < 0)
             {
-                $buy_price = $candle_1min->c - 1;
-                var_dump("buy 사탄".$buy_price."-".$candle->c);
-            }
-            if ($stop_price > $candle_1min->c)
-            {
-                $stop_price = $candle_1min->c - 1;
-                var_dump("stop 사탄".$stop_price."-".$candle->c);
+                return "매도포지션 점유 중";
             }
 
-            $leverage_correct = $leverage;
-            if ($leverage > 1)
-            {
-                $leverage_standard_stop_per = 0.013;
-                $leverage_stop_per = $buy_price / $stop_price - 1;
-                if ($leverage_stop_per < $leverage_standard_stop_per)
-                {
-                    $leverage_correct = $leverage;
-                }
-                else
-                {
-                    $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.15;
-                }
-            }
+            $curPosition->last_buy_sell_command = "buy";
+            $curPosition->no_trade_tick_count = 0;
 
-
-            OrderManager::getInstance()->updateOrder(
-                $candle->getTime(),
-                $this->getStrategyKey(),
-                Account::getInstance()->getUSDBalance() * $leverage_correct,
-                $buy_price,
-                1,
-                0,
-                "진입",
-                $log,
-                $action,
-                $candle->getWaitMin()
-            );
-
-            // 손절 주문
-            OrderManager::getInstance()->updateOrder(
-                $candle->getTime(),
-                $this->getStrategyKey(),
-                -Account::getInstance()->getUSDBalance() * $leverage_correct,
-                $stop_price,
-                0,
-                1,
-                "손절",
-                $log,
-                $action,
-                $candle->getWaitMin()
-            );
+            $this->buyBit($candle);
         }
 
 
 
         return "";
+    }
+
+    public function buyBit($candle)
+    {
+        $leverage = $this->test_leverage;
+        $stop_per = $this->stop_per;
+        $buy_price = CoinPrice::getInstance()->bit_price - 1;
+        $stop_price = $buy_price  * (1 - $stop_per);
+        $positionMng = PositionManager::getInstance();
+        $curPosition = $positionMng->getPosition($this->getStrategyKey());
+
+        $leverage_correct = $leverage;
+        if ($leverage > 1)
+        {
+            $leverage_standard_stop_per = 0.013;
+            $leverage_stop_per = $buy_price / $stop_price - 1;
+            if ($leverage_stop_per < $leverage_standard_stop_per)
+            {
+                $leverage_correct = $leverage;
+            }
+            else
+            {
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage));
+            }
+        }
+
+
+        $now_usd = Account::getInstance()->getUnrealizedUSDBalance();
+        $other_amount = $curPosition->amount;
+
+        OrderManager::getInstance()->updateOrder(
+            $candle->getTime(),
+            $this->getStrategyKey(),
+            (abs($now_usd) * $leverage_correct + abs($other_amount)),
+            $buy_price + 10,
+            1,
+            0,
+            "진입",
+            "buy",
+            "",
+            $candle->getWaitMin()
+        );
+
+        // 손절 주문
+        OrderManager::getInstance()->updateOrder(
+            $candle->getTime(),
+            $this->getStrategyKey(),
+            -(abs($now_usd) * $leverage_correct),
+            $stop_price + 1,
+            0,
+            1,
+            "손절",
+            "",
+            "",
+            $candle->getWaitMin()
+        );
+    }
+
+    public function sellBit($candle)
+    {
+
+        $leverage = $this->test_leverage;
+        $stop_per = $this->stop_per;
+        $buy_price = CoinPrice::getInstance()->bit_price - 1;
+        $stop_price = $buy_price  * (1 - $stop_per);
+        $positionMng = PositionManager::getInstance();
+        $curPosition = $positionMng->getPosition($this->getStrategyKey());
+
+        $buy_per = 0.001;
+        $buy_price = $candle->getClose() * (1 + $buy_per);
+        $stop_price = $buy_price  * (1 + $stop_per);
+        $wait_min = 30;
+
+        if ($buy_price < $candle->c)
+        {
+            $buy_price = $candle->c - 1;
+            var_dump("buy 사탄".$buy_price."-".$candle->c);
+        }
+        if ($stop_price < $candle->c)
+        {
+            $stop_price = $candle->c - 1;
+            var_dump("stop 사탄".$stop_price."-".$candle->c);
+        }
+
+        $leverage_correct = $leverage;
+        if ($leverage > 1)
+        {
+            $leverage_standard_stop_per = 0.013;
+            $leverage_stop_per = $buy_price / $stop_price - 1;
+            if ($leverage_stop_per < $leverage_standard_stop_per)
+            {
+                $leverage_correct = $leverage;
+            }
+            else
+            {
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage));
+            }
+        }
+
+
+        $now_usd = Account::getInstance()->getUnrealizedUSDBalance();
+        $now_amount = $curPosition->amount;
+        //var_dump($other_amount);
+
+        OrderManager::getInstance()->updateOrder(
+            $candle->getTime(),
+            $this->getStrategyKey(),
+            -(abs($now_usd) * $leverage_correct + abs($now_amount)),
+            $buy_price - 10,
+            1,
+            0,
+            "진입",
+            "",
+            "",
+            $candle->getWaitMin()
+        );
+
+        // 손절 주문
+        OrderManager::getInstance()->updateOrder(
+            $candle->getTime(),
+            $this->getStrategyKey(),
+            abs($now_usd)  * $leverage_correct,
+            $stop_price - 1,
+            0,
+            1,
+            "손절",
+            "",
+            "",
+            $candle->getWaitMin()
+        );
     }
 
     public function procEntryTrade($candle, $buy_per, $stop_per, $leverage)

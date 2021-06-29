@@ -16,9 +16,10 @@ class Position
     public $entry = 0;
     public $amount = 0;
     public $log = [];
-    public $last_execition_time = 0;
     public $action = "";
     public $entry_tick = 1;
+    public $last_buy_sell_command = "";
+    public $no_trade_tick_count = 0;
 
     public function addLog($log)
     {
@@ -90,7 +91,12 @@ class Position
 
         if ($this->amount != 0 && $order->comment == "진입")
         {
-            echo "error";
+            //echo "error";
+        }
+
+        if (count(OrderManager::getInstance()->getOrderList("BBS1")) <= 2)
+        {
+            //var_dump(OrderManager::getInstance()->getOrderList("BBS1"));
         }
 
         $prev_entry = $this->entry;
@@ -114,57 +120,73 @@ class Position
         }
 
         // 포지션 손익 계산
-        if ($this->amount > 0)
+//        if ($this->amount > 0)
+//        {
+//            if ($order->amount < 0)
+//            {
+//                $profit_amount = $order->amount;
+//                if ($this->amount + $order->amount < 0)
+//                {
+//                    $profit_amount = $order->amount - $profit_amount;
+//                }
+//
+//
+//                $profit_balance = -$profit_amount * (($exec_order_price / $this->entry) - 1);
+//                $this->amount += $order->amount;
+//                if ($this->amount + $order->amount < 0)
+//                {
+//                    $this->entry = $exec_order_price;
+//                }
+//            }
+//            else
+//            {
+//                $this->entry = ($this->entry * $this->amount) + ($exec_order_price * $this->amount) / 2;
+//                $this->amount += $order->amount;
+//            }
+//        }
+//        else if ($this->amount < 0)
+//        {
+//            if ($order->amount > 0)
+//            {
+//                $profit_amount = $order->amount;
+//
+//                $profit_balance = -$profit_amount * (($exec_order_price / $this->entry) - 1);
+//                $this->amount += $order->amount;
+//                if ($this->amount + $order->amount > 0)
+//                {
+//                    $this->entry = $exec_order_price;
+//                }
+//            }
+//            else
+//            {
+//                $this->entry = (($this->entry * $this->amount) + ($exec_order_price * $this->amount)) / 2;
+//                $this->amount += $order->amount;
+//            }
+//        }
+//        else if ($this->amount == 0)
+//        {
+//            $this->entry = $exec_order_price;
+//            $this->amount = $order->amount;
+//        }
+
+        $profit_balance = 0;
+        $order_price = $exec_order_price;
+
+        if ($this->entry != 0)
         {
-            if ($order->amount < 0)
-            {
-                $profit_amount = $order->amount;
-                if ($this->amount + $order->amount < 0)
-                {
-                    $profit_amount = $order->amount - $profit_amount;
-                }
+            $profit_balance = ((1/$this->entry - 1/$order_price) * $this->amount);
+            $fee /= $exec_order_price;
 
-
-                $profit_balance = -$profit_amount * (($exec_order_price / $this->entry) - 1);
-                $this->amount += $order->amount;
-                if ($this->amount + $order->amount < 0)
-                {
-                    $this->entry = $exec_order_price;
-                }
-            }
-            else
-            {
-                $this->entry = ($this->entry * $this->amount) + ($exec_order_price * $this->amount) / 2;
-                $this->amount += $order->amount;
-            }
+            $this->entry = ($this->amount + $order->amount) == 0 ? 0 : $order->entry;
+            $this->amount = $this->entry == 0 ? 0 : $this->amount + $order->amount;
         }
-        else if ($this->amount < 0)
+        else
         {
-            if ($order->amount > 0)
-            {
-                $profit_amount = $order->amount;
-
-                $profit_balance = -$profit_amount * (($exec_order_price / $this->entry) - 1);
-                $this->amount += $order->amount;
-                if ($this->amount + $order->amount > 0)
-                {
-                    $this->entry = $exec_order_price;
-                }
-            }
-            else
-            {
-                $this->entry = (($this->entry * $this->amount) + ($exec_order_price * $this->amount)) / 2;
-                $this->amount += $order->amount;
-            }
-        }
-        else if ($this->amount == 0)
-        {
-            $this->entry = $exec_order_price;
+            $fee /= $exec_order_price;
+            $this->entry = $order->entry;
             $this->amount = $order->amount;
         }
 
-        $profit_balance /= $exec_order_price;
-        $fee /= $exec_order_price;
 
         $account = Account::getInstance();
         $account->balance += $profit_balance + $fee;
@@ -208,6 +230,7 @@ MSG;
         $log->comment = $order->comment;
         $log->date_order = date('Y-m-d H:i:s', $candle->t);
         $log->amount = $order->amount;
+        $log->left_amount = $this->amount;
         $log->entry = Order::correctEntry($order->entry);
         $log->profit_balance = $profit_balance;
         $log->total_balance = $account->getBitBalance();
