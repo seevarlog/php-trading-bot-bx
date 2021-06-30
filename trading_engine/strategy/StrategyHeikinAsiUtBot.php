@@ -36,25 +36,8 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $orderMng = OrderManager::getInstance();
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
 
-        $candle_1min = clone $candle;
-        $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
-        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
-
-//        $ema_count = $candle_60min->getEMACrossCount();
-//        $log_min = "111111111";
-//        if ($ema_count > $this->ema_count && $candle_60min->getAvgVolatilityPercent(200) > $this->avg_limit)
-//        {
-//            $log_min = "333333333";
-//            if ($ema_count > $this->ema_5m_count)
-//            {
-//                // 최고조 박스형태
-//                $log_min = "555555555";
-//            }
-//        }
-
         /*******************************
          *  셋팅
-         *
          *********************************************/
         $candle_min = 1;
         $candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, $candle_min)->getCandlePrev();
@@ -85,24 +68,6 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 
         $buy  = $src > $xATRTrailingStop && $above;
         $sell = $src < $xATRTrailingStop && $below;
-
-
-        if ($candle_1min->t % (60 * 60 * 4) == 0)
-        {
-            if ($buy)
-            {
-                //var_dump($candle->displayHeikenAshiCandle());
-//                var_dump("롱진입");
-            }
-
-            if ($sell)
-            {
-//                var_dump($candle->displayHeikenAshiCandle());
-//                var_dump("숏진입");
-            }
-
-        }
-
 
         // 오래된 주문은 취소한다
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
@@ -143,6 +108,12 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             {
                 return "매도포지션 점유 중";
             }
+
+            if ($curPosition->amount < 0)
+            {
+                return "이미 매도 주도 시장";
+            }
+
             $curPosition->last_buy_sell_command = "sell";
             $curPosition->no_trade_tick_count = 0;
 
@@ -153,6 +124,11 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             if (count($order_list) > 0 && $orderMng->getOrder($this->getStrategyKey(), "손절")->amount < 0)
             {
                 return "매도포지션 점유 중";
+            }
+
+            if ($curPosition->amount > 0)
+            {
+                return "이미 매수 주도 시장";
             }
 
             $curPosition->last_buy_sell_command = "buy";
@@ -198,11 +174,11 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             $candle->getTime(),
             $this->getStrategyKey(),
             (abs($now_usd) * $leverage_correct + abs($other_amount)),
-            $buy_price + 10,
+            $buy_price * (1-$this->entry_per),
             1,
             0,
             "진입",
-            "buy",
+            "atr:".$candle->getATR(10),
             "",
             $candle->getWaitMin()
         );
@@ -272,7 +248,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             $candle->getTime(),
             $this->getStrategyKey(),
             -(abs($now_usd) * $leverage_correct + abs($now_amount)),
-            $buy_price - 10,
+            $buy_price * (1+$this->entry_per),
             1,
             0,
             "진입",

@@ -86,7 +86,7 @@ class Candle
     {
         if ($limit == -1)
         {
-            $limit = 30;
+            $limit = 60;
         }
 
         if ($this->ho != -1)
@@ -99,7 +99,8 @@ class Candle
             return $this->o;
         }
 
-        return ($this->getCandlePrev()->heiAshiOpen($limit - 1) + $this->getCandlePrev()->heiAshiClose()) / 2;
+        $this->ho = ($this->getCandlePrev()->heiAshiOpen($limit - 1) + $this->getCandlePrev()->heiAshiClose()) / 2;
+        return $this->ho;
     }
 
     public function heiAshiHigh()
@@ -112,7 +113,7 @@ class Candle
         return min ($this->l, $this->heiAshiClose(), $this->heiAshiOpen());
     }
 
-    public function getAtrTR()
+    public function getTR()
     {
         if ($this->atr_set)
         {
@@ -121,39 +122,24 @@ class Candle
 
         if ($this->getCandlePrev()->t == $this->t)
         {
-            return $this->h - $this->l;
-        }
-
-        $max = -1000000000;
-        $temp = $this->heiAshiHigh() - $this->heiAshiLow();
-        if ($max < $temp)
-        {
-            $max = $temp;
-        }
-
-        $temp = $this->heiAshiHigh() - $this->getCandlePrev()->heiAshiClose();
-        if ($max < $temp)
-        {
-            $max = $temp;
-        }
-
-        $temp = $this->getCandlePrev()->heiAshiClose() - $this->heiAshiLow();
-        if ($max < $temp)
-        {
-            $max = $temp;
+            return $this->heiAshiHigh() - $this->heiAshiLow();
         }
 
         $this->atr_set = 1;
-        $this->atr_tr = $max;
+        $this->atr_tr = max (
+            $this->heiAshiHigh() - $this->heiAshiLow(),
+            $this->heiAshiHigh() - $this->getCandlePrev()->heiAshiClose(),
+            $this->getCandlePrev()->heiAshiClose() - $this->heiAshiLow()
+        );
 
-        return $max;
+        return $this->atr_tr;
     }
 
     public function getATR($length=14, $left = -1)
     {
         if ($left == -1)
         {
-            $left = $length * 2;
+            $left = 100;
         }
 
         if (isset($this->atr[$length]))
@@ -172,7 +158,7 @@ class Candle
             $candle = $this;
             for ($i=0; $i<$length; $i++)
             {
-                $sum += $candle->getAtrTR();
+                $sum += $candle->getTR();
                 $candle = $candle->getCandlePrev();
             }
             // 평균 구하고 리턴
@@ -180,7 +166,7 @@ class Candle
             return $this->atr[$length];
         }
 
-        $this->atr[$length] = (($this->getCandlePrev()->getATR($length, $left - 1) * ($length - 1)) + $this->getAtrTR()) / $length;
+        $this->atr[$length] = (($this->getCandlePrev()->getATR($length, $left - 1) * ($length - 1)) + $this->getTR()) / $length;
 
         return $this->atr[$length];
 
@@ -1462,9 +1448,9 @@ class Candle
         if ($n == -1)
         {
             $n = $length * 2;
-            if ($n < 10)
+            if ($n < 20)
             {
-                $n = 10;
+                $n = 20;
             }
         }
 

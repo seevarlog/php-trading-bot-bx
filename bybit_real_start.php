@@ -11,8 +11,6 @@ use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
 use trading_engine\objects\Funding;
 use trading_engine\objects\Order;
-use trading_engine\strategy\StrategyBB;
-use trading_engine\strategy\StrategyBBShort;
 use trading_engine\util\CoinPrice;
 use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
@@ -294,7 +292,7 @@ foreach ($candle_1m_list['result'] as $candle_data)
 
 
 $candle_mng = CandleManager::getInstance();
-$make_candle_min_list = [3, 5, 15, 30, 60, 60*4, 60 * 24];
+$make_candle_min_list = [];
 for ($i=4; $i>0; $i--)
 {
     foreach ($make_candle_min_list as $make_min)
@@ -359,6 +357,11 @@ try {
     $last_time = time();
     $candle_prev_1m = CandleManager::getInstance()->getLastCandle(1);
     while (1) {
+        foreach ($make_candle_min_list as $min)
+        {
+//            CandleManager::getInstance()->getLastCandle($)
+        }
+
         sleep(1);
 
         $time_second = time() % 60;
@@ -366,7 +369,7 @@ try {
 
 
         if (!($time_second < 35 || $time_second > 25)) {
-            \trading_engine\objects\Funding::getInstance()->syncFunding();
+            //\trading_engine\objects\Funding::getInstance()->syncFunding();
         }
 
         if (!($time_second < 3 || $time_second > 57)) {
@@ -439,11 +442,13 @@ try {
 
         $global_var = GlobalVar::getInstance();
         OrderManager::getInstance()->update($candle_prev_1m);
-        $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
-        $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
+
+        // 따거 십썌끼야 다신보지말자
+        //$buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
+        //$sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
         //Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".$global_var->candleTick."cross:".$global_var->CrossCount."1hour_per:".$global_var->vol_1hour." buy:".$buy_msg." sell:".$sell_msg);
 
-
+        \trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->BBS($candle_prev_1m);
 
         if ($candle_1m->t % 1000 == 0)
         {
