@@ -27,11 +27,6 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 
     public function BBS(Candle $candle)
     {
-        $leverage = $this->test_leverage;
-        if (!Config::getInstance()->isRealTrade())
-        {
-            $leverage = $this->test_leverage;
-        }
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
         $orderMng = OrderManager::getInstance();
@@ -68,10 +63,10 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $buy  = $src > $xATRTrailingStop && $above;
         $sell = $src < $xATRTrailingStop && $below;
 
-        if ($candle->getDateTimeKST() <= "2021-06-03 00:00:00")
-        {
-            return;
-        }
+        $msg = <<<MSG
+src-1={$src_1}, stop-1={$vXATRailingStop_1}   :    src={$src},  stop={$xATRTrailingStop} 
+MSG;
+
 
         // 오래된 주문은 취소한다
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
@@ -173,7 +168,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 
 
 
-        return "buy=".(int)$buy." sell=".(int)$sell."  ".$candle->displayCandle();
+        return $msg."buy=".(int)$buy." sell=".(int)$sell."  ".$candle->displayCandle();
     }
 
     #[ArrayShape(['Buy' => "int|mixed", 'Sell' => "int|mixed"])]
