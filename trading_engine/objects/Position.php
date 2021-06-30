@@ -99,6 +99,7 @@ class Position
             //var_dump(OrderManager::getInstance()->getOrderList("BBS1"));
         }
 
+        $prev_amount = $this->amount;
         $prev_entry = $this->entry;
         $profit_balance = 0;
 
@@ -218,7 +219,8 @@ MSG;
         $order_list = OrderManager::getInstance()->getOrderList("BBS1");
         foreach ($order_list as $ordered)
         {
-            if ($ordered->amount == $ordered->amount * -1 && $ordered->comment == "손절" && $order->comment != "손절")
+            // 진입시 기존 포지션의 손절은 취소시킴
+            if ($prev_amount == $ordered->amount * -1 && $ordered->comment == "손절" && $order->comment != "손절")
             {
                 OrderManager::getInstance()->cancelOrder($ordered);
                 break;

@@ -77,6 +77,16 @@ class Candle
         return $datetime = date('Y-m-d H:i:s', $this->t);
     }
 
+    public function getCandle()
+    {
+        if ($this->t == 0)
+        {
+            return $this->getCandlePrev();
+        }
+
+        return $this;
+    }
+
     public function heiAshiClose()
     {
         return ($this->o + $this->c + $this->l + $this->h) / 4;
@@ -189,14 +199,6 @@ class Candle
     public function getTime()
     {
         return $this->t;
-    }
-    /**
-     * @param $n
-     * @return self
-     */
-    public static function getCandle($n)
-    {
-        return self::$data[$n];
     }
 
     public function getHigh()
@@ -844,31 +846,6 @@ class Candle
         return $ret;
     }
 
-    // 평균 변동성 구하기 (종가 기준)
-    public function getAvgVolatilityClose($day)
-    {
-        $sum = 0;
-        $prev = $this->getCandlePrev();
-
-        if ($prev->bd == $day && $this->n > $day)
-        {
-            $this->bd = $day;
-            $this->ba = ($prev->ba * $day - self::getCandle($this->n - $day)->getClose() + $this->getClose()) / $day;
-
-            return $this->ba;
-        }
-
-        for ($i=0; $i<$day; $i++)
-        {
-            $sum += $prev->getClose();
-            $prev = $prev->getCandlePrev();
-        }
-
-        $this->bd = $day;
-        $this->ba = $sum / $day;
-
-        return $this->ba;
-    }
 
     public function getAvgRealVolatilityPercent($day = 12)
     {

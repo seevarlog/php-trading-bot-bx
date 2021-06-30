@@ -9,9 +9,10 @@ use trading_engine\util\Singleton;
 class StrategyBase extends Singleton
 {
     public $min = 1;
-    public $test_leverage = 7;
+    public $test_leverage = 14;
     public $stop_per = 0.03;
-    public $entry_per = 0.0005;
+    public $buy_entry_per = 0.0001;
+    public $entry_per = 0.001;
     public $sideways_per = 0.014;
     public $side_candle_count = 24;
     public $day_per_1 = 0.3;

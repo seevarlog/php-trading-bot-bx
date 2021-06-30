@@ -375,6 +375,11 @@ try {
         if (!($time_second < 3 || $time_second > 57)) {
             continue;
         }
+        else
+        {
+            sleep(1);
+            \trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->traceTrade();
+        }
 
 
         // 캔들 마감 전에는 빨리 갱신한다.
@@ -448,7 +453,7 @@ try {
         //$sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
         //Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".$global_var->candleTick."cross:".$global_var->CrossCount."1hour_per:".$global_var->vol_1hour." buy:".$buy_msg." sell:".$sell_msg);
 
-        $msg = \trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->BBS($candle_prev_1m);
+        $msg = \trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->BBS($candle_1m);
         Notify::sendMsg($msg);
 
         if ($candle_1m->t % 1000 == 0)
