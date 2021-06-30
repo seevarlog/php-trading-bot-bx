@@ -139,7 +139,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 
 
 
-        return "";
+        return "buy=".(int)$buy." sell=".(int)$sell."  ".$candle->displayCandle();
     }
 
     public function buyBit($candle)

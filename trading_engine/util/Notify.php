@@ -29,7 +29,7 @@ class Notify
             ]
         );
         try {
-            //$client->request('POST', 'https://notify-api.line.me/api/notify?message=' . $send_msg.$msg);
+            $client->request('POST', 'https://notify-api.line.me/api/notify?message=' . $send_msg.$msg);
         } catch (GuzzleException $e) {
         }
     }
@@ -53,7 +53,7 @@ class Notify
             ]
         );
         try {
-            //$client->request('POST', 'https://notify-api.line.me/api/notify?message=' . $send_msg.$msg);
+            $client->request('POST', 'https://notify-api.line.me/api/notify?message=' . $send_msg.$msg);
         } catch (GuzzleException $e) {
         }
     }
