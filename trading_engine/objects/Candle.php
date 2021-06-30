@@ -109,8 +109,13 @@ class Candle
             return $this->o;
         }
 
-        $this->ho = ($this->getCandlePrev()->heiAshiOpen($limit - 1) + $this->getCandlePrev()->heiAshiClose()) / 2;
-        return $this->ho;
+
+        $temp = ($this->getCandlePrev()->heiAshiOpen($limit - 1) + $this->getCandlePrev()->heiAshiClose()) / 2;
+        if ($this->cn !== null)
+        {
+            $this->ho = $temp;
+        }
+        return $temp;
     }
 
     public function heiAshiHigh()
@@ -176,9 +181,13 @@ class Candle
             return $this->atr[$length];
         }
 
-        $this->atr[$length] = (($this->getCandlePrev()->getATR($length, $left - 1) * ($length - 1)) + $this->getTR()) / $length;
+        $temp = (($this->getCandlePrev()->getATR($length, $left - 1) * ($length - 1)) + $this->getTR()) / $length;
+        if ($this->cn !== null)
+        {
+            $this->atr[$length] = $temp;
+        }
 
-        return $this->atr[$length];
+        return $temp;
 
     }
 
@@ -1083,9 +1092,9 @@ class Candle
     public function crossoverHeiEmaATRTrailingStop()
     {
         $prev = $this->getCandlePrev();
-        if($prev->getHeiEMA(1) < $prev->xATRailingStop)
+        if($prev->heiAshiClose() < $prev->xATRailingStop)
         {
-            if($this->getHeiEMA(1) > $this->xATRailingStop)
+            if($this->heiAshiClose() > $this->xATRailingStop)
             {
                 return True;
             }
@@ -1096,9 +1105,9 @@ class Candle
     public function crossoverATRTrailingStopHeiEma()
     {
         $prev = $this->getCandlePrev();
-        if($prev->xATRailingStop < $prev->getHeiEMA(1))
+        if($prev->xATRailingStop < $prev->heiAshiClose())
         {
-            if($this->xATRailingStop > $this->getHeiEMA(1))
+            if($this->xATRailingStop > $this->heiAshiClose())
             {
                 return True;
             }
