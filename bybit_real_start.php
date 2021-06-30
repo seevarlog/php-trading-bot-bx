@@ -409,44 +409,14 @@ try {
             continue;
         }
 
-        foreach ($make_candle_min_list as $min)
-        {
-            if ($candle_1m->t % (60 * $min) == 0)
-            {
-                $_last_candle = CandleManager::getInstance()->getLastCandle($min);
-                if ($_last_candle != null)
-                {
-                    $_last_candle->updateCandle($candle_1m->h, $candle_1m->l, $candle_1m->c);
-                }
-
-                $_new_last_candle = new Candle($min);
-                $_new_last_candle->setData($candle_1m->t, $candle_1m->o, $candle_1m->h, $candle_1m->l, $candle_1m->c);
-                CandleManager::getInstance()->addNewCandle($_new_last_candle);
-
-                if ($min == 60)
-                {
-                    Notify::sendTradeMsg(CandleManager::getInstance()->getLastCandle($min)->displayCandle());
-                    Notify::sendTradeMsg(CandleManager::getInstance()->getLastCandle($min)->getCandlePrev()->displayCandle());
-                }
-
-                $_new_last_candle->cp = $_last_candle;
-                if ($_last_candle != null)
-                {
-                    $_last_candle->cn = $_new_last_candle;
-                }
-            }
-            else
-            {
-                CandleManager::getInstance()->getLastCandle($min)->updateCandle($candle_1m->h, $candle_1m->l, $candle_1m->c);
-            }
-        }
-
         CoinPrice::getInstance()->bit_price = $candle_1m->c;
 
         // 오더북 체크크
 
         $global_var = GlobalVar::getInstance();
         OrderManager::getInstance()->update($candle_prev_1m);
+        $candle_1m->cp = $candle_prev_1m;
+        $candle_prev_1m->cn = $candle_1m;
 
         // 따거 십썌끼야 다신보지말자
         //$buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
@@ -467,7 +437,6 @@ try {
             }
         }
 
-        $candle_1m->cp = $candle_prev_1m;
         $candle_prev_1m->cn = $candle_1m;
         $candle_prev_1m = $candle_1m;
         CandleManager::getInstance()->addNewCandle($candle_1m);
