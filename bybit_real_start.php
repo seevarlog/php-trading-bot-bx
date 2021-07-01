@@ -434,15 +434,13 @@ try {
 
         $global_var = GlobalVar::getInstance();
         OrderManager::getInstance()->update($candle_prev_1m);
-        $candle_1m->cp = $candle_prev_1m;
-        $candle_prev_1m->cn = $candle_1m;
 
         // 따거 십썌끼야 다신보지말자
         //$buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
         //$sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
         //Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".$global_var->candleTick."cross:".$global_var->CrossCount."1hour_per:".$global_var->vol_1hour." buy:".$buy_msg." sell:".$sell_msg);
 
-        $msg = \trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->BBS($candle_1m->getCandle());
+        $msg = \trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->BBS($candle_prev_1m);
         Notify::sendMsg($msg);
 
         if ($candle_1m->t % 1000 == 0)
@@ -456,6 +454,7 @@ try {
             }
         }
 
+        $candle_1m->cp = $candle_prev_1m;
         $candle_prev_1m->cn = $candle_1m;
         $candle_prev_1m = $candle_1m;
         CandleManager::getInstance()->addNewCandle($candle_1m);
