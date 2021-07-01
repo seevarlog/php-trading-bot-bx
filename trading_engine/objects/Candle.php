@@ -91,15 +91,11 @@ class Candle
 
     public function heiAshiClose()
     {
-        return $this->c;
-
         return ($this->o + $this->c + $this->l + $this->h) / 4;
     }
 
     public function heiAshiOpen($limit = -1)
     {
-        return $this->o;
-
         if ($limit == -1)
         {
             $limit = 60;
@@ -166,15 +162,11 @@ class Candle
 
     public function heiAshiHigh()
     {
-        return $this->h;
-
         return max ($this->h, $this->heiAshiClose(), $this->heiAshiOpen());
     }
 
     public function heiAshiLow()
     {
-        return $this->l;
-
         return min ($this->l, $this->heiAshiClose(), $this->heiAshiOpen());
     }
 
