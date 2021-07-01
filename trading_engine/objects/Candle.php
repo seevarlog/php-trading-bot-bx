@@ -126,7 +126,7 @@ class Candle
         $p_stop = (int)$this->getCandlePrev()->getXATRailingStop();
         $c = (int)$this->heiAshiClose();
         $stop = (int)$this->getXATRailingStop();
-        return "p_cstop={$pc}  {$p_stop}   :    cstop={$c}  {$stop}    t:".$this->getDateTimeKST();
+        return "atr:{$this->getATR()} TR:{$this->getTR()}    t:".$this->getDateTimeKST();
     }
 
     public function getXATRailingStop($limit = -1)
@@ -172,24 +172,16 @@ class Candle
 
     public function getTR()
     {
-        if ($this->atr_set)
-        {
-            return $this->atr_tr;
-        }
-
         if ($this->getCandlePrev()->t == $this->t)
         {
             return $this->heiAshiHigh() - $this->heiAshiLow();
         }
 
-        $this->atr_set = 1;
-        $this->atr_tr = max (
+        return max (
             $this->heiAshiHigh() - $this->heiAshiLow(),
             $this->heiAshiHigh() - $this->getCandlePrev()->heiAshiClose(),
             $this->getCandlePrev()->heiAshiClose() - $this->heiAshiLow()
         );
-
-        return $this->atr_tr;
     }
 
     public function getATR($length=14, $left = -1)

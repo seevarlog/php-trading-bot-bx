@@ -45,26 +45,6 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $sell = $candle->heiAshiClose() < $candle->getXATRailingStop() && $below;
         $msg= $candle->getMsgdebugXATR();
 
-        // 오래된 주문은 취소한다
-        $order_list = $orderMng->getOrderList($this->getStrategyKey());
-        foreach ($order_list as $order)
-        {
-            if ($order->comment == "손절")
-            {
-                continue;
-            }
-
-            if ($candle->getTime() - $order->date > $order->wait_min * 60)
-            {
-                if ($order->comment == "진입")
-                {
-                    $orderMng->clearAllOrder($this->getStrategyKey());
-                    continue;
-                }
-                $orderMng->cancelOrder($order);
-            }
-        }
-
         if ($buy == 0 && $sell == 0)
         {
             $curPosition->no_trade_tick_count += 1;
