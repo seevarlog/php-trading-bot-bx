@@ -280,16 +280,17 @@ class StrategyHeikinAsiUtBot extends StrategyBase
                 $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage));
             }
         }
+        $leverage_correct = abs($leverage_correct);
 
 
-        $now_usd = (int)(Account::getInstance()->getUnrealizedUSDBalance() / 2.1);
+        $now_usd = (int)(Account::getInstance()->getUnrealizedUSDBalance());
         $now_amount = $curPosition->amount;
         //var_dump($other_amount);
 
         OrderManager::getInstance()->updateOrder(
             $time,
             $this->getStrategyKey(),
-            -(abs($now_usd) * $leverage_correct + abs($now_amount)),
+            -(abs($now_usd) * abs($leverage_correct) + abs($now_amount)),
             $buy_price,
             1,
             0,
@@ -345,6 +346,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         }
 
 
+        $leverage_correct = abs($leverage_correct);
         $now_usd = Account::getInstance()->getUnrealizedUSDBalance();
         $other_amount = $curPosition->amount;
 
