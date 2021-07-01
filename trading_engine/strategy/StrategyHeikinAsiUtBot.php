@@ -80,7 +80,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 
         if ($sell)
         {
-            if (count($order_list) > 0 && $orderMng->getOrder($this->getStrategyKey(), "손절")->amount > 0)
+            if (count($order_list) > 0 && $orderMng->getOrder($this->getStrategyKey(), 1, "손절")->amount > 0)
             {
                 return "매도포지션 점유 중";
             }
@@ -111,7 +111,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         }
         else if ($buy)
         {
-            if (count($order_list) > 0 && $orderMng->getOrder($this->getStrategyKey(), "손절")->amount < 0)
+            if (count($order_list) > 0 && $orderMng->getOrder($this->getStrategyKey(), -1, "손절")->amount < 0)
             {
                 return "매도포지션 점유 중";
             }
