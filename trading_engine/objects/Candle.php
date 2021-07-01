@@ -2,6 +2,8 @@
 
 namespace trading_engine\objects;
 
+use function trading_engine\strategy\iff;
+
 /**
  * Class Candle
  *
@@ -28,7 +30,7 @@ class Candle
     public $ut_short_start = 0;
     public $ut_short_drag = 0;
     public $ut_long_drag = 0;
-    public $xATRailingStop = 0.0;
+    public $xATRailingStop = -1;
     public $pos = 0;
 
     public $cn = null;
@@ -115,6 +117,42 @@ class Candle
         {
             $this->ho = $temp;
         }
+        return $temp;
+    }
+
+    public function getMsgdebugXATR()
+    {
+        return "src-1={$this->getCandlePrev()->heiAshiClose()}, stop-1={$this->getCandlePrev()->getXATRailingStop()}   :    src={$this->heiAshiClose()},  stop={$this->getXATRailingStop()}";
+    }
+
+    public function getXATRailingStop($limit = -1)
+    {
+        if ($this->xATRailingStop != -1)
+        {
+            return $this->xATRailingStop;
+        }
+        if ($limit == -1)
+        {
+            $limit = 150;
+        }
+
+        $xATR = $this->getATR(10);
+        $nLoss = 1 * $xATR;
+
+        $src_1 = $this->getCandlePrev()->heiAshiClose();
+        $src = $this->heiAshiClose();
+
+        // 캐싱이 안되어있다면 이전의 캔들의 XATR을 구해야함
+        $vXATRailingStop_1 = $limit == 0 ? 0 : $this->getCandlePrev()->getXATRailingStop($limit - 1);
+        $temp = iff($src > $vXATRailingStop_1 && $src_1 > $vXATRailingStop_1, max($vXATRailingStop_1, $src - $nLoss),
+            iff($src < $vXATRailingStop_1 && $src_1 < $vXATRailingStop_1, min($vXATRailingStop_1, $src + $nLoss),
+                iff( $src > $vXATRailingStop_1, $src - $nLoss, $src + $nLoss)));
+
+        if ($this->cn !== null)
+        {
+            $this->xATRailingStop = $temp;
+        }
+
         return $temp;
     }
 
@@ -1092,9 +1130,9 @@ class Candle
     public function crossoverHeiEmaATRTrailingStop()
     {
         $prev = $this->getCandlePrev();
-        if($prev->heiAshiClose() < $prev->xATRailingStop)
+        if($prev->heiAshiClose() < $prev->getXATRailingStop())
         {
-            if($this->heiAshiClose() > $this->xATRailingStop)
+            if($this->heiAshiClose() > $this->getXATRailingStop())
             {
                 return True;
             }
@@ -1105,9 +1143,9 @@ class Candle
     public function crossoverATRTrailingStopHeiEma()
     {
         $prev = $this->getCandlePrev();
-        if($prev->xATRailingStop < $prev->heiAshiClose())
+        if($prev->getXATRailingStop() < $prev->heiAshiClose())
         {
-            if($this->xATRailingStop > $this->heiAshiClose())
+            if($this->getXATRailingStop() > $this->heiAshiClose())
             {
                 return True;
             }
@@ -1458,9 +1496,14 @@ class Candle
 
         $exp = 2 / ($length + 1);
         $ema = ($this->heiAshiClose() * $exp) + ($this->getCandlePrev()->getHeiEMA($length, $n - 1) * (1 - $exp));
-        $this->h_ema[$length] = $ema;
 
-        return $ema;
+        $temp = $ema;
+        if ($this->cn !== null)
+        {
+            $this->h_ema[$length] = $temp;
+        }
+
+        return $temp;
     }
 
     public function getEMA($length, $n = -1)

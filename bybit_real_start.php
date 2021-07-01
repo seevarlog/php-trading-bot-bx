@@ -292,7 +292,9 @@ foreach ($candle_1m_list['result'] as $candle_data)
 
 
 $candle_mng = CandleManager::getInstance();
+
 $make_candle_min_list = [];
+/*
 for ($i=4; $i>0; $i--)
 {
     foreach ($make_candle_min_list as $make_min)
@@ -340,6 +342,7 @@ for ($i=4; $i>0; $i--)
         sleep(0.1);
     }
 }
+*/
 
 // 계정 셋팅
 $account = Account::getInstance();
@@ -377,7 +380,6 @@ try {
         }
         else
         {
-            sleep(1);
             \trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->traceTrade();
         }
 

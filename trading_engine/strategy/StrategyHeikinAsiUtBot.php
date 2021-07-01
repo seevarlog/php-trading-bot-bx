@@ -39,34 +39,11 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $orderMng = OrderManager::getInstance();
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
 
-        $xATR = $candle->getATR(10);
-        $nLoss = 1 * $xATR;
-
-        $src_1 = $candle->getCandlePrev()->heiAshiClose();
-        $src = $candle->heiAshiClose();
-
-        $vXATRailingStop_1 = $candle->getCandlePrev()->xATRailingStop;
-
-        $candle->xATRailingStop = iff($src > $vXATRailingStop_1 && $src_1 > $vXATRailingStop_1, max($vXATRailingStop_1, $src - $nLoss),
-                            iff($src < $vXATRailingStop_1 && $src_1 < $vXATRailingStop_1, min($vXATRailingStop_1, $src + $nLoss),
-                            iff( $src > $vXATRailingStop_1, $src - $nLoss, $src + $nLoss)));
-
-        $candle->pos =   iff($src_1 < $vXATRailingStop_1 && $src > $vXATRailingStop_1, 1,
-                        iff($src_1 > $vXATRailingStop_1 && $src < $vXATRailingStop_1, -1, $candle->getCandlePrev()->pos));
-
-        $xATRTrailingStop = $candle->xATRailingStop;
-
-//        $ema = $candle->getHeiEMA(1);
         $above = $candle->crossoverHeiEmaATRTrailingStop();
         $below = $candle->crossoverATRTrailingStopHeiEma();
-
-        $buy  = $src > $xATRTrailingStop && $above;
-        $sell = $src < $xATRTrailingStop && $below;
-
-        $msg = <<<MSG
-src-1={$src_1}, stop-1={$vXATRailingStop_1}   :    src={$src},  stop={$xATRTrailingStop} 
-MSG;
-
+        $buy  = $candle->heiAshiClose() > $candle->getXATRailingStop() && $above;
+        $sell = $candle->heiAshiClose() < $candle->getXATRailingStop() && $below;
+        $msg= $candle->getMsgdebugXATR();
 
         // 오래된 주문은 취소한다
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
@@ -258,6 +235,8 @@ MSG;
                 $this->sellBit(time(), $this->getRealTimeCoinPrice()['Sell'], $curPosition->no_trade_tick_count);
             }
         }
+
+        sleep(1);
     }
 
     public function sellBit($time, $btc_close_price, $trade_count = 1)
@@ -269,8 +248,7 @@ MSG;
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
 
-        $buy_per = 0.001;
-        $buy_price = $btc_close_price * (1 + $buy_per) * (1+$this->entry_per);
+        $buy_price = $btc_close_price * (1+$this->entry_per);
         $stop_price = $buy_price  * (1 + $stop_per);
 
 
