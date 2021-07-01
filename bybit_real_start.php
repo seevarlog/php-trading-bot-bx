@@ -388,26 +388,43 @@ try {
         $candle_api_result = $bybit->publics()->getKlineList([
             'symbol' => "BTCUSD",
             'interval' => "1",
-            'from' => time() - 60
+            'from' => time() - 120
         ]);
 
         if (!isset($candle_api_result['result'][0])) {
             continue;
         }
 
-        $candle_data = $candle_api_result['result'][0];
+
         $candle_1m = new Candle(1);
-        $candle_1m->t = $candle_data['open_time'];
-        $candle_1m->o = $candle_data['open'];
-        $candle_1m->h = $candle_data['high'];
-        $candle_1m->l = $candle_data['low'];
-        $candle_1m->c = $candle_data['close'];
-        if ($candle_prev_1m->t == $candle_data['open_time'])
+        foreach ($candle_api_result['result'] as $candle_data)
         {
-            $candle_prev_1m->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
+            if ($candle_prev_1m->t < $candle_data['open_time'])
+            {
+
+                $candle_1m->t = $candle_data['open_time'];
+                $candle_1m->o = $candle_data['open'];
+                $candle_1m->h = $candle_data['high'];
+                $candle_1m->l = $candle_data['low'];
+                $candle_1m->c = $candle_data['close'];
+            }
+            else
+            {
+                if ($candle_prev_1m->t == $candle_data['open_time'])
+                {
+                    $candle_prev_1m->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
+                }
+
+                if ($candle_prev_1m->getCandlePrev()->t == $candle_data['open_time'])
+                {
+                    $candle_prev_1m->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
+                }
+
+            }
         }
 
-        if ($candle_prev_1m->t == $candle_1m->t) {
+        if ($candle_prev_1m->t > $candle_1m->t) {
+            unset($candle_1m);
             continue;
         }
 
@@ -425,7 +442,7 @@ try {
         //$sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
         //Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".$global_var->candleTick."cross:".$global_var->CrossCount."1hour_per:".$global_var->vol_1hour." buy:".$buy_msg." sell:".$sell_msg);
 
-        $msg = \trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->BBS($candle_1m);
+        $msg = \trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->BBS($candle_1m->getCandle());
         Notify::sendMsg($msg);
 
         if ($candle_1m->t % 1000 == 0)

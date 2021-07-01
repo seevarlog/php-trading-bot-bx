@@ -122,7 +122,11 @@ class Candle
 
     public function getMsgdebugXATR()
     {
-        return "src-1={$this->getCandlePrev()->heiAshiClose()}, stop-1={$this->getCandlePrev()->getXATRailingStop()}   :    src={$this->heiAshiClose()},  stop={$this->getXATRailingStop()}";
+        $pc = (int)$this->getCandlePrev()->heiAshiClose();
+        $p_stop = (int)$this->getCandlePrev()->getXATRailingStop();
+        $c = (int)$this->heiAshiClose();
+        $stop = (int)$this->getXATRailingStop();
+        return "p_cstop={$pc}  {$p_stop}   :    cstop={$c}  {$stop}    t:".$this->getDateTimeKST();
     }
 
     public function getXATRailingStop($limit = -1)
