@@ -112,7 +112,7 @@ class Candle
         }
 
 
-        $temp = ($this->getCandlePrev()->heiAshiOpen($limit - 1) + $this->getCandlePrev()->heiAshiClose()) / 2;
+        $temp = ($this->getCandlePrev()->o + $this->getCandlePrev()->c) / 2;
         if ($this->cn !== null)
         {
             $this->ho = $temp;
