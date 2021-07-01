@@ -172,15 +172,10 @@ class Candle
 
     public function getTR()
     {
-        if ($this->getCandlePrev()->t == $this->t)
-        {
-            return $this->heiAshiHigh() - $this->heiAshiLow();
-        }
-
         return max (
             $this->heiAshiHigh() - $this->heiAshiLow(),
-            $this->heiAshiHigh() - $this->getCandlePrev()->heiAshiClose(),
-            $this->getCandlePrev()->heiAshiClose() - $this->heiAshiLow()
+            abs($this->heiAshiHigh() - $this->getCandlePrev()->heiAshiClose()),
+            abs($this->heiAshiLow()- $this->getCandlePrev()->heiAshiClose())
         );
     }
 
@@ -215,6 +210,7 @@ class Candle
             return $this->atr[$length];
         }
 
+        // sma ?
         $temp = (($this->getCandlePrev()->getATR($length, $left - 1) * ($length - 1)) + $this->getTR()) / $length;
         if ($this->cn !== null)
         {
