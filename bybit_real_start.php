@@ -380,7 +380,7 @@ try {
         }
         else
         {
-            \trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->traceTrade();
+            //\trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->traceTrade();
         }
 
 
