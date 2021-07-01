@@ -417,9 +417,8 @@ try {
 
                 if ($candle_prev_1m->getCandlePrev()->t == $candle_data['open_time'])
                 {
-                    $candle_prev_1m->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
+                    $candle_prev_1m->getCandlePrev()->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
                 }
-
             }
         }
 
