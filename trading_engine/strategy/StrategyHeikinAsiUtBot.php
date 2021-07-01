@@ -39,8 +39,8 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $orderMng = OrderManager::getInstance();
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
 
-        $above = $candle->crossoverHeiEmaATRTrailingStop();
-        $below = $candle->crossoverATRTrailingStopHeiEma();
+        $above = $candle->getCandlePrev()->crossoverHeiEmaATRTrailingStop();
+        $below = $candle->getCandlePrev()->crossoverATRTrailingStopHeiEma();
         $buy  = $candle->heiAshiClose() > $candle->getXATRailingStop() && $above;
         $sell = $candle->heiAshiClose() < $candle->getXATRailingStop() && $below;
         $msg= $candle->getMsgdebugXATR();
