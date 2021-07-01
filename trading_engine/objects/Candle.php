@@ -98,7 +98,7 @@ class Candle
     {
         if ($limit == -1)
         {
-            $limit = 60;
+            $limit = 130;
         }
 
         if ($this->ho != -1)
@@ -108,16 +108,26 @@ class Candle
 
         if ($limit == 0)
         {
-            return $this->o;
+            return ($this->o + $this->c)/2;
         }
 
 
-        $temp = ($this->getCandlePrev()->o + $this->getCandlePrev()->c) / 2;
+        $temp = ($this->getCandlePrev()->heiAshiOpen($limit - 1) + $this->getCandlePrev()->heiAshiClose()) / 2;
         if ($this->cn !== null)
         {
             $this->ho = $temp;
         }
         return $temp;
+    }
+
+    public function heiAshiHigh()
+    {
+        return max ($this->h, $this->heiAshiClose(), $this->heiAshiOpen());
+    }
+
+    public function heiAshiLow()
+    {
+        return min ($this->l, $this->heiAshiClose(), $this->heiAshiOpen());
     }
 
     public function getMsgdebugXATR()
@@ -158,16 +168,6 @@ class Candle
         }
 
         return $temp;
-    }
-
-    public function heiAshiHigh()
-    {
-        return max ($this->h, $this->heiAshiClose(), $this->heiAshiOpen());
-    }
-
-    public function heiAshiLow()
-    {
-        return min ($this->l, $this->heiAshiClose(), $this->heiAshiOpen());
     }
 
     public function getTR()
