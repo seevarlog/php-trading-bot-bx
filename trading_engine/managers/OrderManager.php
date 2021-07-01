@@ -361,7 +361,7 @@ class OrderManager extends Singleton
                     */
 
                     $position->addPositionByOrderUT($order, $last_candle);
-                    //OrderManager::getInstance()->cancelOrder($order);
+                    OrderManager::getInstance()->cancelOrder($order);
                     if ($position->amount != 0)
                     {
                         // 밸런스 동기화
