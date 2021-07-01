@@ -126,7 +126,7 @@ class Candle
         $p_stop = (int)$this->getCandlePrev()->getXATRailingStop();
         $c = (int)$this->heiAshiClose();
         $stop = (int)$this->getXATRailingStop();
-        return "atr:{$this->getATR()} TR:{$this->getTR()}    t:".$this->getDateTimeKST();
+        return "atr:{$this->getATR()} TR:{$this->getTR()}   ".$this->displayHeikenAshiCandle();
     }
 
     public function getXATRailingStop($limit = -1)
