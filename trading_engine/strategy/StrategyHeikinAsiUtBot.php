@@ -80,11 +80,6 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 
         if ($sell)
         {
-            if (count($order_list) > 0 && $orderMng->getOrder($this->getStrategyKey(), 1, "손절")->amount > 0)
-            {
-                return "매도포지션 점유 중";
-            }
-
             if ($curPosition->amount < 0)
             {
                 // 주문 중인 매수들은 전부 취소
@@ -111,11 +106,6 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         }
         else if ($buy)
         {
-            if (count($order_list) > 0 && $orderMng->getOrder($this->getStrategyKey(), -1, "손절")->amount < 0)
-            {
-                return "매도포지션 점유 중";
-            }
-
             if ($curPosition->amount > 0)
             {
                 // 주문 중인 매도 들은 전부 취소
