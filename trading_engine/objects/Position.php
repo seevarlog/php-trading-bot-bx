@@ -220,10 +220,13 @@ MSG;
         foreach ($order_list as $ordered)
         {
             // 진입시 기존 포지션의 손절은 취소시킴
-            if ($prev_amount == $ordered->amount * -1 && $ordered->comment == "손절" && $order->comment != "손절")
+            if ($prev_amount == $ordered->amount * -1 && $ordered->comment == "손절")
             {
+                if ($order->comment != "손절")
+                {
+                    continue;
+                }
                 OrderManager::getInstance()->cancelOrder($ordered);
-                break;
             }
         }
 

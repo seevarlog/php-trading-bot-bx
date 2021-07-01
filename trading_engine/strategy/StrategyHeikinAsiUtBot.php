@@ -88,7 +88,6 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             if ($curPosition->amount < 0)
             {
                 // 주문 중인 매수들은 전부 취소
-
                 foreach ($order_list as $order)
                 {
                     if ($order->amount > 0 && $order->comment == "진입")
@@ -120,7 +119,6 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             if ($curPosition->amount > 0)
             {
                 // 주문 중인 매도 들은 전부 취소
-
                 foreach ($order_list as $order)
                 {
                     if ($order->amount < 0 && $order->comment == "진입")
