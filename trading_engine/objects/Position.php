@@ -88,6 +88,7 @@ class Position
         $time = $candle->t;
 
         $this->strategy_key = $order->strategy_key;
+        $prev_usd = Account::getInstance()->getUSDBalance();
 
         if ($this->amount != 0 && $order->comment == "진입")
         {
@@ -196,19 +197,20 @@ class Position
 
         if (Config::getInstance()->isRealTrade())
         {
-            $msg = <<<MSG
-{$order->comment}. 거래발생했다.   prev_entry : {$prev_entry}   order : {$order->entry}    exec_order : {$exec_order_price}    amount : {$order->amount}
 
-    결과 : {$profit_balance_usd} USD ({$profit_balance} btc) 
-    수수료 : {$profit_fee_usd} USD ({$fee} btc)
-    
+            $buy_sell = $order->amount < 0 ? "[매도]" : "[매수]";
+            $chart = $profit_balance_usd > 0 ? "📈" : "📉";
+            $per = round(($account->getUSDBalance()/$prev_usd - 1) * 100, 2)."%";
+            $msg = <<<MSG
+{$buy_sell} 잔액 갱신 : {$account->getUSDBalance()}. 수익 : {$profit_balance_usd}({$per}) {$chart}
 MSG;
-            {
-                $last_msg_profit = $profit_balance_usd + $profit_fee_usd;
-                $profit_per = round((($exec_order_price / $prev_entry) - 1) * 100, 2);
-                $msg .= "수익 : ".$last_msg_profit."(".$profit_per.")";
-                Notify::sendTradeMsg($msg);
-            }
+
+//            {$order->comment}. 거래발생했다.   prev_entry : {$prev_entry}   order : {$order->entry}    exec_order : {$exec_order_price}    amount : {$order->amount}
+//
+//    결과 : {$profit_balance_usd} USD ({$profit_balance} btc)
+//    수수료 : {$profit_fee_usd} USD ({$fee} btc)
+
+            Notify::sendTradeMsg($msg);
         }
 
         $order_list = OrderManager::getInstance()->getOrderList("BBS1");

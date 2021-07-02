@@ -157,7 +157,6 @@ class OrderManager extends Singleton
                             'time_in_force'=>'GoodTillCancel'
                         ]
                     );
-                    var_dump($result);
                     $order->order_id = $result['result']['order_id'];
                     Notify::sendTradeMsg(sprintf("주문 넣었다. 진입가 : %f 로그 : %s 액션 : %s", $order->entry, $order->log, $order->action));
                 }
@@ -175,7 +174,6 @@ class OrderManager extends Singleton
                             'time_in_force'=>'GoodTillCancel'
                         ]
                     );
-                    var_dump($result);
                     $order->order_id = $result['result']['stop_order_id'];
                     Notify::sendTradeMsg(sprintf("손절도 넣었다. 진입가 : %f", $order->entry));
                 }
@@ -184,7 +182,6 @@ class OrderManager extends Singleton
             {
                 if ($order->is_limit)
                 {
-                    var_dump("리미트");
                     $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderReplace(
                         [
                             'order_id'=>$order->order_id,
@@ -193,12 +190,10 @@ class OrderManager extends Singleton
                             'p_r_qty'=>abs($order->amount)
                         ]
                     );
-                    var_dump($result);
-                    Notify::sendTradeMsg(sprintf("주문 수정했다. 진입가 : %f", $order->entry));
+                    //Notify::sendTradeMsg(sprintf("주문 수정했다. 진입가 : %f", $order->entry));
                 }
                 else if ($order->is_stop)
                 {
-                    var_dump("스탑");
                     $result = GlobalVar::getInstance()->getByBit()->privates()->postStopOrderReplace(
                         [
                             'stop_order_id'=>$order->order_id,
@@ -207,8 +202,7 @@ class OrderManager extends Singleton
                             'p_r_qty'=>abs($order->amount)
                         ]
                     );
-                    var_dump($result);
-                    Notify::sendTradeMsg(sprintf("주문 수정했다. 이건 손절가 : %f", $order->entry));
+                    //Notify::sendTradeMsg(sprintf("주문 수정했다. 이건 손절가 : %f", $order->entry));
                 }
             }
         }

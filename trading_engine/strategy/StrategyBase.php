@@ -11,10 +11,10 @@ class StrategyBase extends Singleton
     public $min = 1;
   //  public $test_leverage = 1;
  //   public $stop_per = 0.03;
-    public $test_leverage = 14;
+    public $test_leverage = 10;
     public $stop_per = 0.03;
-    public $buy_entry_per = 0.003;
-    public $entry_per = 0.003;
+    public $buy_entry_per = 0.0015;
+    public $entry_per = 0.0015;
     public $sideways_per = 0.014;
     public $side_candle_count = 24;
     public $day_per_1 = 0.3;

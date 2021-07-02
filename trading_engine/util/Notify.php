@@ -36,6 +36,11 @@ class Notify
 
     public static function sendTradeMsg($msg)
     {
+        self::sendMsg($msg);
+    }
+
+    public static function sendEntryMsg()
+    {
         $send_msg = "";
 
         if (Config::getInstance()->isTestTrade())

@@ -215,8 +215,6 @@ class StrategyHeikinAsiUtBot extends StrategyBase
     {
         $leverage = $this->test_leverage;
         $stop_per = $this->stop_per;
-        $buy_price = $btc_close_price;
-        $stop_price = $buy_price  * (1 - $stop_per);
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
 
@@ -327,7 +325,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         OrderManager::getInstance()->updateOrder(
             $time,
             $this->getStrategyKey(),
-            (abs($now_usd) * $leverage_correct + abs($other_amount)),
+            (abs($now_usd) * $this->test_leverage + abs($other_amount)),
             $buy_price,
             1,
             0,
@@ -341,7 +339,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         OrderManager::getInstance()->updateOrder(
             $time,
             $this->getStrategyKey(),
-            -(abs($now_usd) * $leverage_correct),
+            -(abs($now_usd) * $this->test_leverage),
             $stop_price + 1,
             0,
             1,
