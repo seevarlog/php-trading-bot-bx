@@ -365,7 +365,7 @@ try {
 //            CandleManager::getInstance()->getLastCandle($)
         }
 
-        sleep(1);
+        sleep(0.5);
 
         $time_second = time() % 60;
         // 55 ~ 05 초 사이에 갱신을 시도한다.
