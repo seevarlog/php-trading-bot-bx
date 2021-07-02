@@ -203,15 +203,10 @@ class Position
     수수료 : {$profit_fee_usd} USD ({$fee} btc)
     
 MSG;
-            if ($order->comment == "익절" || $order->comment == "손절")
             {
                 $last_msg_profit = $profit_balance_usd + $profit_fee_usd;
                 $profit_per = round((($exec_order_price / $prev_entry) - 1) * 100, 2);
                 $msg .= "수익 : ".$last_msg_profit."(".$profit_per.")";
-                Notify::sendMsg($msg);
-            }
-            else
-            {
                 Notify::sendTradeMsg($msg);
             }
         }
@@ -220,13 +215,24 @@ MSG;
         foreach ($order_list as $ordered)
         {
             // 진입시 기존 포지션의 손절은 취소시킴
-            if ($prev_amount == $ordered->amount * -1 && $ordered->comment == "손절")
+            if ($order->comment == "롱진입")
             {
-                if ($order->comment != "손절")
+                if ($ordered->comment != "숏손절")
                 {
-                    continue;
+                    OrderManager::getInstance()->cancelOrder($ordered);
                 }
-                OrderManager::getInstance()->cancelOrder($ordered);
+            }
+            if ($order->comment == "숏진입")
+            {
+                if ($ordered->comment != "롱손절")
+                {
+                    OrderManager::getInstance()->cancelOrder($ordered);
+                }
+            }
+
+            if ($order->comment == "숏손절" || $order->comment == "롱손절")
+            {
+                OrderManager::getInstance()->clearAllOrder("BBS1");
             }
         }
 

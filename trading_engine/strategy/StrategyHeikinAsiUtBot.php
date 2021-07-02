@@ -64,12 +64,12 @@ class StrategyHeikinAsiUtBot extends StrategyBase
                 // 주문 중인 매수들은 전부 취소
                 foreach ($order_list as $order)
                 {
-                    if ($order->amount > 0 && $order->comment == "진입")
+                    if ($order->comment == "롱진입")
                     {
                         OrderManager::getInstance()->cancelOrder($order);
                     }
 
-                    if ($order->amount < 0 && $order->comment == "손절")
+                    if ($order->comment == "롱손절")
                     {
                         OrderManager::getInstance()->cancelOrder($order);
                     }
@@ -90,12 +90,12 @@ class StrategyHeikinAsiUtBot extends StrategyBase
                 // 주문 중인 매도 들은 전부 취소
                 foreach ($order_list as $order)
                 {
-                    if ($order->amount < 0 && $order->comment == "진입")
+                    if ($order->comment == "숏진입")
                     {
                         OrderManager::getInstance()->cancelOrder($order);
                     }
 
-                    if ($order->amount > 0 && $order->comment == "손절")
+                    if ($order->comment == "숏손절")
                     {
                         OrderManager::getInstance()->cancelOrder($order);
                     }
@@ -220,7 +220,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 
         if ($trade_count >= 3)
         {
-            $buy_price = $btc_close_price;
+            $buy_price = $btc_close_price + 0.5;
         }
 
         if ($buy_price < $btc_close_price)
@@ -262,7 +262,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             $buy_price,
             1,
             0,
-            "진입",
+            "숏진입",
             "count:".$trade_count,
             "",
             1000
@@ -276,7 +276,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             $stop_price - 1,
             0,
             1,
-            "손절",
+            "숏손절",
             "",
             "",
             1000
@@ -296,7 +296,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 
         if ($trade_count >= 3)
         {
-            $buy_price = $btc_close_price;
+            $buy_price = $btc_close_price-0.5;
         }
 
         if ($leverage > 1)
@@ -325,7 +325,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             $buy_price,
             1,
             0,
-            "진입",
+            "롱진입",
             "count:".$trade_count,
             "",
             1000
@@ -339,7 +339,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             $stop_price + 1,
             0,
             1,
-            "손절",
+            "롱손절",
             "",
             "",
             1000
