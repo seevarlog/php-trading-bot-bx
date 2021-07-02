@@ -212,28 +212,20 @@ MSG;
         }
 
         $order_list = OrderManager::getInstance()->getOrderList("BBS1");
-        foreach ($order_list as $ordered)
+        // 진입시 기존 포지션의 손절은 취소시킴
+        if ($order->comment == "롱진입")
         {
-            // 진입시 기존 포지션의 손절은 취소시킴
-            if ($order->comment == "롱진입")
-            {
-                if ($ordered->comment != "숏손절")
-                {
-                    OrderManager::getInstance()->cancelOrder($ordered);
-                }
-            }
-            if ($order->comment == "숏진입")
-            {
-                if ($ordered->comment != "롱손절")
-                {
-                    OrderManager::getInstance()->cancelOrder($ordered);
-                }
-            }
+            OrderManager::getInstance()->cancelOrder(OrderManager::getInstance()->getOrder("BBS1", "숏손절"));
+            
+        }
+        if ($order->comment == "숏진입")
+        {
+            OrderManager::getInstance()->cancelOrder(OrderManager::getInstance()->getOrder("BBS1", "롱손절"));
+        }
 
-            if ($order->comment == "숏손절" || $order->comment == "롱손절")
-            {
-                OrderManager::getInstance()->clearAllOrder("BBS1");
-            }
+        if ($order->comment == "숏손절" || $order->comment == "롱손절")
+        {
+            OrderManager::getInstance()->clearAllOrder("BBS1");
         }
 
         $log = new LogTrade();

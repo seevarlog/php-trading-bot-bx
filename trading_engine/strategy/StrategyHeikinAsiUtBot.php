@@ -75,6 +75,9 @@ class StrategyHeikinAsiUtBot extends StrategyBase
                     }
                 }
 
+                $curPosition->last_buy_sell_command = "sell";
+                $curPosition->no_trade_tick_count = 0;
+
                 return "이미 매도 주도 시장";
             }
 
@@ -100,6 +103,9 @@ class StrategyHeikinAsiUtBot extends StrategyBase
                         OrderManager::getInstance()->cancelOrder($order);
                     }
                 }
+
+                $curPosition->last_buy_sell_command = "buy";
+                $curPosition->no_trade_tick_count = 0;
 
                 return "이미 매수 주도 시장";
             }
@@ -218,7 +224,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $stop_price = $buy_price  * (1 + $stop_per);
 
 
-        if ($trade_count >= 3)
+        if ($trade_count >= 5)
         {
             $buy_price = $btc_close_price + 0.5;
         }
@@ -294,7 +300,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
         $leverage_correct = $leverage;
 
-        if ($trade_count >= 3)
+        if ($trade_count >= 5)
         {
             $buy_price = $btc_close_price-0.5;
         }

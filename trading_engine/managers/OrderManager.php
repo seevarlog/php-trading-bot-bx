@@ -91,7 +91,7 @@ class OrderManager extends Singleton
 
     public function modifyAmount($st_key, $amount, $comment)
     {
-        $order = $this->getOrder($st_key, $amount, $comment);
+        $order = $this->getOrder($st_key, $comment);
         $this->updateOrder(
             $order->date,
             $order->strategy_key,
@@ -119,12 +119,7 @@ class OrderManager extends Singleton
      */
     public function updateOrder($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment, $log, $action = "", $wait_min = 30, $tick = 1)
     {
-        $order = $this->getOrder($st_key, $amount, $comment);
-
-        if ($amount == 0)
-        {
-            return $order;
-        }
+        $order = $this->getOrder($st_key, $comment);
 
         $order->date = $date;
         $order->strategy_key = $st_key;
@@ -235,24 +230,18 @@ class OrderManager extends Singleton
         return [];
     }
 
-    public function getOrder($strategy_name, $amount, $comment)
+    public function getOrder($strategy_name, $comment)
     {
         if (!isset($this->order_list[$strategy_name]))
         {
             $this->order_list[$strategy_name] = [];
         }
 
-        if ($amount != 0)
+        foreach ($this->order_list[$strategy_name] as $order)
         {
-            foreach ($this->order_list[$strategy_name] as $order)
+            if ($order->comment == $comment)
             {
-                if ($order->amount != 0)
-                {
-                    if ($order->comment == $comment && ($amount / abs($amount) == abs($order->amount) / $order->amount) )
-                    {
-                        return $order;
-                    }
-                }
+                return $order;
             }
         }
 
