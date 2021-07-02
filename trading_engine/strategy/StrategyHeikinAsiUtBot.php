@@ -4,7 +4,6 @@
 namespace trading_engine\strategy;
 
 
-use JetBrains\PhpStorm\ArrayShape;
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
@@ -39,8 +38,8 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $orderMng = OrderManager::getInstance();
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
 
-        $above = $candle->getCandlePrev()->crossoverHeiEmaATRTrailingStop();
-        $below = $candle->getCandlePrev()->crossoverATRTrailingStopHeiEma();
+        $above = $candle->crossoverHeiEmaATRTrailingStop();
+        $below = $candle->crossoverATRTrailingStopHeiEma();
         $buy  = $candle->heiAshiClose() > $candle->getXATRailingStop() && $above;
         $sell = $candle->heiAshiClose() < $candle->getXATRailingStop() && $below;
         $msg= $candle->getMsgdebugXATR();
@@ -116,7 +115,6 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         return $msg."buy=".(int)$buy." sell=".(int)$sell."  ".$candle->displayCandle();
     }
 
-    #[ArrayShape(['Buy' => "int|mixed", 'Sell' => "int|mixed"])]
     public function getRealTimeCoinPrice()
     {
         $ret = ['Buy'=>0, 'Sell'=>0];
