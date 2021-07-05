@@ -15,7 +15,7 @@ function iff ($statement_1, $statement_2, $statement_3)
     return $statement_1 == true ? $statement_2 : $statement_3;
 }
 
-class StrategyHeikinAsiUtBot extends StrategyBase
+class StrategyHeikinAsiAtrSmooth extends StrategyBase
 {
     public static $last_last_entry = "sideways";
     public static $order_action = "";
@@ -23,6 +23,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 
     public function BBS(Candle $candle)
     {
+        global $atr_length, $nLoss;
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
         $orderMng = OrderManager::getInstance();
@@ -37,15 +38,50 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $orderMng = OrderManager::getInstance();
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
 
-        $above = $candle->crossoverHeiEmaATRTrailingStop();
-        $below = $candle->crossoverATRTrailingStopHeiEma();
-        $sell  = $candle->heiAshiClose() > $candle->getXATRailingStop() && $above;
-        $buy = $candle->heiAshiClose() < $candle->getXATRailingStop() && $below;
+        $close_1 = $candle->getCandlePrev()->heiAshiClose();
+        $xATRTrailingStop_1 =$candle->getCandlePrev()->getXATRailingStop();
+        $close = $candle->heiAshiClose();
+        $pos_1 = $candle->getCandlePrev()->pos;
+        
+        $candle->pos = iff($close_1 < $xATRTrailingStop_1 && $close > $xATRTrailingStop_1, 1,
+            iff($close_1 > $xATRTrailingStop_1 && $close < $xATRTrailingStop_1, -1, $pos_1));
+
+        // Deternine if we are currently LONG
+        $isLong = $candle->getCandlePrev()->isLong;
+
+        // Determine if we are currently SHORT
+        $isShort = $candle->getCandlePrev()->isShort;
+
+        //Trading
+        // Buy only if the buy signal is triggered and we are not already long
+        $LONG = !$isLong and $candle->pos == 1;
+
+        // Sell only if the sell signal is triggered and we are not already short
+        $SHORT = !$isShort and $candle->pos == -1;
+
+
+        if ($LONG)
+        {
+            $candle->isLong = 1;
+            $candle->isShort = 0;
+        }
+
+
+        if ($SHORT)
+        {
+            $candle->isLong = 0;
+            $candle->isShort = 1;
+        }
+
+
         $msg= $candle->getMsgdebugXATR();
 
-        if ($candle->getDateTimeKST() <= "2021-06-29 00:00:00")
+        $buy = !$LONG;
+        $sell = !$SHORT;
+
+        if ($candle->getDateTimeKST() <= "2021-06-25 00:00:00")
         {
-        //    return "";
+            return "";
         }
 
         if ($buy == 0 && $sell == 0)

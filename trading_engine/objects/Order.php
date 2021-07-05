@@ -253,7 +253,6 @@ class Order
     {
         return $this->amount > 0 ? "buy" : "sell";
     }
-
     public function getFee()
     {
         if ($this->is_limit)
@@ -280,4 +279,46 @@ class Order
             }
         }
     }
+//    public function getFee(Candle $candle)
+//    {
+//        if ($this->is_limit)
+//        {
+//            if ($this->amount > 0)
+//            {
+//                // 오픈된 가격보다 높은 주문을 하면 시장가로 간주
+//                if ($candle->o <= $this->entry)
+//                {
+//                    return $this->amount * -0.00075;
+//                }
+//                else
+//                {
+//                    return $this->amount * 0.00025;
+//                }
+//            }
+//            else
+//            {
+//                // 오픈된 가격보다 높은 주문을 하면 시장가로 간주
+//                if ($candle->o >= $this->entry)
+//                {
+//                    return $this->amount * 0.00075;
+//                }
+//                else
+//                {
+//                    return $this->amount * 0.00025 * -1;
+//                }
+//            }
+//        }
+//        else
+//        {
+//            // 스탑인 경우
+//            if ($this->amount > 0)
+//            {
+//                return $this->amount * 0.00075 * -1;
+//            }
+//            else
+//            {
+//                return $this->amount * 0.00075;
+//            }
+//        }
+//    }
 }

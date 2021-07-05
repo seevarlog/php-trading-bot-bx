@@ -104,7 +104,7 @@ class Position
         $prev_entry = $this->entry;
         $profit_balance = 0;
 
-        $fee = $order->getFee();
+        $fee = $order->getFee($candle);
         //$add_balance += $fee;
         $exec_order_price = $order->entry;
         if ($order->is_stop)
@@ -117,6 +117,28 @@ class Position
             if ($exec_order_price == 0)
             {
                 $exec_order_price = $order->entry;
+            }
+        }
+
+        if (!Config::getInstance()->isRealTrade())
+        {
+            if ($order->amount > 0 && $order->is_limit)
+            {
+                // 매수시
+                if ($candle->o >= $order->entry)
+                {
+                    $order->entry = $candle->o;
+                    $exec_order_price = $order->entry;
+                }
+            }
+            else if ($order->amount < 0 && $order->is_limit)
+            {
+                // 매수시
+                if ($candle->o <= $order->entry)
+                {
+                    $order->entry = $candle->o;
+                    $exec_order_price = $order->entry;
+                }
             }
 
         }
@@ -199,7 +221,7 @@ class Position
         {
 
             $buy_sell = $order->amount < 0 ? "[매도]" : "[매수]";
-            $chart = $profit_balance_usd > 0 ? "📈" : "📉";
+            $chart = $profit_balance_usd > 0 ? "↗" : "↘";
             $per = round(($account->getUSDBalance()/$prev_usd - 1) * 100, 2)."%";
             $msg = <<<MSG
 {$buy_sell} 잔액 갱신 : {$account->getUSDBalance()}. 수익 : {$profit_balance_usd}({$per}) {$chart}
@@ -260,7 +282,7 @@ MSG;
         $prev_entry = $this->entry;
         $profit_balance = 0;
 
-        $fee = $order->getFee();
+        $fee = $order->getFee($candle);
         //$add_balance += $fee;
         $exec_order_price = $order->entry;
         if ($order->is_stop)

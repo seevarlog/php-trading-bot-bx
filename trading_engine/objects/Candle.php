@@ -31,7 +31,11 @@ class Candle
     public $ut_short_drag = 0;
     public $ut_long_drag = 0;
     public $xATRailingStop = -1;
+
+    // ATR smooth
     public $pos = 0;
+    public $isLong = 0;
+    public $isShort = 0;
 
     public $cn = null;
     public $cp = null;
@@ -150,8 +154,8 @@ class Candle
             $limit = 150;
         }
 
-        $xATR = $this->getATR(10);
-        $nLoss = 1 * $xATR;
+        $xATR = $this->getATR(21);
+        $nLoss = 6.3 * $xATR;
 
         $src_1 = $this->getCandlePrev()->heiAshiClose();
         $src = $this->heiAshiClose();

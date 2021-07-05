@@ -16,13 +16,13 @@ header('Content-Type: text/html; charset=UTF-8');
 
 ob_start();
 $time_start = time();
-if (!($fp = fopen(__DIR__.'/../csv/2021_recent.csv', 'r'))) {
+if (!($fp = fopen(__DIR__.'/output.csv', 'r'))) {
     echo "err";
     return;
 }
 
 // m본
-$make_candle_min_list = [];
+$make_candle_min_list = [2, 3, 5, 15, 30, 60, 60*4, 60 * 24];
 
 // 30분봉 만들어봄
 $candleMng = CandleManager::getInstance();
@@ -64,6 +64,11 @@ for ($i=0; $i<10000000; $i++)
         $last_candle = $candleMng->getLastCandle(1);
         $candle->setData($arr[0], $last_candle->o, $last_candle->h, $last_candle->l, $last_candle->c);
     }
+    else if ($arr[0] != $candleMng->getLastCandle(1)->t + 60 && $candleMng->getLastCandle(1)->t !== null)
+    {
+        $last_candle = $candleMng->getLastCandle(1);
+        $candle->setData((int)$arr[0]+60, $last_candle->o, $last_candle->h, $last_candle->l, $last_candle->c);
+    }
     else
     {
         $candle->setData($arr[0], $arr[1 + $z], $arr[2 + $z], $arr[3 + $z], $arr[4 + $z]);
@@ -101,7 +106,7 @@ var_dump(count(CandleManager::getInstance()->candle_data_list[1]));
 
 // 계정 셋팅
 $account = Account::getInstance();
-$account->balance = 1;
+$account->balance = 1000;
 
 
 $candle = CandleManager::getInstance()->getFirstCandle(1);
@@ -158,10 +163,21 @@ for ($i=0; $i<500000000; $i++)
         break;
     }
 
-    \trading_engine\util\CoinPrice::getInstance()->updateBitPrice($candle->c);
+    if ($candle->c === null)
+    {
+        continue;
+    }
+
+
+    \trading_engine\util\CoinPrice::getInstance()->updateBitPrice($candle->getCandlePrev()->c);
+
+    //\trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->traceTrade();
+
     \trading_engine\managers\OrderManager::getInstance()->update($candle->getCandlePrev());
 
-    \trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->BBS($candle->getCandlePrev());
+//    \trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->BBS($candle->getCandlePrev());
+
+    \trading_engine\strategy\StrategyHeikinAsiAtrSmooth::getInstance()->BBS($candle->getCandlePrev());
     //StrategyBBShort::getInstance()->BBS($candle->getCandlePrev());
 }
 
@@ -189,3 +205,5 @@ var_dump($account->getUSDBalanceFloat());
 var_dump($account->getBitBalance());
 var_dump($prev_candle->getDateTime());
 //var_dump(\trading_engine\managers\OrderManager::getInstance());
+
+var_dump(memory_get_usage()/1024/1024);
