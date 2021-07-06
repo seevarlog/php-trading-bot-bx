@@ -12,10 +12,10 @@ class StrategyBase extends Singleton
   //  public $test_leverage = 1;
  //   public $stop_per = 0.03;
     public $test_leverage = 1;
-    public $stop_per = 0.05;
-    public $trade_wait_limit = 2;
-    public $buy_entry_per = 0.00001;
-    public $entry_per = 0.00001;
+    public $stop_per = 0.02;
+    public $trade_wait_limit = 1;
+    public $buy_entry_per = 0.0005;
+    public $entry_per = 0.0005;
     public $sideways_per = 0.014;
     public $side_candle_count = 24;
     public $side_count = 56;

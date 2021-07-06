@@ -43,21 +43,21 @@ class StrategyHeikinAsiAtrSmooth extends StrategyBase
         $close = $candle->heiAshiClose();
         $pos_1 = $candle->getCandlePrev()->pos;
         
-        $candle->pos = iff($close_1 < $xATRTrailingStop_1 && $close > $xATRTrailingStop_1, 1,
-            iff($close_1 > $xATRTrailingStop_1 && $close < $xATRTrailingStop_1, -1, $pos_1));
+        $candle->pos = iff(($close_1 < $xATRTrailingStop_1) && ($close > $xATRTrailingStop_1), 1,
+            iff(($close_1 > $xATRTrailingStop_1) && ($close < $xATRTrailingStop_1), -1, $pos_1));
 
         // Deternine if we are currently LONG
-        $isLong = $candle->getCandlePrev()->isLong;
+        $candle->isLong = $candle->getCandlePrev()->isLong;
 
         // Determine if we are currently SHORT
-        $isShort = $candle->getCandlePrev()->isShort;
+        $candle->isShort = $candle->getCandlePrev()->isShort;
 
         //Trading
         // Buy only if the buy signal is triggered and we are not already long
-        $LONG = !$isLong and $candle->pos == 1;
+        $LONG = !$candle->isLong && $candle->pos == 1;
 
         // Sell only if the sell signal is triggered and we are not already short
-        $SHORT = !$isShort and $candle->pos == -1;
+        $SHORT = !$candle->isShort && $candle->pos == -1;
 
 
         if ($LONG)
@@ -76,13 +76,14 @@ class StrategyHeikinAsiAtrSmooth extends StrategyBase
 
         $msg= $candle->getMsgdebugXATR();
 
-        $buy = !$LONG;
-        $sell = !$SHORT;
+        $buy = $LONG;
+        $sell = $SHORT;
 
-        if ($candle->getDateTimeKST() <= "2021-06-25 00:00:00")
-        {
-            return "";
-        }
+
+//        if ($candle->getDateTimeKST() <= "2021-06-21 00:00:00")
+//        {
+//            return "";
+//        }
 
         if ($buy == 0 && $sell == 0)
         {

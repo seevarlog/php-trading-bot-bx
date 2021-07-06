@@ -53,11 +53,18 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             $curPosition->no_trade_tick_count += 1;
             if ($curPosition->last_buy_sell_command == "buy" && $curPosition->amount <= 0)
             {
-                $this->buyBit($candle_1m->t, $candle_1m->c, $curPosition->no_trade_tick_count);
+                if ($curPosition->no_trade_tick_count > 30)
+                {
+                    $this->buyBit($candle_1m->t, $candle_1m->c, $curPosition->no_trade_tick_count);
+                }
+
             }
             else if ($curPosition->last_buy_sell_command == "sell" && $curPosition->amount >= 0)
             {
-                $this->sellBit($candle_1m->t, $candle_1m->c, $curPosition->no_trade_tick_count);
+                if ($curPosition->no_trade_tick_count > 30)
+                {
+                    $this->sellBit($candle_1m->t, $candle_1m->c, $curPosition->no_trade_tick_count);
+                }
             }
         }
 
@@ -136,6 +143,12 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $stop_price = $buy_price  * (1 + $stop_per);
 
 
+        if ($curPosition->entry > $buy_price && $curPosition->entry != 0)
+        {
+            return ;
+        }
+
+
         if ($trade_count >= $this->trade_wait_limit)
         {
             $buy_price = $btc_close_price + 0.5;
@@ -210,6 +223,14 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $stop_price = $buy_price  * (1 - $stop_per);
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
+
+
+        if ($curPosition->entry < $buy_price && $curPosition->entry != 0)
+        {
+            return ;
+        }
+
+
         $leverage_correct = $leverage;
 
         if ($trade_count >= $this->trade_wait_limit)
