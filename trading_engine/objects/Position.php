@@ -122,24 +122,24 @@ class Position
 
         if (!Config::getInstance()->isRealTrade())
         {
-            if ($order->amount > 0 && $order->is_limit)
-            {
-                // 매수시
-                if ($candle->o >= $order->entry)
-                {
-                    $order->entry = $candle->o;
-                    $exec_order_price = $order->entry;
-                }
-            }
-            else if ($order->amount < 0 && $order->is_limit)
-            {
-                // 매수시
-                if ($candle->o <= $order->entry)
-                {
-                    $order->entry = $candle->o;
-                    $exec_order_price = $order->entry;
-                }
-            }
+//            if ($order->amount > 0 && $order->is_limit)
+//            {
+//                // 매수시
+//                if ($candle->o >= $order->entry)
+//                {
+//                    $order->entry = $candle->o;
+//                    $exec_order_price = $order->entry;
+//                }
+//            }
+//            else if ($order->amount < 0 && $order->is_limit)
+//            {
+//                // 매수시
+//                if ($candle->o <= $order->entry)
+//                {
+//                    $order->entry = $candle->o;
+//                    $exec_order_price = $order->entry;
+//                }
+//            }
 
         }
 

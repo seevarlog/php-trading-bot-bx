@@ -27,6 +27,85 @@ class TradeLogManager extends Singleton
         $this->trade_log_list[$log->strategy_name][] = $log;
     }
 
+
+    public function showResultCsv()
+    {
+        $month_account = [];
+        $fp = fopen("result.csv", "w");
+        foreach ($this->trade_log_list as $strategy_key => $trade_log_list)
+        {
+            $real_win = 0;
+            $win = 0;
+            $lose = 0;
+            $trade_count = 0;
+            $real_lose = 0;
+            $str = <<<HTML
+timestamp,datetime,na,trade_amount,now_amount,entry,fee,profit,balance,log,log2
+
+HTML;
+            fwrite($fp, $str);
+
+            var_dump("카운트 : ". count($trade_log_list));
+            $prev_comment = "";
+            foreach ($trade_log_list as $k=>$log)
+            {
+                if (isset($month_account))
+                {
+                    $month_account[date("Y-m", strtotime($log->date_order))] = $log->total_balance;
+                }
+                $time = strtotime($log->date_order);
+                $order = date("Y-m-d H:i:s", $time + 3600 * 9);
+                $str = <<<HTML
+{$time},{$order},na,{$log->amount},{$log->left_amount},{$log->entry},{$log->trade_fees},{$log->profit_balance},{$log->total_balance},{$log->comment},{$log->log},{$log->getPositionLogMsg()}
+
+HTML;
+                fwrite($fp, $str);
+
+                if ($log->comment == "익절")
+                {
+                    if ($trade_log_list[$k-1]->total_balance < $log->total_balance)
+                    {
+                        $real_win++;
+                        $win++;
+                    }
+                    else if ($trade_log_list[$k-1]->total_balance >= $log->total_balance)
+                    {
+                        $real_lose++;
+                        $win++;
+                    }
+                }
+                else if($log->comment == "진입")
+                {
+                    $trade_count++;
+                }
+                else if($log->comment == "손절")
+                {
+                    $lose++;
+                }
+
+                $prev_comment = $log->comment;
+            }
+            $trade_count = $win + $lose;
+            $real_trade_ratio = 0;
+            if ($trade_count > 0)
+            {
+                $trade_ratio = round($win / $trade_count * 100, 2) ;
+                $real_trade_ratio = round($real_win / $trade_count * 100, 2) ;
+            }
+            else
+            {
+                $trade_ratio = 0;
+            }
+
+            echo $str;
+            fwrite($fp, $str);
+
+        }
+        var_dump($month_account);
+
+        fclose($fp);
+    }
+
     public function showResultHtml()
     {
         $month_account = [];

@@ -39,8 +39,8 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 
         $above = $candle->crossoverHeiEmaATRTrailingStop();
         $below = $candle->crossoverATRTrailingStopHeiEma();
-        $sell  = $candle->heiAshiClose() > $candle->getXATRailingStop() && $above;
-        $buy = $candle->heiAshiClose() < $candle->getXATRailingStop() && $below;
+        $buy  = $candle->heiAshiClose() > $candle->getXATRailingStop() && $above;
+        $sell = $candle->heiAshiClose() < $candle->getXATRailingStop() && $below;
         $msg= $candle->getMsgdebugXATR();
 
         if ($candle->getDateTimeKST() <= "2021-06-29 00:00:00")
@@ -53,18 +53,11 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             $curPosition->no_trade_tick_count += 1;
             if ($curPosition->last_buy_sell_command == "buy" && $curPosition->amount <= 0)
             {
-                if ($curPosition->no_trade_tick_count > 30)
-                {
-                    $this->buyBit($candle_1m->t, $candle_1m->c, $curPosition->no_trade_tick_count);
-                }
-
+                $this->buyBit($candle_1m->t, $candle_1m->c, $curPosition->no_trade_tick_count);
             }
             else if ($curPosition->last_buy_sell_command == "sell" && $curPosition->amount >= 0)
             {
-                if ($curPosition->no_trade_tick_count > 30)
-                {
-                    $this->sellBit($candle_1m->t, $candle_1m->c, $curPosition->no_trade_tick_count);
-                }
+                $this->sellBit($candle_1m->t, $candle_1m->c, $curPosition->no_trade_tick_count);
             }
         }
 
@@ -95,7 +88,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             $curPosition->last_buy_sell_command = "sell";
             $curPosition->no_trade_tick_count = 0;
 
-            $this->sellBit($candle_1m->t, $candle_1m->c);
+            $this->sellBit($candle_1m->t, $candle_1m->c, $curPosition->no_trade_tick_count);
         }
         else if ($buy)
         {
@@ -124,7 +117,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
             $curPosition->last_buy_sell_command = "buy";
             $curPosition->no_trade_tick_count = 0;
 
-            $this->buyBit($candle_1m->t, $candle_1m->c);
+            $this->buyBit($candle_1m->t, $candle_1m->c, $curPosition->no_trade_tick_count);
         }
 
 
@@ -132,7 +125,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         return $msg."buy=".(int)$buy." sell=".(int)$sell."  ".$candle->displayCandle();
     }
 
-    public function sellBit($time, $btc_close_price, $trade_count = 1)
+    public function sellBit($time, $btc_close_price, $trade_count = 0)
     {
         $leverage = $this->test_leverage;
         $stop_per = $this->stop_per;
@@ -143,11 +136,16 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $stop_price = $buy_price  * (1 + $stop_per);
 
 
-        if ($curPosition->entry > $buy_price && $curPosition->entry != 0)
-        {
-            return ;
-        }
+        // 아래 가격이면 익절 금지
+//        if ($curPosition->entry > $buy_price && $curPosition->entry != 0)
+//        {
+//            return ;
+//        }
 
+        if (0 < $trade_count && $trade_count < $this->trade_wait_limit)
+        {
+            return;
+        }
 
         if ($trade_count >= $this->trade_wait_limit)
         {
@@ -215,7 +213,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
     }
 
 
-    public function buyBit($time, $btc_close_price, $trade_count = 1)
+    public function buyBit($time, $btc_close_price, $trade_count = 0)
     {
         $leverage = $this->test_leverage;
         $stop_per = $this->stop_per;
@@ -223,16 +221,27 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $stop_price = $buy_price  * (1 - $stop_per);
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
+//
+//
+//        // 손해 가격이면 익절 금지
+//        if ($btc_close_price > $curPosition->entry * (1 + $this->stop_per / 4) && $curPosition->entry != 0)
+//        {
+//
+//        }
+//        else
+//        {
+//            if ($curPosition->entry < $buy_price && $curPosition->entry != 0)
+//            {
+//                return ;
+//            }
+//        }
 
-
-        if ($curPosition->entry < $buy_price && $curPosition->entry != 0)
+        if (0 < $trade_count && $trade_count < $this->trade_wait_limit)
         {
-            return ;
+            return;
         }
 
-
         $leverage_correct = $leverage;
-
         if ($trade_count >= $this->trade_wait_limit)
         {
             $buy_price = $btc_close_price-0.5;
