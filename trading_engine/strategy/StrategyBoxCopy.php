@@ -16,7 +16,7 @@ function iff ($statement_1, $statement_2, $statement_3)
     return $statement_1 == true ? $statement_2 : $statement_3;
 }
 
-class StrategyBox extends StrategyBase
+class StrategyBoxCopy extends StrategyBase
 {
     public static $last_last_entry = "sideways";
     public static $order_action = "";
@@ -47,14 +47,14 @@ class StrategyBox extends StrategyBase
         // 오래된 주문은 취소한다
         foreach ($order_list as $order)
         {
-            if ($order->comment == "손절")
+            if ($order->comment == "롱손절" || $order->comment == "숏손절")
             {
                 continue;
             }
 
             if ($candle->getTime() - $order->date > $order->wait_min * 60)
             {
-                if ($order->comment == "진입")
+                if ($order->comment == "숏진입" || $order->comment == "롱진입")
                 {
                     $orderMng->clearAllOrder($this->getStrategyKey());
                     continue;
@@ -63,10 +63,6 @@ class StrategyBox extends StrategyBase
             }
         }
 
-        if ($curPosition->amount != 0)
-        {
-            return "";
-        }
 
         // 포지션 검사
         {
@@ -86,24 +82,92 @@ class StrategyBox extends StrategyBase
 
     public function longStrategy(Candle $candle)
     {
+//        if (OrderManager::getInstance()->isExistPosition($this->getStrategyKey(), "숏진입"))
+//        {
+//            OrderManager::getInstance()->clearAllOrder($this->getStrategyKey());
+//        }
+
+        $position_cur = PositionManager::getInstance()->getPosition($this->getStrategyKey());
+        if (!OrderManager::getInstance()->isExistPosition($this->getStrategyKey(), "롱익절") &&
+            OrderManager::getInstance()->isExistPosition($this->getStrategyKey(), "롱손절") &&
+            $position_cur->amount > 0)
+        {
+            $entry = $position_cur->entry;
+            $order_stop = OrderManager::getInstance()->getOrder($this->getStrategyKey(), "롱손절");
+
+            OrderManager::getInstance()->updateOrder(
+                $candle->t,
+                $this->getStrategyKey(),
+                $order_stop->amount,
+                $entry + ($entry - $order_stop->entry) * 3,
+                1,
+                1,
+                "롱익절",
+                ""
+            );
+        }
+
+
+        if (PositionManager::getInstance()->getPosition($this->getStrategyKey())->amount != 0)
+        {
+            return ;
+        }
+
+
         if (!$candle->crossoverBBDownLine(40, 1.3))
         {
             return ;
         }
 
+
         $range_value = $candle->getATR(20) * 5;
         $this->buyBit($candle->t, $candle->c - $candle->getATR(20), $range_value);
+
     }
 
     public function shortStrategy(Candle $candle)
     {
+
+//        if (OrderManager::getInstance()->isExistPosition($this->getStrategyKey(), "롱진입"))
+//        {
+//            OrderManager::getInstance()->clearAllOrder($this->getStrategyKey());
+//        }
+
+        if (!OrderManager::getInstance()->isExistPosition($this->getStrategyKey(), "숏익절") &&
+            OrderManager::getInstance()->isExistPosition($this->getStrategyKey(), "숏손절") &&
+            PositionManager::getInstance()->getPosition($this->getStrategyKey())->amount < 0)
+        {
+            var_dump("hihihihihi");
+            $entry = PositionManager::getInstance()->getPosition($this->getStrategyKey())->entry;
+            $order_stop = OrderManager::getInstance()->getOrder($this->getStrategyKey(), "숏손절");
+
+            OrderManager::getInstance()->updateOrder(
+                $candle->t,
+                $this->getStrategyKey(),
+                $order_stop->amount,
+                $entry - ($order_stop->entry - $entry) * 3,
+                1,
+                1,
+                "숏익절",
+                ""
+            );
+        }
+
+        if (PositionManager::getInstance()->getPosition($this->getStrategyKey())->amount != 0)
+        {
+            return ;
+        }
+
         if (!$candle->crossoverBBUpLine(40, 1.3))
         {
             return ;
         }
 
-        $range_value = $candle->getATR(20) * 5;
-        $this->sellBit($candle->t, $candle->c + $candle->getATR(20), $range_value);
+
+        {
+            $range_value = $candle->getATR(20) * 5;
+            $this->sellBit($candle->t, $candle->c + $candle->getATR(20), $range_value);
+        }
     }
 
 
@@ -172,7 +236,7 @@ class StrategyBox extends StrategyBase
             1,
             0,
             "숏진입",
-            "숏전략",
+            "count:",
             ""
         );
 
@@ -185,21 +249,7 @@ class StrategyBox extends StrategyBase
             0,
             1,
             "숏손절",
-            "숏전략",
-            ""
-        );
-
-
-        // 손절 주문
-        OrderManager::getInstance()->updateOrder(
-            $time,
-            $this->getStrategyKey(),
-            (abs($now_usd) * abs($leverage_correct)),
-            $sell_price,
-            1,
-            1,
-            "롱진입",
-            "숏전략",
+            "",
             ""
         );
     }
@@ -243,7 +293,7 @@ class StrategyBox extends StrategyBase
             1,
             0,
             "롱진입",
-            "롱전략",
+            "count:",
             ""
         );
 
@@ -256,22 +306,10 @@ class StrategyBox extends StrategyBase
             0,
             1,
             "롱손절",
-            "롱전략",
+            "",
             ""
         );
 
-        // 익절 주문
-        OrderManager::getInstance()->updateOrder(
-            $time,
-            $this->getStrategyKey(),
-            -(abs($now_usd) * $leverage_correct),
-            $sell_price,
-            1,
-            1,
-            "숏진입",
-            "롱전략",
-            "",
-        );
     }
 
     public function procEntryTrade($candle, $buy_per, $stop_per, $leverage)
