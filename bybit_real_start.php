@@ -11,6 +11,8 @@ use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
 use trading_engine\objects\Funding;
 use trading_engine\objects\Order;
+use trading_engine\strategy\StrategyBB;
+use trading_engine\strategy\StrategyBBShort;
 use trading_engine\util\CoinPrice;
 use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
@@ -292,9 +294,7 @@ foreach ($candle_1m_list['result'] as $candle_data)
 
 
 $candle_mng = CandleManager::getInstance();
-
-$make_candle_min_list = [];
-/*
+$make_candle_min_list = [3, 5, 15, 30, 60, 60*4, 60 * 24];
 for ($i=4; $i>0; $i--)
 {
     foreach ($make_candle_min_list as $make_min)
@@ -342,7 +342,6 @@ for ($i=4; $i>0; $i--)
         sleep(0.1);
     }
 }
-*/
 
 // 계정 셋팅
 $account = Account::getInstance();
@@ -360,11 +359,6 @@ try {
     $last_time = time();
     $candle_prev_1m = CandleManager::getInstance()->getLastCandle(1);
     while (1) {
-        foreach ($make_candle_min_list as $min)
-        {
-//            CandleManager::getInstance()->getLastCandle($)
-        }
-
         sleep(0.5);
 
         $time_second = time() % 60;
@@ -395,36 +389,46 @@ try {
             continue;
         }
 
-
+        $candle_data = $candle_api_result['result'][0];
         $candle_1m = new Candle(1);
-        foreach ($candle_api_result['result'] as $candle_data)
+        $candle_1m->t = $candle_data['open_time'];
+        $candle_1m->o = $candle_data['open'];
+        $candle_1m->h = $candle_data['high'];
+        $candle_1m->l = $candle_data['low'];
+        $candle_1m->c = $candle_data['close'];
+        if ($candle_prev_1m->t == $candle_data['open_time'])
         {
-            if ($candle_prev_1m->t < $candle_data['open_time'])
-            {
+            $candle_prev_1m->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
+        }
 
-                $candle_1m->t = $candle_data['open_time'];
-                $candle_1m->o = $candle_data['open'];
-                $candle_1m->h = $candle_data['high'];
-                $candle_1m->l = $candle_data['low'];
-                $candle_1m->c = $candle_data['close'];
+        if ($candle_prev_1m->t == $candle_1m->t) {
+            continue;
+        }
+
+        foreach ($make_candle_min_list as $min)
+        {
+            if ($candle_1m->t % (60 * $min) == 0)
+            {
+                $_last_candle = CandleManager::getInstance()->getLastCandle($min);
+                if ($_last_candle != null)
+                {
+                    $_last_candle->updateCandle($candle_1m->h, $candle_1m->l, $candle_1m->c);
+                }
+
+                $_new_last_candle = new Candle($min);
+                $_new_last_candle->setData($candle_1m->t, $candle_1m->o, $candle_1m->h, $candle_1m->l, $candle_1m->c);
+                CandleManager::getInstance()->addNewCandle($_new_last_candle);
+
+                $_new_last_candle->cp = $_last_candle;
+                if ($_last_candle != null)
+                {
+                    $_last_candle->cn = $_new_last_candle;
+                }
             }
             else
             {
-                if ($candle_prev_1m->t == $candle_data['open_time'])
-                {
-                    $candle_prev_1m->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
-                }
-
-                if ($candle_prev_1m->getCandlePrev()->t == $candle_data['open_time'])
-                {
-                    $candle_prev_1m->getCandlePrev()->updateCandle($candle_data['high'], $candle_data['low'], $candle_data['close']);
-                }
+                CandleManager::getInstance()->getLastCandle($min)->updateCandle($candle_1m->h, $candle_1m->l, $candle_1m->c);
             }
-        }
-
-        if ($candle_prev_1m->t > $candle_1m->t) {
-            unset($candle_1m);
-            continue;
         }
 
         CoinPrice::getInstance()->bit_price = $candle_1m->c;
@@ -433,14 +437,11 @@ try {
 
         $global_var = GlobalVar::getInstance();
         OrderManager::getInstance()->update($candle_prev_1m);
-
-        // 따거 십썌끼야 다신보지말자
-        //$buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
-        //$sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
+        $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
+        $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
         //Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".$global_var->candleTick."cross:".$global_var->CrossCount."1hour_per:".$global_var->vol_1hour." buy:".$buy_msg." sell:".$sell_msg);
 
-        $msg = \trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->BBS($candle_prev_1m);
-        Notify::sendMsg($msg);
+
 
         if ($candle_1m->t % 1000 == 0)
         {
