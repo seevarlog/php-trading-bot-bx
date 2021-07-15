@@ -39,7 +39,7 @@ class Notify
         self::sendMsg($msg);
     }
 
-    public static function sendEntryMsg()
+    public static function sendEntryMsg($msg)
     {
         $send_msg = "";
 

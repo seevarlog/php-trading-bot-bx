@@ -282,7 +282,7 @@ MSG;
         $prev_entry = $this->entry;
         $profit_balance = 0;
 
-        $fee = $order->getFee($candle);
+        $fee = $order->getFee();
         //$add_balance += $fee;
         $exec_order_price = $order->entry;
         if ($order->is_stop)
@@ -300,57 +300,72 @@ MSG;
         }
 
         // 포지션 손익 계산
-        if ($this->amount > 0)
+//        if ($this->amount > 0)
+//        {
+//            if ($order->amount < 0)
+//            {
+//                $profit_amount = $order->amount;
+//                if ($this->amount + $order->amount < 0)
+//                {
+//                    $profit_amount = $order->amount - $profit_amount;
+//                }
+//
+//
+//                $profit_balance = -$profit_amount * (($exec_order_price / $this->entry) - 1);
+//                $this->amount += $order->amount;
+//                if ($this->amount + $order->amount < 0)
+//                {
+//                    $this->entry = $exec_order_price;
+//                }
+//            }
+//            else
+//            {
+//                $this->entry = ($this->entry * $this->amount) + ($exec_order_price * $this->amount) / 2;
+//                $this->amount += $order->amount;
+//            }
+//        }
+//        else if ($this->amount < 0)
+//        {
+//            if ($order->amount > 0)
+//            {
+//                $profit_amount = $order->amount;
+//
+//                $profit_balance = -$profit_amount * (($exec_order_price / $this->entry) - 1);
+//                $this->amount += $order->amount;
+//                if ($this->amount + $order->amount > 0)
+//                {
+//                    $this->entry = $exec_order_price;
+//                }
+//            }
+//            else
+//            {
+//                $this->entry = (($this->entry * $this->amount) + ($exec_order_price * $this->amount)) / 2;
+//                $this->amount += $order->amount;
+//            }
+//        }
+//        else if ($this->amount == 0)
+//        {
+//            $this->entry = $exec_order_price;
+//            $this->amount = $order->amount;
+//        }
+
+        $profit_balance = 0;
+        $order_price = $exec_order_price;
+
+        if ($this->entry != 0)
         {
-            if ($order->amount < 0)
-            {
-                $profit_amount = $order->amount;
-                if ($this->amount + $order->amount < 0)
-                {
-                    $profit_amount = $order->amount - $profit_amount;
-                }
+            $profit_balance = ((1/$this->entry - 1/$order_price) * $this->amount);
+            $fee /= $exec_order_price;
 
-
-                $profit_balance = -$profit_amount * (($exec_order_price / $this->entry) - 1);
-                $this->amount += $order->amount;
-                if ($this->amount + $order->amount < 0)
-                {
-                    $this->entry = $exec_order_price;
-                }
-            }
-            else
-            {
-                $this->entry = ($this->entry * $this->amount) + ($exec_order_price * $this->amount) / 2;
-                $this->amount += $order->amount;
-            }
+            $this->entry = ($this->amount + $order->amount) == 0 ? 0 : $order->entry;
+            $this->amount = $this->entry == 0 ? 0 : $this->amount + $order->amount;
         }
-        else if ($this->amount < 0)
+        else
         {
-            if ($order->amount > 0)
-            {
-                $profit_amount = $order->amount;
-
-                $profit_balance = -$profit_amount * (($exec_order_price / $this->entry) - 1);
-                $this->amount += $order->amount;
-                if ($this->amount + $order->amount > 0)
-                {
-                    $this->entry = $exec_order_price;
-                }
-            }
-            else
-            {
-                $this->entry = (($this->entry * $this->amount) + ($exec_order_price * $this->amount)) / 2;
-                $this->amount += $order->amount;
-            }
-        }
-        else if ($this->amount == 0)
-        {
-            $this->entry = $exec_order_price;
+            $fee /= $exec_order_price;
+            $this->entry = $order->entry;
             $this->amount = $order->amount;
         }
-
-        $profit_balance /= $exec_order_price;
-        $fee /= $exec_order_price;
 
         if ($order->comment == "진입")
         {
@@ -378,11 +393,11 @@ MSG;
                 $last_msg_profit = $profit_balance_usd + $profit_fee_usd;
                 $profit_per = round((($exec_order_price / $prev_entry) - 1) * 100, 2);
                 $msg .= "수익 : ".$last_msg_profit."(".$profit_per.")";
-                Notify::sendMsg($msg);
+                Notify::sendEntryMsg($msg);
             }
             else
             {
-                Notify::sendTradeMsg($msg);
+                Notify::sendEntryMsg($msg);
             }
         }
 
