@@ -11,8 +11,6 @@ use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
 use trading_engine\objects\Funding;
 use trading_engine\objects\Order;
-use trading_engine\strategy\StrategyBB;
-use trading_engine\strategy\StrategyBBShort;
 use trading_engine\util\CoinPrice;
 use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
@@ -437,8 +435,10 @@ try {
 
         $global_var = GlobalVar::getInstance();
         OrderManager::getInstance()->update($candle_prev_1m);
-        $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
-        $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
+//        $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
+//        $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
+        \trading_engine\strategy\StrategyBox::getInstance()->BBS($candle_prev_1m);
+
         //Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".$global_var->candleTick."cross:".$global_var->CrossCount."1hour_per:".$global_var->vol_1hour." buy:".$buy_msg." sell:".$sell_msg);
 
 

@@ -91,7 +91,7 @@ class StrategyBox extends StrategyBase
             return ;
         }
 
-        $range_value = $candle->getATR(20) * 5;
+        $range_value = $candle->getATR(20) * 4.5;
         $this->buyBit($candle->t, $candle->c - $candle->getATR(20), $range_value);
     }
 
@@ -102,7 +102,7 @@ class StrategyBox extends StrategyBase
             return ;
         }
 
-        $range_value = $candle->getATR(20) * 5;
+        $range_value = $candle->getATR(20) * 4.5;
         $this->sellBit($candle->t, $candle->c + $candle->getATR(20), $range_value);
     }
 
