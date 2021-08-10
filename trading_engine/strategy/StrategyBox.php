@@ -70,11 +70,11 @@ class StrategyBox extends StrategyBase
 
         // 포지션 검사
         {
-            if ($candle_60min->getRsiMaInclination(1, 20, 20) > 0.1)
+            if ($candle_60min->getRsiMaInclination(2, 20, 20) > 0.1)
             {
                 $this->longStrategy($candle);
             }
-            else if ($candle->getRsiMaInclination(1, 20, 20) < -0.1)
+            else if ($candle->getRsiMaInclination(2, 20, 20) < -0.1)
             {
                 $this->shortStrategy($candle);
             }

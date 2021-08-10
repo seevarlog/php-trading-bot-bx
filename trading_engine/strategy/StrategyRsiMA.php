@@ -4,6 +4,7 @@
 namespace trading_engine\strategy;
 
 
+use trading_engine\managers\CandleManager;
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
@@ -15,7 +16,7 @@ function iff ($statement_1, $statement_2, $statement_3)
     return $statement_1 == true ? $statement_2 : $statement_3;
 }
 
-class StrategyHeikinAsiUtBot extends StrategyBase
+class StrategyRsiMA extends StrategyBase
 {
     public static $last_last_entry = "sideways";
     public static $order_action = "";
@@ -29,6 +30,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
 
         $candle_1m = clone $candle;
+        $candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15);
         //$candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
         /*******************************
          *  셋팅
@@ -37,11 +39,10 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $orderMng = OrderManager::getInstance();
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
 
-        $above = $candle->crossoverHeiEmaATRTrailingStop();
-        $below = $candle->crossoverATRTrailingStopHeiEma();
-        $buy  = $candle->heiAshiClose() > $candle->getXATRailingStop() && $above;
-        $sell = $candle->heiAshiClose() < $candle->getXATRailingStop() && $below;
-        $msg= $candle->getMsgdebugXATR();
+        $buy  = $candle->isRsiMaBuy();
+        $sell = $candle->isRsiMaSell();
+
+        var_dump("t:{$candle_1m->getDateTimeKST()} b:{$buy} s:{$sell}");
 
         if ($candle->getDateTimeKST() <= "2021-06-29 00:00:00")
         {
@@ -122,7 +123,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 
 
 
-        return $msg."buy=".(int)$buy." sell=".(int)$sell."  ".$candle->displayCandle();
+        return "buy=".(int)$buy." sell=".(int)$sell."  ".$candle->displayCandle();
     }
 
     public function sellBit($time, $btc_close_price, $trade_count = 0)
@@ -142,10 +143,8 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 //            return ;
 //        }
 
-        if ($trade_count >= 0)
-        {
-            $buy_price = $btc_close_price + 0.5;
-        }
+        $buy_price = $btc_close_price + 0.5;
+
 
         if ($buy_price < $btc_close_price)
         {
@@ -231,7 +230,11 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 //            }
 //        }
 
+
+
+        $leverage_correct = $leverage;
         $buy_price = $btc_close_price-0.5;
+
 
         if ($leverage > 1)
         {

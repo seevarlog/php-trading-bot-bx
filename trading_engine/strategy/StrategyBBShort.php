@@ -41,14 +41,14 @@ class StrategyBBShort extends StrategyBase
 
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
-        $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60 * 24)->getCandlePrev();
+        $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(60 * 24))->getCandlePrev();
         $candle_1min = $candle;
-        $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
-        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
-        $candle_240min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 240)->getCandlePrev();
-        $candle_30min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 30)->getCandlePrev();
-        $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15)->getCandlePrev();
-        $candle_zig = CandleManager::getInstance()->getCurOtherMinCandle($candle, $this->zigzag_min)->getCandlePrev();
+        $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(5))->getCandlePrev();
+        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(60))->getCandlePrev();
+        $candle_240min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(240))->getCandlePrev();
+        $candle_30min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(30))->getCandlePrev();
+        $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(15))->getCandlePrev();
+        $candle_zig = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime($this->zigzag_min))->getCandlePrev();
         $candle_trend = $candle_60min;
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
@@ -69,7 +69,7 @@ class StrategyBBShort extends StrategyBase
         $sideCount = $candle_60min->getSidewaysCount($this->side_length);
         $vol = $candle_60min->getAvgRealVolatilityPercent($this->side_candle_count);
         $side_error = 0;
-        if ($dayCandle->getBBDownLine(40, 1.3) > $dayCandle->c || $dayCandle->getBBUpLine(40, 1.3) < $dayCandle->c)
+        if ($dayCandle->getBBDownLine($this->bb_day, $this->bb_k) > $dayCandle->c || $dayCandle->getBBUpLine($this->bb_day, $this->bb_k) < $dayCandle->c)
         {
 
         }
@@ -92,14 +92,14 @@ class StrategyBBShort extends StrategyBase
         $log_min .= "side_count:".$sideCount."vol:".$vol;
 
         $per_1hour = $candle_60min->getAvgRealVolatilityPercent(24);
-        $k_up = 1.3;
+        $k_up = $this->bb_k;
         $stop_per = $per_1hour * 2.5;
         if ($stop_per < 0.012)
         {
             $stop_per = 0.012;
         }
-        $k_down = 1.3;
-        $day = 40;
+        $k_down = $this->bb_k;
+        $day = $this->bb_day;
 
 
         $is_zigzag = 0;
@@ -141,20 +141,20 @@ class StrategyBBShort extends StrategyBase
 
 
         // 밑으로 강하게 가면 지그재그 패스
-        if ($candle_60min->getBBDownCount(40, 1.3, 5) >= 2)
+        if ($candle_60min->getBBDownCount($this->bb_day, $this->bb_k, 5) >= 2)
         {
             $is_zigzag = 0;
         }
 
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount < 0)
         {
-            if ($is_zigzag && ($candle_zig->getMA(40) - ($candle_zig->getStandardDeviationClose($day) * $k_up / 5 * 4)) < $candle_1min->c)
+            if ($is_zigzag && ($candle_zig->getMA($this->bb_day) - ($candle_zig->getStandardDeviationClose($day) * $k_up / 5 * 4)) < $candle_1min->c)
             {
                 return "[매도] 익절 패스";
             }
 
 
-            $mag = $candle_zig->getMA(40);
+            $mag = $candle_zig->getMA($this->bb_day);
             $stop_order = $orderMng->getOrder($this->getStrategyKey(), "손절");
             $amount = $stop_order->amount;
             $loop_msg .= "나머지익절";
@@ -253,7 +253,7 @@ class StrategyBBShort extends StrategyBase
                 return "[매도]1시간반전 기회없음";
             }
 
-            if ($candle_60min->getBBUpLine(40, 1) > $candle->c)
+            if ($candle_60min->getBBUpLine($this->bb_day, $this->bb_k / 1.3) > $candle->c)
             {
                 return "[매도] 위험 지역";
             }
@@ -278,14 +278,14 @@ class StrategyBBShort extends StrategyBase
 
         if ($side_error)
         {
-            if ($candle_60min->getBBUpLine(40, $k_down) < $candle_60min->c && $candle_60min->getGoldenDeadState() == "gold")
+            if ($candle_60min->getBBUpLine($this->bb_day, $k_down) < $candle_60min->c && $candle_60min->getGoldenDeadState() == "gold")
             {
                 return "[매도]1시간 BB 위에 있음";
             }
         }
         else
         {
-            if ($candle_60min->getBBUpLine(37, 0.95) < $candle_60min->c && $candle_60min->getGoldenDeadState() == "gold")
+            if ($candle_60min->getBBUpLine($this->bb_day, $this->bb_k / 1.4) < $candle_60min->c && $candle_60min->getGoldenDeadState() == "gold")
             {
                 return "[매도]1시간 BB 위에 있음";
             }

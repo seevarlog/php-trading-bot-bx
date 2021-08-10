@@ -33,10 +33,10 @@ class CandleManager extends Singleton
         $remainder = $candle->t % (60 * $target_min);
         $index = $candle->t - $remainder;
 
-        if ($target_min > 1)
-        {
-            $index = $candle->t - $remainder + 60;
-        }
+//        if ($target_min > 1)
+//        {
+//            $index = $candle->t - $remainder + 60;
+//        }
 
         if (isset($this->candle_data_list[$target_min][$index]))
         {

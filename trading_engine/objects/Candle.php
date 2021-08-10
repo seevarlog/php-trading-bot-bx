@@ -40,6 +40,9 @@ class Candle
     public $cn = null;
     public $cp = null;
 
+    // rsi ma buy short
+    public $rsiMaBuySrhotState = 0; // 0 아무것도안함 -1 숏중 1 롱중
+
     // real rsi
     public $r_rsi = [];
     public $r_au = [];
@@ -50,9 +53,6 @@ class Candle
     public $rd = 0;
     public $au = 0;
     public $ad = 0;
-
-    public $bd = 0; // BB day
-    public $ba = 0; // BB Avg close
 
     // 평균 변동성 캐시
     public $av = 0;
@@ -467,7 +467,11 @@ class Candle
         }
 
         $rsi = 100-(100/(1+ $up / $du));
-        $this->r_rsi[$length] = $rsi;
+        if ($this->cn !== null)
+        {
+            $this->r_rsi[$length] = $rsi;
+        }
+
 
         return $rsi;
     }
@@ -506,8 +510,12 @@ class Candle
             return $this->r_au[$length];
         }
 
-        $this->r_au[$length] = (($this->getCandlePrev()->getNewUpAvg($length, $left - 1) * ($length - 1)) + $this->getAU()) / $length;
-        return $this->r_au[$length];
+        $r = (($this->getCandlePrev()->getNewUpAvg($length, $left - 1) * ($length - 1)) + $this->getAU()) / $length;
+        if ($this->cn !== null)
+        {
+            $this->r_au[$length] = $r;
+        }
+        return $r;
     }
 
     public function getNewDownAvg($length, $left)
@@ -536,8 +544,12 @@ class Candle
             return $this->r_du[$length];
         }
 
-        $this->r_du[$length] = (($this->getCandlePrev()->getNewDownAvg($length, $left - 1) * ($length - 1)) + $this->getDU()) / $length;
-        return $this->r_du[$length];
+        $r = (($this->getCandlePrev()->getNewDownAvg($length, $left - 1) * ($length - 1)) + $this->getDU()) / $length;
+        if ($this->cn !== null)
+        {
+            $this->r_au[$length] = $r;
+        }
+        return $r;
     }
 
 
@@ -929,43 +941,6 @@ class Candle
         return $sum / $day;
     }
 
-    public function getAvgVolatilityPercentForStop($day)
-    {
-        $sum = 0;
-        $prev = $this->getCandlePrev();
-
-        if ($prev->bd == $day && $this->n > $day)
-        {
-            $delta = abs($this->h - $this->l);
-
-            return $this->ba;
-        }
-
-        if ($this->c == 0)
-        {
-            return 0.0546;
-        }
-
-        // 평균 0.0546
-        // 표준편차 0.066
-        $sum_percent = 0;
-        for ($i=0; $i<$day; $i++)
-        {
-            if ($this->o == $this->c)
-            {
-                $sum_percent = 0;
-            }
-            else
-            {
-                $sum_percent += abs(($this->h - $this->l) / $this->c);
-            }
-            $prev = $prev->getCandlePrev();
-        }
-        $sum_percent /= $day;
-
-        return $sum_percent;
-    }
-
     public function UTBotIsSellEntry()
     {
         return $this->ut_short_start && $this->ut_short_drag;
@@ -1121,6 +1096,43 @@ class Candle
             }
         }
         return False;
+    }
+
+    public function getRsiMaBuyShortState()
+    {
+        $v = $this->getCandlePrev()->getCandlePrev()->getRsiMA(14, 14) - $this->getRsiMA(14, 14);
+        //var_dump($this->getDateTimeKST());
+        var_dump("{$v}    {$this->getDateTimeKST()}");
+        if( $v > 0)
+        {
+            return 1;
+        }
+        else if ( $v <= 0)
+        {
+            return -1;
+        }
+
+        return 0;
+    }
+
+    public function isRsiMaBuy()
+    {
+        if ($this->getRsiMaBuyShortState() == 1 && $this->getCandlePrev()->getRsiMaBuyShortState() != 1)
+        {
+            return 1;
+        }
+
+        return 0;
+    }
+
+    public function isRsiMaSell()
+    {
+        if ($this->getRsiMaBuyShortState() == -1 && $this->getCandlePrev()->getRsiMaBuyShortState() != -1)
+        {
+            return 1;
+        }
+
+        return 0;
     }
 
     public function crossoverHeiEmaATRTrailingStop()
