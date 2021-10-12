@@ -29,7 +29,11 @@ class StrategyBBShort extends StrategyBase
     public function BBS(Candle $candle)
     {
         $loop_msg = '';
-        $leverage = $this->leverage;
+        $leverage = $this->real_leverage;
+        if (!Config::getInstance()->isRealTrade())
+        {
+            $leverage = $this->test_leverage;
+        }
         $orderMng = OrderManager::getInstance();
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
 
@@ -93,7 +97,7 @@ class StrategyBBShort extends StrategyBase
 
         $per_1hour = $candle_60min->getAvgRealVolatilityPercent(24);
         $k_up = $this->bb_k;
-        $stop_per = $per_1hour * 1.5;
+        $stop_per = $per_1hour * $this->stop_k;;
         if ($stop_per < 0.012)
         {
             $stop_per = 0.012;
@@ -108,11 +112,6 @@ class StrategyBBShort extends StrategyBase
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
         $positionMng = PositionManager::getInstance();
         $myPosition = $positionMng->getPosition($this->getStrategyKey());
-
-        if ($curPosition->entry_tick > 1 && $curPosition->amount != 0)
-        {
-            $candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, $curPosition->entry_tick)->getCandlePrev();
-        }
 
         // 오래된 주문은 취소한다
         foreach ($order_list as $order)
@@ -387,7 +386,7 @@ class StrategyBBShort extends StrategyBase
             }
             else
             {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.15;
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage));
             }
         }
 

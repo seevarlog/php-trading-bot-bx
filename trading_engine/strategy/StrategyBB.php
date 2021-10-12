@@ -21,7 +21,7 @@ class StrategyBB extends StrategyBase
     public function BBS(Candle $candle)
     {
         $per = log(exp(1)+$candle->tick);
-        $leverage = 18;
+        $leverage = $this->real_leverage;
         if (!Config::getInstance()->isRealTrade())
         {
             $leverage = $this->test_leverage;
@@ -102,7 +102,7 @@ class StrategyBB extends StrategyBase
 
         $wait_min = 30;
         $k_up = $this->bb_k;
-        $stop_per = $per_1hour * 1.5;
+        $stop_per = $per_1hour * $this->stop_k;
         if ($stop_per < 0.012)
         {
             $stop_per = 0.012;
@@ -366,7 +366,7 @@ class StrategyBB extends StrategyBase
             }
             else
             {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage)) / 1.15;
+                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage));
             }
         }
 

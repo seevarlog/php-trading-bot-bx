@@ -31,17 +31,21 @@ class CandleManager extends Singleton
     public function getTrendValue(Candle $candle_1m)
     {
         $rsi_length = 14;
-        $rsi_ma_length = 20;
+        $rsi_ma_length = 17;
 
+        $trend_value_30m = CandleManager::getInstance()->getCurOtherMinCandle($candle_1m, 30)->getCandlePrev()->getRsiMaInclination(1, $rsi_length, $rsi_ma_length);
         $trend_value_60m = CandleManager::getInstance()->getCurOtherMinCandle($candle_1m, 60)->getCandlePrev()->getRsiMaInclination(1, $rsi_length, $rsi_ma_length);
-        $trend_value_240m = CandleManager::getInstance()->getCurOtherMinCandle($candle_1m, 240)->getCandlePrev()->getRsiMaInclination(1, $rsi_length, $rsi_ma_length);
+        $trend_value_240m = CandleManager::getInstance()->getCurOtherMinCandle($candle_1m, 60*4)->getCandlePrev()->getRsiMaInclination(1, $rsi_length, $rsi_ma_length);
         $trend_value_1day = CandleManager::getInstance()->getCurOtherMinCandle($candle_1m, 60*24)->getCandlePrev()->getRsiMaInclination(1, $rsi_length, $rsi_ma_length);
+        $trend_value_1week = CandleManager::getInstance()->getCurOtherMinCandle($candle_1m, 60*24*7)->getCandlePrev()->getRsiMaInclination(1, $rsi_length, $rsi_ma_length);
 
-        $trend_value_1day = $trend_value_1day / 9 * 5;
-        $trend_value_60m = $trend_value_60m / 9 * 5;
-        $trend_value_240m = $trend_value_240m / 9 * 3;
+        $trend_value_30m = $trend_value_30m * 5.5;
+        $trend_value_60m = $trend_value_60m * 5;
+        $trend_value_240m = $trend_value_240m * 4;
+        $trend_value_1day = $trend_value_1day * 5;
+        $trend_value_1week = $trend_value_1week * 4.5;
 
-        return ($trend_value_1day + $trend_value_60m + $trend_value_240m);
+        return ($trend_value_1day + $trend_value_60m + $trend_value_240m + $trend_value_30m + $trend_value_1week);
     }
 
     public function addNewCandle(Candle $candle)
