@@ -44,7 +44,7 @@ class StrategyBBShort extends StrategyBase
         $dayCandle = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(60 * 24))->getCandlePrev();
         $candle_1min = $candle;
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(5))->getCandlePrev();
-        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(60))->getCandlePrev();
+        $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(120))->getCandlePrev();
         $candle_240min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(240))->getCandlePrev();
         $candle_30min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(30))->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(15))->getCandlePrev();
@@ -93,7 +93,7 @@ class StrategyBBShort extends StrategyBase
 
         $per_1hour = $candle_60min->getAvgRealVolatilityPercent(24);
         $k_up = $this->bb_k;
-        $stop_per = $per_1hour * 2.5;
+        $stop_per = $per_1hour * 1.5;
         if ($stop_per < 0.012)
         {
             $stop_per = 0.012;
@@ -261,7 +261,7 @@ class StrategyBBShort extends StrategyBase
         }
         else
         {
-            if ($candle_60min->getCandlePrev()->getCandlePrev()->getRsiMA(14, 17) - $candle_60min->getRsiMA(14, 17) < -0.5)
+            if (CandleManager::getInstance()->getTrendValue($candle_1min) > 0)
             {
                 return "[매도]1시간반전 기회없음";
             }
@@ -375,6 +375,7 @@ class StrategyBBShort extends StrategyBase
         // 매수 주문
 
 
+        $trend_value = CandleManager::getInstance()->getTrendValue($candle_1min);
         $leverage_correct = $leverage;
         if ($leverage > 1)
         {
@@ -390,7 +391,7 @@ class StrategyBBShort extends StrategyBase
             }
         }
 
-        $log .= "k = ".$k_up. " DAY=".$day;
+        $log .= "k = ".$k_up. " DAY=".$day." trend:".$trend_value;
         $log .= $log_min;
 
 

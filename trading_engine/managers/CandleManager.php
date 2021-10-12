@@ -13,6 +13,37 @@ class CandleManager extends Singleton
     public $last_index = [];
     public $first_index = [];
 
+    public static function clamp($v, $min, $max)
+    {
+        if ($min < $v)
+        {
+            return $min;
+        }
+
+        if ($max > $v)
+        {
+            return $max;
+        }
+
+        return $v;
+    }
+
+    public function getTrendValue(Candle $candle_1m)
+    {
+        $rsi_length = 14;
+        $rsi_ma_length = 20;
+
+        $trend_value_60m = CandleManager::getInstance()->getCurOtherMinCandle($candle_1m, 60)->getCandlePrev()->getRsiMaInclination(1, $rsi_length, $rsi_ma_length);
+        $trend_value_240m = CandleManager::getInstance()->getCurOtherMinCandle($candle_1m, 240)->getCandlePrev()->getRsiMaInclination(1, $rsi_length, $rsi_ma_length);
+        $trend_value_1day = CandleManager::getInstance()->getCurOtherMinCandle($candle_1m, 60*24)->getCandlePrev()->getRsiMaInclination(1, $rsi_length, $rsi_ma_length);
+
+        $trend_value_1day = $trend_value_1day / 9 * 5;
+        $trend_value_60m = $trend_value_60m / 9 * 5;
+        $trend_value_240m = $trend_value_240m / 9 * 3;
+
+        return ($trend_value_1day + $trend_value_60m + $trend_value_240m);
+    }
+
     public function addNewCandle(Candle $candle)
     {
         $this->candle_data_list[$candle->tick][$candle->t] = $candle;

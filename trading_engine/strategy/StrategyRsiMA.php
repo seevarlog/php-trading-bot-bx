@@ -30,7 +30,7 @@ class StrategyRsiMA extends StrategyBase
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
 
         $candle_1m = clone $candle;
-        $candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 15);
+        $candle = CandleManager::getInstance()->getLastCandle(240);
         //$candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
         /*******************************
          *  셋팅
@@ -42,7 +42,7 @@ class StrategyRsiMA extends StrategyBase
         $buy  = $candle->isRsiMaBuy();
         $sell = $candle->isRsiMaSell();
 
-        var_dump("t:{$candle_1m->getDateTimeKST()} b:{$buy} s:{$sell}");
+        //var_dump("t:{$candle_1m->getDateTimeKST()} b:{$buy} s:{$sell}");
 
         if ($candle->getDateTimeKST() <= "2021-06-29 00:00:00")
         {

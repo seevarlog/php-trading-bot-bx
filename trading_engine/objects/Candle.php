@@ -232,7 +232,7 @@ class Candle
 
     public function displayCandle()
     {
-        return "t:".$this->getDateTime()."  h:".$this->h." l:".$this->l." c:".$this->c." o:".$this->o. "tick:".$this->tick;
+        return "T:".$this->t." t:".$this->getDateTime()."  h:".$this->h." l:".$this->l." c:".$this->c." o:".$this->o. "tick:".$this->tick;
     }
     public function displayHeikenAshiCandle()
     {
@@ -547,77 +547,13 @@ class Candle
         $r = (($this->getCandlePrev()->getNewDownAvg($length, $left - 1) * ($length - 1)) + $this->getDU()) / $length;
         if ($this->cn !== null)
         {
-            $this->r_au[$length] = $r;
+            $this->r_du[$length] = $r;
         }
         return $r;
     }
 
 
 
-
-    public function getRsi($day)
-    {
-        if ($this->getCandlePrev()->r != -1 && $this->rd == $day)
-        {
-            $prev = $this->getCandlePrev();
-            $delta = $this->c - $prev->c;
-            $up = $delta > 0 ? $delta : 0;
-            $down = $delta < 0 ? abs($delta) : 0;
-
-            $au = $prev->r * ($day - 1) + $up;
-            $du = $prev->r * ($day - 1) + $down;
-
-            $this->r = 100 * $au / ($au + $du);
-            $this->rd = $day;
-
-            return $this->r;
-        }
-
-        $first_candle = $this;
-        for ($i=0; $i<$day*3; $i++)
-        {
-            $first_candle = $first_candle->getCandlePrev();
-        }
-
-        // 최적화 가능한 부분
-        // 걍 처음부터 다시한다
-        $au = $first_candle->getUpAvg($day);
-        $ad = $first_candle->getDownAvg($day);
-        $first_candle->au = $au;
-        $first_candle->ad = $ad;
-        $first_candle->rd = $day;
-        if (($au + $ad) == 0)
-        {
-            $au = 1;
-            $ad = 1;
-        }
-        $first_candle->r = 100 * $au / ( $au + $ad );
-
-        $first_candle = $first_candle->getCandleNext();
-        for ($i=0; $i<$day*5; $i++)
-        {
-            $prev = $first_candle->getCandlePrev();
-            $delta = $first_candle->c - $prev->c;
-            $up = $delta > 0 ? $delta : 0;
-            $down = $delta < 0 ? abs($delta) : 0;
-
-            $first_candle->au = ($prev->au * ($day-1) + $up) / $day;
-            $first_candle->ad = ($prev->ad * ($day-1) + $down) / $day;
-
-            if (($first_candle->au + $first_candle->ad) == 0)
-            {
-                $first_candle->au = 1;
-                $first_candle->ad = 1;
-            }
-
-            $first_candle->r = 100 * $first_candle->au / ( $first_candle->au + $first_candle->ad );
-            $first_candle->rd = $day;
-
-            $first_candle = $first_candle->getCandleNext();
-        }
-
-        return $this->r;
-    }
 
 
     public function setData($time, $open, $high, $low, $close)
@@ -1100,14 +1036,16 @@ class Candle
 
     public function getRsiMaBuyShortState()
     {
-        $v = $this->getCandlePrev()->getCandlePrev()->getRsiMA(14, 14) - $this->getRsiMA(14, 14);
-        //var_dump($this->getDateTimeKST());
-        var_dump("{$v}    {$this->getDateTimeKST()}");
-        if( $v > 0)
+        $rsi_len = 14;
+        $ma_length = 14;
+
+
+        $v = $this->getCandlePrev()->getCandlePrev()->getRsiMA($rsi_len, $ma_length) - $this->getRsiMA($rsi_len, $ma_length);
+        if( $v < 0)
         {
             return 1;
         }
-        else if ( $v <= 0)
+        else if ( $v >= 0)
         {
             return -1;
         }

@@ -9,7 +9,8 @@ use trading_engine\util\Singleton;
 class StrategyBase extends Singleton
 {
     public $min = 1;
-    public $test_leverage = 5;
+    public $test_leverage = 1;
+    public $trade_wait_limit = 15;
     public $box_leverage = 1;
     public $sideways_per = 0.014;
     public $side_candle_count = 24;
@@ -26,9 +27,9 @@ class StrategyBase extends Singleton
     public $bb_day = 40;
     public $bb_k = 2.3;
 
-    public $stop_per = 0.05;
-    public $entry_per = 0.00001;
-    public $buy_entry_per = 0.00001;
+    public $stop_per = 0.15;
+    public $entry_per = 0.001;
+    public $buy_entry_per = 0.001;
 
     public function convertTime($min): int
     {

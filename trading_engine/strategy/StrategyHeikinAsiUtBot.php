@@ -4,6 +4,7 @@
 namespace trading_engine\strategy;
 
 
+use trading_engine\managers\CandleManager;
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
@@ -28,6 +29,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
         $orderMng = OrderManager::getInstance();
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
 
+        $candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
         $candle_1m = clone $candle;
         //$candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
         /*******************************
@@ -232,7 +234,7 @@ class StrategyHeikinAsiUtBot extends StrategyBase
 //        }
 
         $buy_price = $btc_close_price-0.5;
-
+        $leverage_correct = 1;
         if ($leverage > 1)
         {
             $leverage_standard_stop_per = 0.013;
