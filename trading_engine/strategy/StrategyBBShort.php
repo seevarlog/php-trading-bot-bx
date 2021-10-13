@@ -147,11 +147,10 @@ class StrategyBBShort extends StrategyBase
 
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount < 0)
         {
-            if ($is_zigzag && ($candle_zig->getMA($this->bb_day) - ($candle_zig->getStandardDeviationClose($day) * $k_up / 5 * 4)) < $candle_1min->c)
+            if ($positionMng->getPosition($this->getStrategyKey())->entry < $candle_1min->c)
             {
-                return "[매도] 익절 패스";
+                return "";
             }
-
 
             $mag = $candle_zig->getMA($this->bb_day);
             $stop_order = $orderMng->getOrder($this->getStrategyKey(), "손절");
@@ -220,6 +219,7 @@ class StrategyBBShort extends StrategyBase
 
         // 1차 합격
         $buy_per = 0.0001;
+        $buy_per = $per_1hour / 4;
         // 1시간봉 과매수 거래 중지
 
         if ($candle_60min->getNewRsi(14) > 70)
@@ -375,20 +375,22 @@ class StrategyBBShort extends StrategyBase
 
 
         $trend_value = CandleManager::getInstance()->getTrendValue($candle_1min);
-        $leverage_correct = $leverage;
-        if ($leverage > 1)
-        {
-            $leverage_standard_stop_per = 0.013;
-            $leverage_stop_per = $stop_price / $buy_price - 1;
-            if ($leverage_stop_per < $leverage_standard_stop_per)
-            {
-                $leverage_correct = $leverage;
-            }
-            else
-            {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage));
-            }
-        }
+//        $leverage_correct = $leverage;
+//        if ($leverage > 1)
+//        {
+//            $leverage_standard_stop_per = $stop_per;
+//            $leverage_stop_per = $stop_price / $buy_price - 1;
+//            if ($leverage_stop_per < $leverage_standard_stop_per)
+//            {
+//                $leverage_correct = $leverage;
+//            }
+//            else
+//            {
+//                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage));
+//            }
+//        }
+
+        $leverage_correct = $this->max_stop_amount_per / $stop_per;
 
         $log .= "k = ".$k_up. " DAY=".$day." trend:".$trend_value;
         $log .= $log_min;

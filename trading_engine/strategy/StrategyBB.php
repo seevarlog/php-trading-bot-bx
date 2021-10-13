@@ -138,6 +138,11 @@ class StrategyBB extends StrategyBase
             $sell_price = 0;
             $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
 
+            if ($positionMng->getPosition($this->getStrategyKey())->entry > $candle_1min->c)
+            {
+                return "";
+            }
+
             if ($positionMng->getPosition($this->getStrategyKey())->action == "5분EMA")
             {
                 $min5 = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
@@ -239,6 +244,7 @@ class StrategyBB extends StrategyBase
 
         // 1차 합격
         $buy_per = 0.0001;
+        $buy_per = $per_1hour / 4;
         // 1시간봉 과매수 거래 중지
 
 
@@ -355,20 +361,22 @@ class StrategyBB extends StrategyBase
         // 매수 주문
 
 
-        $leverage_correct = $leverage;
-        if ($leverage > 1)
-        {
-            $leverage_standard_stop_per = 0.013;
-            $leverage_stop_per = $buy_price / $stop_price - 1;
-            if ($leverage_stop_per < $leverage_standard_stop_per)
-            {
-                $leverage_correct = $leverage;
-            }
-            else
-            {
-                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage));
-            }
-        }
+//        $leverage_correct = $leverage;
+//        if ($leverage > 1)
+//        {
+//            $leverage_standard_stop_per = $stop_per;
+//            $leverage_stop_per = $buy_price / $stop_price - 1;
+//            if ($leverage_stop_per < $leverage_standard_stop_per)
+//            {
+//                $leverage_correct = $leverage;
+//            }
+//            else
+//            {
+//                $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage));
+//            }
+//        }
+
+        $leverage_correct = $this->max_stop_amount_per / $stop_per;
 
         $trend_value = CandleManager::getInstance()->getTrendValue($candle_1min);
         $log .= "k = ".$k_up. " DAY=".$day.$log_min." trend:".$trend_value;

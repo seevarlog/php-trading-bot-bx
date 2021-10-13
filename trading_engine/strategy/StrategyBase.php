@@ -29,7 +29,8 @@ class StrategyBase extends Singleton
     public $bb_k = 2.3;
 
 
-    public $stop_k = 2;
+    public $stop_k = 1.5;
+    public $max_stop_amount_per = 0.3;
 
     public $stop_per = 0.15;
     public $entry_per = 0.001;
