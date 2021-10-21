@@ -10,7 +10,7 @@ class StrategyBase extends Singleton
 {
     public $min = 1;
     public $real_leverage = 14;
-    public $test_leverage = 14;
+    public $test_leverage = 1;
     public $trade_wait_limit = 15;
     public $box_leverage = 1;
     public $sideways_per = 0.014;
@@ -29,8 +29,9 @@ class StrategyBase extends Singleton
     public $bb_k = 2.3;
 
 
+    public $entry_atl_per = 0.0001;
     public $stop_k = 1.5;
-    public $max_stop_amount_per = 0.3;
+    public $max_stop_amount_per = 0.25;
 
     public $stop_per = 0.15;
     public $entry_per = 0.001;

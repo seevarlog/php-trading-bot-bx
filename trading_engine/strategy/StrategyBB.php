@@ -137,8 +137,10 @@ class StrategyBB extends StrategyBase
         {
             $sell_price = 0;
             $amount = $orderMng->getOrder($this->getStrategyKey(), "손절")->amount;
-
-            if ($positionMng->getPosition($this->getStrategyKey())->entry > $candle_1min->c)
+            $stop_price = $orderMng->getOrder($this->getStrategyKey(), "손절")->entry;
+            $delta_price = ($curPosition->entry - $stop_price);
+            $delta_price = 0;
+            if ($positionMng->getPosition($this->getStrategyKey())->entry + $delta_price > $candle_1min->c)
             {
                 return "";
             }
@@ -244,7 +246,7 @@ class StrategyBB extends StrategyBase
 
         // 1차 합격
         $buy_per = 0.0001;
-        $buy_per = $per_1hour / 4;
+        $buy_per = $per_1hour * $this->entry_atl_per;
         // 1시간봉 과매수 거래 중지
 
 
