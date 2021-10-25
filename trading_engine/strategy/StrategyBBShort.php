@@ -53,7 +53,7 @@ class StrategyBBShort extends StrategyBase
         $candle_30min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(30))->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(15))->getCandlePrev();
         $candle_zig = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime($this->zigzag_min))->getCandlePrev();
-        $candle_trend = $candle_60min;
+        $candle = $candle_60min;
 
         //$vol_per = $dayCandle->getAvgVolatilityPercent(4);
         //$vol_for_stop = $dayCandle->getAvgVolatilityPercentForStop(4) / 30;

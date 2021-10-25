@@ -4,8 +4,6 @@ use trading_engine\managers\CandleManager;
 use trading_engine\managers\TradeLogManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
-use trading_engine\strategy\StrategyBB;
-use trading_engine\strategy\StrategyBBShort;
 
 require_once('vendor/autoload.php');
 
@@ -18,13 +16,13 @@ header('Content-Type: text/html; charset=UTF-8');
 
 ob_start();
 $time_start = time();
-if (!($fp = fopen(__DIR__ . '/output_202109.csv', 'r'))) {
+if (!($fp = fopen(__DIR__ . '/output.csv', 'r'))) {
     echo "err";
     return;
 }
 
 // m본
-$make_candle_min_list = [3, 5, 15, 30, 60, 120, 60*4, 60 * 24];
+$make_candle_min_list = [3, 5, 15, 30, 60, 120, 60*4, 60 * 24, 60 * 24 * 7];
 
 // 30분봉 만들어봄
 $candleMng = CandleManager::getInstance();
@@ -178,14 +176,14 @@ for ($i=0; $i<500000; $i++)
     \trading_engine\managers\OrderManager::getInstance()->update($candle->getCandlePrev());
 
 
-    StrategyBB::getInstance()->BBS($candle->getCandlePrev());
-    StrategyBBShort::getInstance()->BBS($candle->getCandlePrev());
+//    StrategyBB::getInstance()->BBS($candle->getCandlePrev());
+//    StrategyBBShort::getInstance()->BBS($candle->getCandlePrev());
 
     //\trading_engine\strategy\StrategyBoxCopy::getInstance()->BBS($candle->getCandlePrev());
 
 
-//    \trading_engine\managers\OrderManager::getInstance()->updateBoxMode($candle->getCandlePrev());
-//   \trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->BBS($candle->getCandlePrev());
+    \trading_engine\managers\OrderManager::getInstance()->updateBoxMode($candle->getCandlePrev());
+   \trading_engine\strategy\StrategyHeikinAsiAtrSmooth::getInstance()->BBS($candle->getCandlePrev());
 }
 
 //CandleManager::getInstance()->getCurOtherMinCandle($candle, 15);

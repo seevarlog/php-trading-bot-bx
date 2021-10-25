@@ -42,7 +42,8 @@ class StrategyBB extends StrategyBase
         $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(5))->getCandlePrev();
         $candle_15min = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(15))->getCandlePrev();
         $candle_zig = CandleManager::getInstance()->getCurOtherMinCandle($candle, self::convertTime(($this->zigzag_min)))->getCandlePrev();
-        $candle_trend = $candle_60min;
+        $candle = $candle_60min;
+
 
 //        $ema_count = $candle_60min->getEMACrossCount();
 //        $log_min = "111111111";

@@ -4,6 +4,7 @@
 namespace trading_engine\strategy;
 
 
+use trading_engine\managers\CandleManager;
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
@@ -30,6 +31,7 @@ class StrategyHeikinAsiAtrSmooth extends StrategyBase
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
 
         $candle_1m = clone $candle;
+        $candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         //$candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
         /*******************************
          *  셋팅
@@ -38,13 +40,13 @@ class StrategyHeikinAsiAtrSmooth extends StrategyBase
         $orderMng = OrderManager::getInstance();
         $position_count = $orderMng->getPositionCount($this->getStrategyKey());
 
-        $close_1 = $candle->getCandlePrev()->heiAshiClose();
+        $close_1 = $candle->getCandlePrev()->getClose();
         $xATRTrailingStop_1 =$candle->getCandlePrev()->getXATRailingStop();
-        $close = $candle->heiAshiClose();
+        $close = $candle->getClose();
         $pos_1 = $candle->getCandlePrev()->pos;
         
         $candle->pos = iff(($close_1 < $xATRTrailingStop_1) && ($close > $xATRTrailingStop_1), 1,
-            iff(($close_1 > $xATRTrailingStop_1) && ($close < $xATRTrailingStop_1), -1, $pos_1));
+            iff($close_1 > $xATRTrailingStop_1 && ($close < $xATRTrailingStop_1), -1, $pos_1));
 
         // Deternine if we are currently LONG
         $candle->isLong = $candle->getCandlePrev()->isLong;
@@ -59,6 +61,11 @@ class StrategyHeikinAsiAtrSmooth extends StrategyBase
         // Sell only if the sell signal is triggered and we are not already short
         $SHORT = !$candle->isShort && $candle->pos == -1;
 
+
+        if ($candle_1m->t % (60*60) == 0)
+        {
+            var_dump("S:".(int)$SHORT. " L:".(int)$LONG."  KST=>".$candle_1m->getDateTimeKST());
+        }
 
         if ($LONG)
         {

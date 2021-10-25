@@ -151,14 +151,17 @@ class Candle
         }
         if ($limit == -1)
         {
-            $limit = 150;
+            $limit = 300;
         }
 
-        $xATR = $this->getATR(10);
-        $nLoss = 1 * $xATR;
+        $nATRPeriod = 21;
+        $nATRMultip = 6.3;
 
-        $src_1 = $this->getCandlePrev()->heiAshiClose();
-        $src = $this->heiAshiClose();
+        $xATR = $this->getATR($nATRPeriod);
+        $nLoss = $nATRMultip * $xATR;
+
+        $src_1 = $this->getCandlePrev()->c;
+        $src = $this->c;
 
         // 캐싱이 안되어있다면 이전의 캔들의 XATR을 구해야함
         $vXATRailingStop_1 = $limit == 0 ? 0 : $this->getCandlePrev()->getXATRailingStop($limit - 1);
@@ -176,6 +179,12 @@ class Candle
 
     public function getTR()
     {
+        return max (
+            $this->h - $this->l,
+            abs($this->h - $this->getCandlePrev()->c),
+            abs($this->l- $this->getCandlePrev()->c)
+        );
+
         return max (
             $this->heiAshiHigh() - $this->heiAshiLow(),
             abs($this->heiAshiHigh() - $this->getCandlePrev()->heiAshiClose()),
@@ -215,7 +224,10 @@ class Candle
         }
 
         // sma ?
-        $temp = (($this->getCandlePrev()->getATR($length, $left - 1) * ($length - 1)) + $this->getTR()) / $length;
+        //$temp = (($this->getCandlePrev()->getATR($length, $left - 1) * ($length - 1)) + $this->getTR()) / $length;
+
+        $alpha = 1 / $length;
+        $temp = $alpha * $this->getTR() + (1 - $alpha) * $this->getCandlePrev()->getATR($length);
         if ($this->cn !== null)
         {
             $this->atr[$length] = $temp;
