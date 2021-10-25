@@ -147,14 +147,19 @@ class StrategyBBShort extends StrategyBase
 
         if($position_count > 0 && $positionMng->getPosition($this->getStrategyKey())->amount < 0)
         {
-            if ($positionMng->getPosition($this->getStrategyKey())->entry < $candle_1min->c)
+            $mag = $candle_zig->getMA($this->bb_day);
+            $stop_order = $orderMng->getOrder($this->getStrategyKey(), "손절");
+            $amount = $stop_order->amount;
+            $stop_price = $stop_order->entry;
+            $delta_price = abs($curPosition->entry - $stop_price);
+            $delta_price = 0;
+
+            if (($positionMng->getPosition($this->getStrategyKey())->entry - $delta_price) < $candle_1min->c)
             {
                 return "";
             }
 
-            $mag = $candle_zig->getMA($this->bb_day);
-            $stop_order = $orderMng->getOrder($this->getStrategyKey(), "손절");
-            $amount = $stop_order->amount;
+
             $loop_msg .= "나머지익절";
 
 
@@ -219,7 +224,7 @@ class StrategyBBShort extends StrategyBase
 
         // 1차 합격
         $buy_per = 0.0001;
-        $buy_per = $per_1hour / 4;
+        $buy_per = $per_1hour * $this->entry_atl_per;
         // 1시간봉 과매수 거래 중지
 
         if ($candle_60min->getNewRsi(14) > 70)
