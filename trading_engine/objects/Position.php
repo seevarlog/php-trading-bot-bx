@@ -104,7 +104,7 @@ class Position
         $prev_entry = $this->entry;
         $profit_balance = 0;
 
-        $fee = $order->getFee($candle);
+        $fee = $order->getFee();
         //$add_balance += $fee;
         $exec_order_price = $order->entry;
         if ($order->is_stop)
@@ -120,78 +120,6 @@ class Position
             }
         }
 
-        if (!Config::getInstance()->isRealTrade())
-        {
-//            if ($order->amount > 0 && $order->is_limit)
-//            {
-//                // 매수시
-//                if ($candle->o >= $order->entry)
-//                {
-//                    $order->entry = $candle->o;
-//                    $exec_order_price = $order->entry;
-//                }
-//            }
-//            else if ($order->amount < 0 && $order->is_limit)
-//            {
-//                // 매수시
-//                if ($candle->o <= $order->entry)
-//                {
-//                    $order->entry = $candle->o;
-//                    $exec_order_price = $order->entry;
-//                }
-//            }
-
-        }
-
-        // 포지션 손익 계산
-//        if ($this->amount > 0)
-//        {
-//            if ($order->amount < 0)
-//            {
-//                $profit_amount = $order->amount;
-//                if ($this->amount + $order->amount < 0)
-//                {
-//                    $profit_amount = $order->amount - $profit_amount;
-//                }
-//
-//
-//                $profit_balance = -$profit_amount * (($exec_order_price / $this->entry) - 1);
-//                $this->amount += $order->amount;
-//                if ($this->amount + $order->amount < 0)
-//                {
-//                    $this->entry = $exec_order_price;
-//                }
-//            }
-//            else
-//            {
-//                $this->entry = ($this->entry * $this->amount) + ($exec_order_price * $this->amount) / 2;
-//                $this->amount += $order->amount;
-//            }
-//        }
-//        else if ($this->amount < 0)
-//        {
-//            if ($order->amount > 0)
-//            {
-//                $profit_amount = $order->amount;
-//
-//                $profit_balance = -$profit_amount * (($exec_order_price / $this->entry) - 1);
-//                $this->amount += $order->amount;
-//                if ($this->amount + $order->amount > 0)
-//                {
-//                    $this->entry = $exec_order_price;
-//                }
-//            }
-//            else
-//            {
-//                $this->entry = (($this->entry * $this->amount) + ($exec_order_price * $this->amount)) / 2;
-//                $this->amount += $order->amount;
-//            }
-//        }
-//        else if ($this->amount == 0)
-//        {
-//            $this->entry = $exec_order_price;
-//            $this->amount = $order->amount;
-//        }
 
         $profit_balance = 0;
         $order_price = $exec_order_price;
@@ -298,56 +226,6 @@ MSG;
             }
 
         }
-
-        // 포지션 손익 계산
-//        if ($this->amount > 0)
-//        {
-//            if ($order->amount < 0)
-//            {
-//                $profit_amount = $order->amount;
-//                if ($this->amount + $order->amount < 0)
-//                {
-//                    $profit_amount = $order->amount - $profit_amount;
-//                }
-//
-//
-//                $profit_balance = -$profit_amount * (($exec_order_price / $this->entry) - 1);
-//                $this->amount += $order->amount;
-//                if ($this->amount + $order->amount < 0)
-//                {
-//                    $this->entry = $exec_order_price;
-//                }
-//            }
-//            else
-//            {
-//                $this->entry = ($this->entry * $this->amount) + ($exec_order_price * $this->amount) / 2;
-//                $this->amount += $order->amount;
-//            }
-//        }
-//        else if ($this->amount < 0)
-//        {
-//            if ($order->amount > 0)
-//            {
-//                $profit_amount = $order->amount;
-//
-//                $profit_balance = -$profit_amount * (($exec_order_price / $this->entry) - 1);
-//                $this->amount += $order->amount;
-//                if ($this->amount + $order->amount > 0)
-//                {
-//                    $this->entry = $exec_order_price;
-//                }
-//            }
-//            else
-//            {
-//                $this->entry = (($this->entry * $this->amount) + ($exec_order_price * $this->amount)) / 2;
-//                $this->amount += $order->amount;
-//            }
-//        }
-//        else if ($this->amount == 0)
-//        {
-//            $this->entry = $exec_order_price;
-//            $this->amount = $order->amount;
-//        }
 
         $profit_balance = 0;
         $order_price = $exec_order_price;

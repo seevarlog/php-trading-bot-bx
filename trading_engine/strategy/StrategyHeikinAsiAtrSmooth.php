@@ -220,7 +220,8 @@ class StrategyHeikinAsiAtrSmooth extends StrategyBase
         OrderManager::getInstance()->updateOrder(
             $time,
             $this->getStrategyKey(),
-            -(abs($now_usd) * abs($leverage_correct) + abs($now_amount)),
+            //-(abs($now_usd) * abs($leverage_correct) + abs($now_amount)),
+            -(Account::getInstance()->getUSDIsolationBatingAmount() * 3  + abs($now_amount)),
             $buy_price,
             1,
             0,
@@ -234,7 +235,8 @@ class StrategyHeikinAsiAtrSmooth extends StrategyBase
         OrderManager::getInstance()->updateOrder(
             $time,
             $this->getStrategyKey(),
-            abs($now_usd)  * $leverage_correct,
+            //abs($now_usd)  * $leverage_correct,
+            Account::getInstance()->getUSDIsolationBatingAmount() * 3,
             $stop_price - 1,
             0,
             1,
@@ -283,7 +285,8 @@ class StrategyHeikinAsiAtrSmooth extends StrategyBase
         OrderManager::getInstance()->updateOrder(
             $time,
             $this->getStrategyKey(),
-            (abs($now_usd) * $this->test_leverage + abs($other_amount)),
+            //(abs($now_usd) * $this->test_leverage + abs($other_amount)),
+            Account::getInstance()->getUSDIsolationBatingAmount() * 3 + abs($other_amount),
             $buy_price,
             1,
             0,
@@ -297,7 +300,8 @@ class StrategyHeikinAsiAtrSmooth extends StrategyBase
         OrderManager::getInstance()->updateOrder(
             $time,
             $this->getStrategyKey(),
-            -(abs($now_usd) * $this->test_leverage),
+            //-(abs($now_usd) * $this->test_leverage),
+            -(Account::getInstance()->getUSDIsolationBatingAmount() * 3),
             $stop_price + 1,
             0,
             1,

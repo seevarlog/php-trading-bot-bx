@@ -413,9 +413,10 @@ class OrderManager extends Singleton
                     }
                     */
 
-                    $position->addPositionByOrder($order, $last_candle);
+                    $position->addPositionByOrderUT($order, $last_candle);
                     if ($position->amount == 0)
                     {
+                        var_dump("동기화시작");
                         $this->clearAllOrder($order->strategy_key);
                         // 밸런스 동기화
                         if (Config::getInstance()->isRealTrade())

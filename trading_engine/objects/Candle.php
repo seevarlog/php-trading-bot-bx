@@ -155,7 +155,7 @@ class Candle
         }
 
         $nATRPeriod = 21;
-        $nATRMultip = 6.3;
+        $nATRMultip = 2.6;
 
         $xATR = $this->getATR($nATRPeriod);
         $nLoss = $nATRMultip * $xATR;

@@ -191,8 +191,8 @@ class StrategyBBShort extends StrategyBase
             else if ($candle->crossoverBBDownLineNew($day, $k_up) == true)
             {
                 [$max, $min] = $candle->getMaxMinValueInLength(5);
-                $price = ($min + $candle_1min->getClose()) / 2;
-                if ($price > $candle->c)
+                $price = $candle_1min->getClose() * 0.995;
+                if ($price > $candle_1min->c)
                 {
                     $price = $candle->c - 1;
                     var_dump("사탄");
@@ -404,7 +404,7 @@ class StrategyBBShort extends StrategyBase
         OrderManager::getInstance()->updateOrder(
             $candle->getTime(),
             $this->getStrategyKey(),
-            -Account::getInstance()->getUSDBalance() * $leverage_correct,
+            -Account::getInstance()->getUSDIsolationBatingAmount() * $leverage_correct,
             $buy_price,
             1,
             0,
@@ -418,7 +418,7 @@ class StrategyBBShort extends StrategyBase
         OrderManager::getInstance()->updateOrder(
             $candle->getTime(),
             $this->getStrategyKey(),
-            Account::getInstance()->getUSDBalance() * $leverage_correct,
+            Account::getInstance()->getUSDIsolationBatingAmount() * $leverage_correct,
             $stop_price,
             0,
             1,

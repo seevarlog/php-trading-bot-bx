@@ -10,6 +10,7 @@ use trading_engine\util\Singleton;
 
 class Account extends Singleton
 {
+    public $init_balance;
     public $balance;            // 비트코인 기준
 
     public function getUSDBalance()
@@ -44,5 +45,20 @@ class Account extends Singleton
         }
 
         return (int)($this->getUSDBalance() + $unrealized_value);
+    }
+
+    public function getUSDIsolationBatingAmount()
+    {
+        return (int)($this->init_balance * CoinPrice::getInstance()->bit_price);
+    }
+
+    public function getOrderAmount()
+    {
+        if (1)
+        {
+            return $this->getUSDIsolationBatingAmount();
+        }
+
+        return 1;
     }
 }

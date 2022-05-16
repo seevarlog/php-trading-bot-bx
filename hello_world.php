@@ -22,7 +22,7 @@ if (!($fp = fopen(__DIR__ . '/output.csv', 'r'))) {
 }
 
 // m본
-$make_candle_min_list = [3, 5, 15, 30, 60, 120, 60*4, 60 * 24, 60 * 24 * 7];
+$make_candle_min_list = [3, 5, 10, 15, 30, 60, 120, 60*4, 60 * 24, 60 * 24 * 7];
 
 // 30분봉 만들어봄
 $candleMng = CandleManager::getInstance();
@@ -106,8 +106,8 @@ var_dump(count(CandleManager::getInstance()->candle_data_list[1]));
 
 // 계정 셋팅
 $account = Account::getInstance();
-$account->balance = 1000;
-
+$account->balance = 10;
+$account->init_balance = $account->balance;
 
 $candle = CandleManager::getInstance()->getFirstCandle(1);
 $prev_candle = $candle;
@@ -172,18 +172,18 @@ for ($i=0; $i<500000; $i++)
     \trading_engine\util\CoinPrice::getInstance()->updateBitPrice($candle->getCandlePrev()->c);
 
     //\trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->traceTrade();
-
     \trading_engine\managers\OrderManager::getInstance()->update($candle->getCandlePrev());
 
 
-//    StrategyBB::getInstance()->BBS($candle->getCandlePrev());
-//    StrategyBBShort::getInstance()->BBS($candle->getCandlePrev());
-
-    //\trading_engine\strategy\StrategyBoxCopy::getInstance()->BBS($candle->getCandlePrev());
+    \trading_engine\strategy\StrategyBBScalping::getInstance()->BBS($candle->getCandlePrev());
 
 
-    \trading_engine\managers\OrderManager::getInstance()->updateBoxMode($candle->getCandlePrev());
-   \trading_engine\strategy\StrategyHeikinAsiAtrSmooth::getInstance()->BBS($candle->getCandlePrev());
+
+
+//    \trading_engine\managers\OrderManager::getInstance()->updateBoxMode($candle->getCandlePrev());
+
+//    \trading_engine\strategy\StrategyBoxCopy::getInstance()->BBS($candle->getCandlePrev());
+   //\trading_engine\strategy\StrategyHeikinAsiAtrSmooth::getInstance()->BBS($candle->getCandlePrev());
 }
 
 //CandleManager::getInstance()->getCurOtherMinCandle($candle, 15);
