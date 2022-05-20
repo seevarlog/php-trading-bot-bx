@@ -10,9 +10,9 @@ class StrategyBase extends Singleton
 {
     public $min = 1;
     public $real_leverage = 14;
-    public $test_leverage = 6;
+    public $test_leverage = 8;
     public $trade_wait_limit = 15;
-    public $box_leverage = 5;
+    public $box_leverage = 15;
     public $sideways_per = 0.014;
     public $side_candle_count = 24;
     public $day_per_1 = 0.3;

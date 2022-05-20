@@ -735,7 +735,7 @@ class Candle
             $candle = $candle->getCandlePrev();
         }
 
-        return $sum;
+        return $sum / $length;
     }
 
     /*

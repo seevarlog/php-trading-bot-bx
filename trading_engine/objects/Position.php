@@ -89,6 +89,8 @@ class Position
 
         $this->strategy_key = $order->strategy_key;
         $prev_usd = Account::getInstance()->getUSDBalance();
+        $order_count = count(OrderManager::getInstance()->getOrderList($this->strategy_key));
+
 
         if ($this->amount != 0 && $order->comment == "진입")
         {
@@ -190,7 +192,7 @@ MSG;
         $log->profit_balance = $profit_balance;
         $log->total_balance = $account->getBitBalance();
         $log->trade_fees = $fee;
-        $log->log = StrategyBB::$last_last_entry.$order->log."action".$order->action;
+        $log->log = "cnt:".$order_count;
         TradeLogManager::getInstance()->addTradeLog($log);
         $log->position_log = $this->log;
         $this->resetLog();
