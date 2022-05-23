@@ -53,7 +53,7 @@ class OrderReserveManager extends Singleton
                 unset($this->order_bb_scalping);
             }
 
-            if (PositionManager::getInstance()->getPosition($st_key)->amount == 0)
+            if (PositionManager::getInstance()->getPosition($st_key)->amount == 0 && count(OrderManager::getInstance()->getOrderList($st_key)) == 0)
             {
                 unset($this->order_bb_scalping);
             }

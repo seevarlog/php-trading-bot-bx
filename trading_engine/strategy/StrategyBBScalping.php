@@ -23,6 +23,7 @@ class StrategyBBScalping extends StrategyBase
     public static $order_action = "";
     public static $last_date = 0;
 
+    public int $leverage = 10;
     public int $profit_ratio = 3;
     public $day = 40;
     public $k = 2;
@@ -48,6 +49,7 @@ class StrategyBBScalping extends StrategyBase
         $candle_1m = clone $candle;
         //$candle = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
         $candle_60min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60)->getCandlePrev();
+        $candle_5min = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5)->getCandlePrev();
         /*******************************
          *  셋팅
          *********************************************/
@@ -68,15 +70,16 @@ class StrategyBBScalping extends StrategyBase
         // 오래된 주문은 취소한다
         foreach ($order_list as $order)
         {
-            if ($order->comment == "손절")
+            if (str_contains($order->comment, "손절"))
             {
                 continue;
             }
 
             if ($candle->getTime() - $order->date > $order->wait_min * 60)
             {
-                if ($order->comment == "진입")
+                if (str_contains($order->comment,"진입"))
                 {
+                    OrderReserveManager::getInstance()->order_bb_scalping = [];
                     $orderMng->clearAllOrder($this->getStrategyKey());
                     continue;
                 }
@@ -222,7 +225,7 @@ class StrategyBBScalping extends StrategyBase
 
     public function sellBit($time, $entry_price, $range_price)
     {
-        $leverage = $this->box_leverage;
+        $leverage = $this->leverage;
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
 
@@ -295,7 +298,7 @@ class StrategyBBScalping extends StrategyBase
 
     public function buyBit($time, $entry_price, $range_price)
     {
-        $leverage = $this->box_leverage;
+        $leverage = $this->leverage;
         $buy_price = $entry_price;
         $stop_price = $buy_price - $range_price;
         $sell_price = $buy_price + $range_price * $this->profit_ratio;
