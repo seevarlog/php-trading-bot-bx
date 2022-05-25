@@ -24,7 +24,8 @@ class StrategyBBScalping extends StrategyBase
     public static $last_date = 0;
 
     public int $leverage = 10;
-    public int $profit_ratio = 3;
+    public float $profit_ratio = 3;
+    public float $stop_ratio = 3;
     public $day = 40;
     public $k = 2;
 
@@ -230,7 +231,7 @@ class StrategyBBScalping extends StrategyBase
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
 
         $buy_price = $entry_price;
-        $stop_price = $buy_price + $range_price;
+        $stop_price = $buy_price + $range_price * $this->stop_ratio;
         $sell_price = $entry_price - $range_price * $this->profit_ratio;
 
 
@@ -300,7 +301,7 @@ class StrategyBBScalping extends StrategyBase
     {
         $leverage = $this->leverage;
         $buy_price = $entry_price;
-        $stop_price = $buy_price - $range_price;
+        $stop_price = $buy_price - ($range_price * $this->stop_ratio);
         $sell_price = $buy_price + $range_price * $this->profit_ratio;
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
