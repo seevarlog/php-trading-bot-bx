@@ -8,14 +8,15 @@ class Singleton
 {
     public static function getInstance()
     {
-        static $instance = null;
+        static $inst = [];
 
-        if ($instance === null)
+        $called_class = get_called_class();
+        if (!isset($inst[$called_class]))
         {
-            $instance = new static;
+            $inst[$called_class] = new static();
         }
 
-        return $instance;
+        return $inst[$called_class];
     }
 
 }
