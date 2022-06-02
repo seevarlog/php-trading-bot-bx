@@ -22,7 +22,7 @@ if (!($fp = fopen(__DIR__ . '/output.csv', 'r'))) {
 }
 
 // m본
-$make_candle_min_list = [60, 60*4, 60 * 24, 60 * 24 * 7];
+$make_candle_min_list = [5, 60, 60*4, 60 * 24, 60 * 24 * 7];
 
 // 30분봉 만들어봄
 $candleMng = CandleManager::getInstance();
@@ -113,7 +113,7 @@ $candle = CandleManager::getInstance()->getFirstCandle(1);
 $prev_candle = $candle;
 
 var_dump($candle->getDateTime());
-for ($i=0; $i<1000000; $i++)
+for ($i=0; $i<2000000; $i++)
 {
     $prev_candle = $candle;
     foreach ($make_candle_min_list as $min)
