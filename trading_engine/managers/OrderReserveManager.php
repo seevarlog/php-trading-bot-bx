@@ -57,7 +57,7 @@ class OrderReserveManager extends Singleton
                     unset($this->order_bb_scalping);
                 }
             }
-            else
+            else if (PositionManager::getInstance()->getPosition($st->getStrategyKey())->amount < 0)
             {
                 if ($candle->crossoverBBDownLine($st->day, $st->k))
                 {

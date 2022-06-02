@@ -164,7 +164,7 @@ HTML;
 HTML;
                 fwrite($fp, $str);
 
-                if ($log->comment == "익절")
+                if (strpos($log->comment, "익절") !== false)
                 {
                     if ($trade_log_list[$k-1]->total_balance < $log->total_balance)
                     {
@@ -177,11 +177,11 @@ HTML;
                         $win++;
                     }
                 }
-                else if($log->comment == "진입")
+                else if(strpos($log->comment, "진입") !== false)
                 {
                     $trade_count++;
                 }
-                else if($log->comment == "손절")
+                else if(strpos($log->comment, "손절") !== false)
                 {
                     $lose++;
                 }
@@ -201,6 +201,7 @@ HTML;
             }
 
 
+            var_dump($month_account);
             $str = <<<HTML
 </table>
 진입 : {$trade_count}
@@ -216,7 +217,6 @@ HTML;
             fwrite($fp, $str);
 
         }
-        var_dump($month_account);
 
         fclose($fp);
     }
