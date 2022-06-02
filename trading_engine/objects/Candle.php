@@ -755,6 +755,16 @@ class Candle
         return $sum;
     }
 
+    public function isPlusCandle()
+    {
+        return $this->o - $this->c > 0;
+    }
+
+    public function isMinusCandle()
+    {
+        return $this->o - $this->c < 0;
+    }
+
     public function getMA($day)
     {
         if (isset($this->ma[$day]))

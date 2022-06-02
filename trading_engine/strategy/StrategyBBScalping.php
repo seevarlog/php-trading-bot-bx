@@ -24,10 +24,10 @@ class StrategyBBScalping extends StrategyBase
     public static $last_date = 0;
 
     public int $leverage = 10;
-    public float $profit_ratio = 6;
-    public float $stop_ratio = 4;
+    public float $profit_ratio = 2;
+    public float $stop_ratio = 5;
     public $day = 40;
-    public $k = 1.3;
+    public $k = 0.8;
     public $is_welfare = false;
 
     const POSITION_LONG = 'long';
