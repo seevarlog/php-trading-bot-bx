@@ -162,7 +162,7 @@ HTML;
         <td>{$log->getPositionLogMsg()}</td> 
     </tr>
 HTML;
-                fwrite($fp, $str);
+                //fwrite($fp, $str);
 
                 if (strpos($log->comment, "익절") !== false)
                 {
@@ -214,7 +214,7 @@ HTML;
 
 HTML;
             echo $str;
-            fwrite($fp, $str);
+            //fwrite($fp, $str);
 
         }
 

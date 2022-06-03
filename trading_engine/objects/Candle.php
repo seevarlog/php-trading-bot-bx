@@ -1380,6 +1380,11 @@ class Candle
         return $sum;
     }
 
+    public function getEMA10()
+    {
+        return $this->getEMA(10);
+    }
+
     public function getEMA50()
     {
         return $this->getEMA(50);

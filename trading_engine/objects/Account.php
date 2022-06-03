@@ -49,7 +49,10 @@ class Account extends Singleton
 
     public function getUSDIsolationBatingAmount()
     {
-        return (int)($this->init_balance * CoinPrice::getInstance()->bit_price);
+
+        $bit_balance = $this->init_balance >= 10 ?
+            $this->init_balance + ($this->balance - $this->init_balance) * 0.18 : $this->init_balance;
+        return (int)($bit_balance * CoinPrice::getInstance()->bit_price);
     }
 
     public function getOrderAmount()

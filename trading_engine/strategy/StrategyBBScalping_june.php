@@ -17,7 +17,7 @@ function iff ($statement_1, $statement_2, $statement_3)
     return $statement_1 == true ? $statement_2 : $statement_3;
 }
 
-class StrategyBBScalping extends StrategyBase
+class StrategyBBScalping_june extends StrategyBase
 {
     public static $last_last_entry = "sideways";
     public static $order_action = "";
@@ -53,7 +53,7 @@ class StrategyBBScalping extends StrategyBase
          *********************************************/
 
         $orderMng = OrderManager::getInstance();
-        OrderReserveManager::getInstance()->procOrderReservedBBScalping($this);
+        OrderReserveManager::getInstance()->procOrderReservedBBScalpingCross($this);
 
         // 오래된 주문은 취소한다
         foreach ($order_list as $order)

@@ -63,7 +63,7 @@ class OrderReserveManager extends Singleton
     }
 
     // 조건이 맞다면 예약 매수 진행
-    public function procOrderReservedBBScalpingCross(StrategyBBScalping $st)
+    public function procOrderReservedBBScalpingCross($st)
     {
         $candle = $st->now_1m_candle;
         if (isset($this->order_bb_scalping))
