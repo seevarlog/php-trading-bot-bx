@@ -4,7 +4,6 @@
 namespace trading_engine\managers;
 
 
-use trading_engine\strategy\StrategyBBScalping;
 use trading_engine\util\Singleton;
 
 /**
@@ -34,7 +33,7 @@ class OrderReserveManager extends Singleton
 
 
     // 조건이 맞다면 예약 매수 진행
-    public function procOrderReservedBBScalping(StrategyBBScalping $st)
+    public function procOrderReservedBBScalping($st)
     {
         if (isset($this->order_bb_scalping))
         {

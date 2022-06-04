@@ -17,19 +17,18 @@ function iff ($statement_1, $statement_2, $statement_3)
     return $statement_1 == true ? $statement_2 : $statement_3;
 }
 
-class StrategyBBScalping_june extends StrategyBase
+class StrategyScalping extends StrategyBase
 {
     public static $last_last_entry = "sideways";
     public static $order_action = "";
     public static $last_date = 0;
 
-    public int $leverage = 10;
-    public float $profit_ratio = 6;
-    public float $stop_ratio = 4;
+    public int $leverage = 20;
+    public float $profit_ratio = 2;
+    public float $stop_ratio = 3;
     public $day = 40;
-    public $k = 1.3;
-    public $is_welfare = false;
-	#public $is_welfare = true;
+    public $k = 0.8;
+    public $is_welfare = 1;
 
     const POSITION_LONG = 'long';
     const POSITION_SHORT = 'short';
@@ -52,8 +51,53 @@ class StrategyBBScalping_june extends StrategyBase
          *  셋팅
          *********************************************/
 
+        if (date('m', $this->now_1m_candle->t) != date('m', $this->now_1m_candle->getCandlePrev()->t))
+        {
+            Account::getInstance()->balance = 10;
+        }
+
         $orderMng = OrderManager::getInstance();
-        OrderReserveManager::getInstance()->procOrderReservedBBScalpingCross($this);
+        OrderReserveManager::getInstance()->procOrderReservedBBScalping($this);
+
+        // 포지션 잡은지 오래됐다면 탈출준비
+        $amount = PositionManager::getInstance()->getPosition($this->getStrategyKey())->amount;
+        if ($amount != 0)
+        {
+            foreach ($order_list as $order)
+            {
+                if (!str_contains($order->comment, "익절"))
+                {
+                    continue;
+                }
+
+                if ($candle->getTime() - $order->date < 15 * 60)
+                {
+                    continue;
+                }
+
+                $delta = 0;
+                if ($amount > 0)
+                {
+                    $delta += 0.5;
+                }
+                else
+                {
+                    $delta -= 0.5;
+                }
+
+                OrderManager::getInstance()->updateOrder(
+                    $candle->t,
+                    $order->strategy_key,
+                    $order->amount,
+                    $candle->c + $delta,
+                    $order->is_limit,
+                    $order->is_reduce_only,
+                    $order->comment,
+                    $order->log
+                );
+            }
+        }
+
 
         // 오래된 주문은 취소한다
         foreach ($order_list as $order)
@@ -92,13 +136,12 @@ class StrategyBBScalping_june extends StrategyBase
         return "";
     }
 
-
-    public function getPositionTypePrev()
+    public function getPositionType()
     {
         $candle = $this->now_1m_candle;
         $candle_1h = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
-        $ema240_1h = $candle_1h->getEMA120();
-        $ema120_1h = $candle_1h->getEMA50();
+        $ema240_1h = $candle_1h->getEMA240();
+        $ema120_1h = $candle_1h->getEMA120();
 
         $is_long_time = 1;
         if ($ema120_1h < $ema240_1h)
@@ -145,66 +188,7 @@ class StrategyBBScalping_june extends StrategyBase
         }
 
         return self::POSITION_SHORT;
-    }
 
-
-    public function getPositionType()
-    {
-        $candle = $this->now_1m_candle;
-        $candle_1h = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
-        $ema240_1h = $candle_1h->getEMA300();
-        $ema120_1h = $candle_1h->getEMA240();
-        $ema50_1h = $candle_1h->getEMA120();
-
-        $is_long_time = 0;
-        if ($ema120_1h < $ema240_1h && $ema50_1h < $ema120_1h)
-        {
-            $is_long_time = -1;
-        }
-        else if ($ema120_1h > $ema240_1h && $ema50_1h > $ema120_1h)
-        {
-            $is_long_time = 1;
-        }
-
-//          $volatility_soft = 1.05;
-//          $volatility_hard = 1.03;
-
-        $volatility = $candle_1h->getVolatilityValue(48);
-        $volatility_soft = 1 + ($volatility / $candle->c) * 1.5;
-        $volatility_hard = $volatility_soft * $volatility_soft;
-
-
-        //var_dump($volatility_soft);
-
-        if ($is_long_time == 1)
-        {
-            // 골든 크로스를 했어도 값이 일정수치 이상 차이나면 골든크로스가 아님
-            if ($candle->c < $ema50_1h)
-            {
-                return self::POSITION_NONE;
-            }
-
-            return self::POSITION_LONG;
-        }
-        else if ($is_long_time == -1)
-        {
-            if ($candle->c > $ema50_1h)
-            {
-                return self::POSITION_NONE;
-            }
-            return self::POSITION_SHORT;
-        }
-
-        if ($candle->c * $volatility_hard > $ema50_1h)
-        {
-            return self::POSITION_LONG;
-        }
-        else if ($candle->c * (1 - $volatility_hard) < $ema240_1h)
-        {
-            return self::POSITION_SHORT;
-        }
-
-        return self::POSITION_NONE;
     }
 
     public function nowOrderingState()
@@ -232,46 +216,22 @@ class StrategyBBScalping_june extends StrategyBase
 
     public function longStrategy(Candle $candle)
     {
-        if ($candle->getBBDownLine($this->day, $this->k) > $candle->c)
-        {
-            #return ;
-        }
-
-        if ($this->nowOrderingState() == self::ORDERING_LONG)
-        {
-
-        }
-        else if ($this->nowOrderingState() == self::ORDERING_SHORT)
+        if ($this->nowOrderingState() == self::ORDERING_SHORT)
         {
             OrderManager::getInstance()->clearAllOrder($this->getStrategyKey());
         }
 
-        #$range_value = $candle->getBBUpLine($this->day, $this->k) - $candle->getBBDownLine($this->day, $this->k);
-        #$this->buyBit($candle->t, $candle->getBBDownLine($this->day, $this->k), $range_value);
-		$this->buyBit($candle->t, $candle->c+0.5, 0);
+        $this->buyBit($candle->t, $candle->c-$this->now_1m_candle->getVolatilityValue(10)/3, 0);
     }
 
     public function shortStrategy(Candle $candle)
     {
-        if ($candle->getBBUpLine($this->day, $this->k) < $candle->c)
-        {
-            #return ;
-        }
-
-        if ($this->nowOrderingState() == self::ORDERING_SHORT)
-        {
-
-        }
-        else if ($this->nowOrderingState() == self::ORDERING_LONG)
+        if ($this->nowOrderingState() == self::ORDERING_LONG)
         {
             OrderManager::getInstance()->clearAllOrder($this->getStrategyKey());
         }
 
-
-
-        #$range_value = $candle->getBBUpLine($this->day, $this->k) - $candle->getBBDownLine($this->day, $this->k);
-        #$this->sellBit($candle->t, $candle->getBBUpLine($this->day, $this->k), $range_value);
-		$this->sellBit($candle->t, $candle->c-0.5, 0);
+        $this->sellBit($candle->t, $candle->c+$this->now_1m_candle->getVolatilityValue(10)/3, 0);
     }
 
     public function sellBit($time, $entry_price, $range_price)
@@ -281,11 +241,8 @@ class StrategyBBScalping_june extends StrategyBase
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
 
         $buy_price = $entry_price;
-        #$stop_price = $buy_price + $range_price * $this->stop_ratio;
-        #$sell_price = $entry_price - $range_price * $this->profit_ratio;
-		
-		$stop_price = $buy_price * 1.015;
-        $sell_price = $entry_price - $this->now_1m_candle->getVolatilityValue(10) - 0.5;
+        $stop_price = $buy_price * 1.015;
+        $sell_price = $buy_price - $this->now_1m_candle->getVolatilityValue(10) * 3 - 0.5;
 
 
         $leverage_correct = $leverage;
@@ -356,13 +313,10 @@ class StrategyBBScalping_june extends StrategyBase
     {
         $leverage = $this->leverage;
         $buy_price = $entry_price;
-        #$stop_price = $buy_price - ($range_price * $this->stop_ratio);
-        #$sell_price = $buy_price + $range_price * $this->profit_ratio;
+        $stop_price = $buy_price * 0.985;
+        $sell_price = $buy_price + $this->now_1m_candle->getVolatilityValue(10) * 3+ 0.5;
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
-		
-		$stop_price = $buy_price * 0.985;
-        $sell_price = $buy_price + $this->now_1m_candle->getVolatilityValue(10) + 0.5;
 
         $leverage_correct = $leverage;
 
