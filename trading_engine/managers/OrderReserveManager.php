@@ -4,6 +4,7 @@
 namespace trading_engine\managers;
 
 
+use trading_engine\strategy\StrategyBBScalping;
 use trading_engine\util\Singleton;
 
 /**
@@ -31,51 +32,22 @@ class OrderReserveManager extends Singleton
         ];
     }
 
-
     // 조건이 맞다면 예약 매수 진행
-    public function procOrderReservedBBScalping($st)
-    {
-        if (isset($this->order_bb_scalping))
-        {
-            if (PositionManager::getInstance()->getPosition($st->getStrategyKey())->amount != 0)
-            {
-                OrderManager::getInstance()->updateOrder(
-                    $this->order_bb_scalping['date'],
-                    $this->order_bb_scalping['st_key'],
-                    $this->order_bb_scalping['amount'],
-                    $this->order_bb_scalping['entry'],
-                    $this->order_bb_scalping['is_limit'],
-                    $this->order_bb_scalping['is_reduce_only'],
-                    $this->order_bb_scalping['comment'],
-                    $this->order_bb_scalping['log'],
-                    $this->order_bb_scalping['action'],
-                    $this->order_bb_scalping['wait_min'],
-                );
-                unset($this->order_bb_scalping);
-            }
-
-            if (PositionManager::getInstance()->getPosition($st->getStrategyKey())->amount == 0 && count(OrderManager::getInstance()->getOrderList($st->getStrategyKey())) == 0)
-            {
-                unset($this->order_bb_scalping);
-            }
-        }
-    }
-
-    // 조건이 맞다면 예약 매수 진행
-    public function procOrderReservedBBScalpingCross($st)
+    public function procOrderReservedBBScalping(StrategyBBScalping $st)
     {
         $candle = $st->now_1m_candle;
         if (isset($this->order_bb_scalping))
         {
             if (PositionManager::getInstance()->getPosition($st->getStrategyKey())->amount > 0)
             {
-                if ($candle->crossoverBBUpLine($st->day, $st->k))
+                #if ($candle->crossoverBBUpLine($st->day, $st->k))
+				if ($this->order_bb_scalping['entry'] < $candle->h)
                 {
                     OrderManager::getInstance()->updateOrder(
                         $this->order_bb_scalping['date'],
                         $this->order_bb_scalping['st_key'],
                         $this->order_bb_scalping['amount'],
-                        $candle->c + 3,
+                        $this->order_bb_scalping['entry'],
                         $this->order_bb_scalping['is_limit'],
                         $this->order_bb_scalping['is_reduce_only'],
                         $this->order_bb_scalping['comment'],
@@ -88,13 +60,14 @@ class OrderReserveManager extends Singleton
             }
             else if (PositionManager::getInstance()->getPosition($st->getStrategyKey())->amount < 0)
             {
-                if ($candle->crossoverBBDownLine($st->day, $st->k))
+                #if ($candle->crossoverBBDownLine($st->day, $st->k))
+				if ($this->order_bb_scalping['entry'] > $candle->l)
                 {
                     OrderManager::getInstance()->updateOrder(
                         $this->order_bb_scalping['date'],
                         $this->order_bb_scalping['st_key'],
                         $this->order_bb_scalping['amount'],
-                        $candle->c - 3,
+                        $candle->c,
                         $this->order_bb_scalping['is_limit'],
                         $this->order_bb_scalping['is_reduce_only'],
                         $this->order_bb_scalping['comment'],
