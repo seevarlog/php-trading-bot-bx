@@ -28,8 +28,8 @@ class StrategyBBScalping extends StrategyBase
     public float $stop_ratio = 4;
     public $day = 40;
     public $k = 1.3;
-    public $is_welfare = false;
-    #public $is_welfare = true;
+    #public $is_welfare = false;
+    public $is_welfare = true;
     
     const POSITION_LONG = 'long';
     const POSITION_SHORT = 'short';
@@ -195,8 +195,8 @@ class StrategyBBScalping extends StrategyBase
                 }
         }
 
-        if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m > $ema50_1m && $ema5_1h > $ema10_1h && $ema10_1h > $ema20_1h && $ema50_1h > $ema120_1h && $ema120_1h > $ema240_1h && $rsi < 60) 
-        #if ($iiFlag == True && $rsi < 60) 
+        #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m > $ema50_1m && $ema5_1h > $ema10_1h && $rsi < 60) 
+        if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 40) 
         {
                 return self::POSITION_LONG;
         }
@@ -264,8 +264,8 @@ class StrategyBBScalping extends StrategyBase
                 }
         }
 
-        if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m < $ema50_1m && $ema5_1h < $ema10_1h && $ema10_1h < $ema20_1h && $ema50_1h < $ema120_1h && $ema120_1h < $ema240_1h && $rsi > 40) 
-        #if ($iiFlag == True && $rsi < 60) 
+        #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m < $ema50_1m && $ema5_1h < $ema10_1h && $rsi > 40) 
+        if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 60) 
         {
                 return self::POSITION_SHORT;
         }
@@ -390,7 +390,7 @@ class StrategyBBScalping extends StrategyBase
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
 
-        $buy_price = $entry_price - 0.5;
+        $buy_price = $entry_price + 0.5;
         #$stop_price = $buy_price + $range_price * $this->stop_ratio;
         #$sell_price = $entry_price - $range_price * $this->profit_ratio;
         
@@ -465,7 +465,7 @@ class StrategyBBScalping extends StrategyBase
     public function buyBit($time, $entry_price, $range_price)
     {
         $leverage = $this->leverage;
-        $buy_price = $entry_price+0.5;
+        $buy_price = $entry_price-0.5;
         #$stop_price = $buy_price - ($range_price * $this->stop_ratio);
         #$sell_price = $buy_price + $range_price * $this->profit_ratio;
         $positionMng = PositionManager::getInstance();
