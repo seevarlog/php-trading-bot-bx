@@ -17,7 +17,7 @@ function iff ($statement_1, $statement_2, $statement_3)
     return $statement_1 == true ? $statement_2 : $statement_3;
 }
 
-class StrategyBBScalping extends StrategyBase
+class StrategyBBScalping_ahn extends StrategyBase
 {
     public static $last_last_entry = "sideways";
     public static $order_action = "";
@@ -168,15 +168,15 @@ class StrategyBBScalping extends StrategyBase
         
         $candle = $this->now_1m_candle;
         $candle_1h = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
-        $ema240_1h = $candle_1h->getEMA240();
-        $ema120_1h = $candle_1h->getEMA120();
-        $ema50_1h = $candle_1h->getEMA50();
-        $ema20_1h = $candle_1h->getEMA20();
-        $ema10_1h = $candle_1h->getEMA10();
-        $ema5_1h = $candle_1h->getEMA5();
-        $ema50_1m = $candle->getEMA50();
-        $ema20_1m = $candle->getEMA20();
-        $ema10_1m = $candle->getEMA10();
+//        $ema240_1h = $candle_1h->getEMA240();
+//        $ema120_1h = $candle_1h->getEMA120();
+//        $ema50_1h = $candle_1h->getEMA50();
+//        $ema20_1h = $candle_1h->getEMA20();
+//        $ema10_1h = $candle_1h->getEMA10();
+//        $ema5_1h = $candle_1h->getEMA5();
+//        $ema50_1m = $candle->getEMA50();
+//        $ema20_1m = $candle->getEMA20();
+//        $ema10_1m = $candle->getEMA10();
         
         $rsi = $candle->getRsiMA(20,20);
         

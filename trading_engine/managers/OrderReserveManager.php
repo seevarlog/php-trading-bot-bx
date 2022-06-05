@@ -4,7 +4,6 @@
 namespace trading_engine\managers;
 
 
-use trading_engine\strategy\StrategyBBScalping;
 use trading_engine\util\Singleton;
 
 /**
@@ -33,7 +32,7 @@ class OrderReserveManager extends Singleton
     }
 
     // 조건이 맞다면 예약 매수 진행
-    public function procOrderReservedBBScalping(StrategyBBScalping $st)
+    public function procOrderReservedBBScalping($st)
     {
         $candle = $st->now_1m_candle;
         if (isset($this->order_bb_scalping))
@@ -47,7 +46,7 @@ class OrderReserveManager extends Singleton
                         $this->order_bb_scalping['date'],
                         $this->order_bb_scalping['st_key'],
                         $this->order_bb_scalping['amount'],
-                        $this->order_bb_scalping['entry'],
+                        $candle->c + 0.5,
                         $this->order_bb_scalping['is_limit'],
                         $this->order_bb_scalping['is_reduce_only'],
                         $this->order_bb_scalping['comment'],
@@ -67,7 +66,7 @@ class OrderReserveManager extends Singleton
                         $this->order_bb_scalping['date'],
                         $this->order_bb_scalping['st_key'],
                         $this->order_bb_scalping['amount'],
-                        $candle->c,
+                        $candle->c - 0.5,
                         $this->order_bb_scalping['is_limit'],
                         $this->order_bb_scalping['is_reduce_only'],
                         $this->order_bb_scalping['comment'],
