@@ -10,6 +10,7 @@ use trading_engine\managers\OrderReserveManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
+use trading_engine\objects\ChargeResult;
 
 
 function iff ($statement_1, $statement_2, $statement_3)
@@ -23,12 +24,12 @@ class StrategyScalping extends StrategyBase
     public static $order_action = "";
     public static $last_date = 0;
 
-    public int $leverage = 20;
+    public int $leverage = 15;
     public float $profit_ratio = 2;
     public float $stop_ratio = 3;
     public $day = 40;
     public $k = 0.8;
-    public $is_welfare = 1;
+    public $is_welfare = true;
 
     const POSITION_LONG = 'long';
     const POSITION_SHORT = 'short';
@@ -51,9 +52,24 @@ class StrategyScalping extends StrategyBase
          *  셋팅
          *********************************************/
 
-        if (date('m', $this->now_1m_candle->t) != date('m', $this->now_1m_candle->getCandlePrev()->t))
+//        if (date('m', $this->now_1m_candle->t) != date('m', $this->now_1m_candle->getCandlePrev()->t))
+//        {
+//            Account::getInstance()->balance = 10;
+//        }
+
+        if (Account::getInstance()->balance < 0.05)
         {
+            ChargeResult::$charge_list[] = clone ChargeResult::getInstance();
+            ChargeResult::getInstance()->charge_datetime = $candle->getDateTimeKST();
+            ChargeResult::getInstance()->now_max_btc = 10;
+            ChargeResult::getInstance()->max_datetime = $candle->getDateTimeKST();
             Account::getInstance()->balance = 10;
+        }
+
+        if (ChargeResult::getInstance()->now_max_btc < Account::getInstance()->balance)
+        {
+            ChargeResult::getInstance()->now_max_btc = Account::getInstance()->balance;
+            ChargeResult::getInstance()->max_datetime = $candle->getDateTimeKST();
         }
 
         $orderMng = OrderManager::getInstance();
@@ -70,7 +86,7 @@ class StrategyScalping extends StrategyBase
                     continue;
                 }
 
-                if ($candle->getTime() - $order->date < 15 * 60)
+                if ($candle->getTime() - $order->date < 20 * 60)
                 {
                     continue;
                 }
@@ -221,7 +237,7 @@ class StrategyScalping extends StrategyBase
             OrderManager::getInstance()->clearAllOrder($this->getStrategyKey());
         }
 
-        $this->buyBit($candle->t, $candle->c-$this->now_1m_candle->getVolatilityValue(10)/3, 0);
+        $this->buyBit($candle->t, $candle->c-1, 0);
     }
 
     public function shortStrategy(Candle $candle)
@@ -231,7 +247,7 @@ class StrategyScalping extends StrategyBase
             OrderManager::getInstance()->clearAllOrder($this->getStrategyKey());
         }
 
-        $this->sellBit($candle->t, $candle->c+$this->now_1m_candle->getVolatilityValue(10)/3, 0);
+        $this->sellBit($candle->t, $candle->c+1, 0);
     }
 
     public function sellBit($time, $entry_price, $range_price)

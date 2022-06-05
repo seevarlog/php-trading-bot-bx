@@ -6,5 +6,9 @@
   "real": {
     "key": "",
     "secret": ""
+  },
+  "notifyBearer": {
+    "basic": "",
+    "entry": ""
   }
 }

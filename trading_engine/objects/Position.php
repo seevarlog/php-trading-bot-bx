@@ -247,7 +247,7 @@ MSG;
             $this->amount = $order->amount;
         }
 
-        if ($order->comment == "진입")
+        if (str_contains($order->comment, "진입"))
         {
             StrategyBB::$last_last_entry = $candle->getGoldenDeadState();
             $this->action = $order->action;
@@ -268,17 +268,18 @@ MSG;
     수수료 : {$profit_fee_usd} USD ({$fee} btc)
     
 MSG;
-            if ($order->comment == "익절" || $order->comment == "손절")
+            if (str_contains($order->comment, "익절") || str_contains($order->comment, "손절"))
             {
                 $last_msg_profit = $profit_balance_usd + $profit_fee_usd;
                 $profit_per = round((($exec_order_price / $prev_entry) - 1) * 100, 2);
                 $msg .= "수익 : ".$last_msg_profit."(".$profit_per.")";
-                Notify::sendEntryMsg($msg);
             }
-            else
-            {
-                Notify::sendEntryMsg($msg);
-            }
+            Notify::sendEntryMsg($msg);
+        }
+
+        if (str_contains($order->comment, "익절"))
+        {
+            ChargeResult::getInstance()->last_profit_time = $time;
         }
 
         $log = new LogTrade();
