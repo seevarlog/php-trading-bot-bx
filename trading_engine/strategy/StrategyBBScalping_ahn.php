@@ -29,9 +29,9 @@ class StrategyBBScalping extends StrategyBase
     public $day = 40;
     public $k = 1.3;
     public $is_welfare = false;
-	#public $is_welfare = true;
-	
-	const POSITION_LONG = 'long';
+    #public $is_welfare = true;
+    
+    const POSITION_LONG = 'long';
     const POSITION_SHORT = 'short';
     const POSITION_NONE = 'none';
 
@@ -54,17 +54,17 @@ class StrategyBBScalping extends StrategyBase
 
         $orderMng = OrderManager::getInstance();
         OrderReserveManager::getInstance()->procOrderReservedBBScalping($this);
-		
-		$amount = PositionManager::getInstance()->getPosition($this->getStrategyKey())->amount;
-		
-		/*
-		if ($amount != 0)
-		{
-			print("=======================");
-			print($amount);
-			print("=======================");
-		}
-		*/
+        
+        $amount = PositionManager::getInstance()->getPosition($this->getStrategyKey())->amount;
+        
+        /*
+        if ($amount != 0)
+        {
+            print("=======================");
+            print($amount);
+            print("=======================");
+        }
+        */
         // 오래된 주문은 취소한다
         foreach ($order_list as $order)
         {
@@ -84,13 +84,13 @@ class StrategyBBScalping extends StrategyBase
                 $orderMng->cancelOrder($order);
             }
         }
-		/*
+        /*
         if ($curPosition->amount != 0)
         {
             return "";
         }
-		*/
-		
+        */
+        
         $position_type = $this->getPositionType();
         switch ($position_type)
         {
@@ -160,33 +160,33 @@ class StrategyBBScalping extends StrategyBase
 
     public function getPositionType()
     {
-		$positionMng = PositionManager::getInstance();
+        $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
-		
-		$orderMng = OrderManager::getInstance();
-		$order_list = $orderMng->getOrderList($this->getStrategyKey());
-		
+        
+        $orderMng = OrderManager::getInstance();
+        $order_list = $orderMng->getOrderList($this->getStrategyKey());
+        
         $candle = $this->now_1m_candle;
         $candle_1h = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
         $ema240_1h = $candle_1h->getEMA240();
         $ema120_1h = $candle_1h->getEMA120();
-		$ema50_1h = $candle_1h->getEMA50();
+        $ema50_1h = $candle_1h->getEMA50();
         $ema20_1h = $candle_1h->getEMA20();
-		$ema10_1h = $candle_1h->getEMA10();
-		$ema5_1h = $candle_1h->getEMA5();
-		$ema50_1m = $candle->getEMA50();
-		$ema20_1m = $candle->getEMA20();
-		$ema10_1m = $candle->getEMA10();
-		
-		$rsi = $candle->getRsiMA(20,20);
-		
+        $ema10_1h = $candle_1h->getEMA10();
+        $ema5_1h = $candle_1h->getEMA5();
+        $ema50_1m = $candle->getEMA50();
+        $ema20_1m = $candle->getEMA20();
+        $ema10_1m = $candle->getEMA10();
+        
+        $rsi = $candle->getRsiMA(20,20);
+        
         $iiFlag = True;
-		
+        
 
         for($ii=0; $ii<3; $ii++)
         {
                 #if($candle->o < $candle->c)
-				if(($candle->l + $candle->h)/2 > ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
+                if(($candle->l + $candle->h)/2 > ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
                 {
                         $candle = $candle->getCandlePrev();
                 }else{
@@ -196,19 +196,19 @@ class StrategyBBScalping extends StrategyBase
         }
 
         if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m > $ema50_1m && $ema5_1h > $ema10_1h && $ema10_1h > $ema20_1h && $ema50_1h > $ema120_1h && $ema120_1h > $ema240_1h && $rsi < 60) 
-		#if ($iiFlag == True && $rsi < 60) 
+        #if ($iiFlag == True && $rsi < 60) 
         {
                 return self::POSITION_LONG;
         }
-		
-		$candle = $this->now_1m_candle;
-		
+        
+        $candle = $this->now_1m_candle;
+        
         $iiFlag = True;
 
         for($ii=0; $ii<2; $ii++)
         {
                 #if($candle->o > $candle->c)
-				if(($candle->l + $candle->h)/2 < ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
+                if(($candle->l + $candle->h)/2 < ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
                 {
                         $candle = $candle->getCandlePrev();
                 }else{
@@ -216,46 +216,46 @@ class StrategyBBScalping extends StrategyBase
                         break;
                 }
         }
-		#print($this->nowOrderingState());
-		//$amount = PositionManager::getInstance()->getPosition($this->getStrategyKey())->amount;
-		
-		$amount = $curPosition->amount;
-		
-		if ($iiFlag == True && $amount > 0)
+        #print($this->nowOrderingState());
+        //$amount = PositionManager::getInstance()->getPosition($this->getStrategyKey())->amount;
+        
+        $amount = $curPosition->amount;
+        
+        if ($iiFlag == True && $amount > 0)
         {
-			$delta = 0;
-			if ($amount > 0)
-			{
-				$delta += 0.5;
-			}
-			else
-			{
-				$delta -= 0.5;
-			}
+            $delta = 0;
+            if ($amount > 0)
+            {
+                $delta += 0.5;
+            }
+            else
+            {
+                $delta -= 0.5;
+            }
 
-			OrderManager::getInstance()->updateOrder(
-				$candle->t,
-				$curPosition->strategy_key,
-				$curPosition->amount*-1,
-				$candle->c+$delta,
-				1,
-				1,
-				"l익절2",
-				"롱전략",
-				"",
-			);
+            OrderManager::getInstance()->updateOrder(
+                $candle->t,
+                $curPosition->strategy_key,
+                $curPosition->amount*-1,
+                $candle->c+$delta,
+                1,
+                1,
+                "l익절2",
+                "롱전략",
+                "",
+            );
         
         }
-		
-		/*----------------------------*/
-		$candle = $this->now_1m_candle;
-		
+        
+        /*----------------------------*/
+        $candle = $this->now_1m_candle;
+        
         $iiFlag = True;
-		
+        
         for($ii=0; $ii<3; $ii++)
         {
                 #if($candle->o < $candle->c)
-				if(($candle->l + $candle->h)/2 < ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
+                if(($candle->l + $candle->h)/2 < ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
                 {
                         $candle = $candle->getCandlePrev();
                 }else{
@@ -265,19 +265,19 @@ class StrategyBBScalping extends StrategyBase
         }
 
         if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m < $ema50_1m && $ema5_1h < $ema10_1h && $ema10_1h < $ema20_1h && $ema50_1h < $ema120_1h && $ema120_1h < $ema240_1h && $rsi > 40) 
-		#if ($iiFlag == True && $rsi < 60) 
+        #if ($iiFlag == True && $rsi < 60) 
         {
                 return self::POSITION_SHORT;
         }
-		
-		$candle = $this->now_1m_candle;
-		
+        
+        $candle = $this->now_1m_candle;
+        
         $iiFlag = True;
 
         for($ii=0; $ii<2; $ii++)
         {
                 #if($candle->o > $candle->c)
-				if(($candle->l + $candle->h)/2 > ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
+                if(($candle->l + $candle->h)/2 > ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
                 {
                         $candle = $candle->getCandlePrev();
                 }else{
@@ -285,36 +285,36 @@ class StrategyBBScalping extends StrategyBase
                         break;
                 }
         }
-		
-		$amount = $curPosition->amount;
-		
-		if ($iiFlag == True && $amount < 0)
+        
+        $amount = $curPosition->amount;
+        
+        if ($iiFlag == True && $amount < 0)
         {
-			$delta = 0;
-			if ($amount > 0)
-			{
-				$delta += 0.5;
-			}
-			else
-			{
-				$delta -= 0.5;
-			}
+            $delta = 0;
+            if ($amount > 0)
+            {
+                $delta += 0.5;
+            }
+            else
+            {
+                $delta -= 0.5;
+            }
 
-			OrderManager::getInstance()->updateOrder(
-				$candle->t,
-				$curPosition->strategy_key,
-				$curPosition->amount*-1,
-				$candle->c+$delta,
-				1,
-				1,
-				"s익절2",
-				"숏전략",
-				"",
-			);
+            OrderManager::getInstance()->updateOrder(
+                $candle->t,
+                $curPosition->strategy_key,
+                $curPosition->amount*-1,
+                $candle->c+$delta,
+                1,
+                1,
+                "s익절2",
+                "숏전략",
+                "",
+            );
         
         }
-		
-		return self::POSITION_NONE;
+        
+        return self::POSITION_NONE;
     }
 
     public function nowOrderingState()
@@ -357,10 +357,10 @@ class StrategyBBScalping extends StrategyBase
 
         #$range_value = $candle->getBBUpLine($this->day, $this->k) - $candle->getBBDownLine($this->day, $this->k);
         #$this->buyBit($candle->t, $candle->getBBDownLine($this->day, $this->k), $range_value);
-		$this->buyBit($candle->t, $candle->c, 0);
-		#print("==========================");
-		#print($this->nowOrderingState());
-		#print("==========================");
+        $this->buyBit($candle->t, $candle->c, 0);
+        #print("==========================");
+        #print($this->nowOrderingState());
+        #print("==========================");
     }
 
     public function shortStrategy(Candle $candle)
@@ -381,7 +381,7 @@ class StrategyBBScalping extends StrategyBase
 
         #$range_value = $candle->getBBUpLine($this->day, $this->k) - $candle->getBBDownLine($this->day, $this->k);
         #$this->sellBit($candle->t, $candle->getBBUpLine($this->day, $this->k), $range_value);
-		$this->sellBit($candle->t, $candle->c, 0);
+        $this->sellBit($candle->t, $candle->c, 0);
     }
 
     public function sellBit($time, $entry_price, $range_price)
@@ -393,8 +393,8 @@ class StrategyBBScalping extends StrategyBase
         $buy_price = $entry_price - 0.5;
         #$stop_price = $buy_price + $range_price * $this->stop_ratio;
         #$sell_price = $entry_price - $range_price * $this->profit_ratio;
-		
-		$stop_price = $buy_price * 1.02;
+        
+        $stop_price = $buy_price * 1.02;
         $sell_price = $entry_price * 9999;
 
 
@@ -470,10 +470,10 @@ class StrategyBBScalping extends StrategyBase
         #$sell_price = $buy_price + $range_price * $this->profit_ratio;
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
-		
-		$stop_price = $buy_price * 0.98;
+        
+        $stop_price = $buy_price * 0.98;
         #$sell_price = $buy_price * 1.015;
-		$sell_price = $buy_price * 9999;
+        $sell_price = $buy_price * 9999;
 
         $leverage_correct = $leverage;
 
@@ -523,9 +523,9 @@ class StrategyBBScalping extends StrategyBase
             "롱전략",
             ""
         );
-		
-		// 익절 주문?
-		/*
+        
+        // 익절 주문?
+        /*
         OrderManager::getInstance()->updateOrder(
             $time,
             $this->getStrategyKey(),
@@ -537,7 +537,7 @@ class StrategyBBScalping extends StrategyBase
             "롱전략44",
             ""
         );
-		*/
+        */
 
         // 익절 주문
         OrderReserveManager::getInstance()->addReserveOrderBBScalping(
