@@ -32,6 +32,9 @@ class BybitInverse
             'secret'=>$this->secret,
             'host'=>$this->host,
             'options'=>$this->options,
+
+            'platform'=>'inverse',
+            'version'=>'',
         ];
     }
 

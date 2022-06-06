@@ -16,13 +16,13 @@ header('Content-Type: text/html; charset=UTF-8');
 
 ob_start();
 $time_start = time();
-if (!($fp = fopen(__DIR__ . '/output.csv', 'r'))) {
+if (!($fp = fopen(__DIR__ . '/output (2).csv', 'r'))) {
     echo "err";
     return;
 }
 
 // m본
-$make_candle_min_list = [5, 60, 60*4, 60 * 24, 60 * 24 * 7];
+$make_candle_min_list = [60, 60*4, 60 * 24, 60 * 24 * 7];
 
 // 30분봉 만들어봄
 $candleMng = CandleManager::getInstance();
@@ -113,7 +113,7 @@ $candle = CandleManager::getInstance()->getFirstCandle(1);
 $prev_candle = $candle;
 
 var_dump($candle->getDateTime());
-for ($i=0; $i<2000000; $i++)
+for ($i=0; $i<20000000; $i++)
 {
     $prev_candle = $candle;
     foreach ($make_candle_min_list as $min)
@@ -175,7 +175,7 @@ for ($i=0; $i<2000000; $i++)
     \trading_engine\managers\OrderManager::getInstance()->update($candle->getCandlePrev());
 
 
-    \trading_engine\strategy\StrategyBBScalping::getInstance()->BBS($candle->getCandlePrev());
+    \trading_engine\strategy\StrategyBBScalping_ahn::getInstance()->BBS($candle->getCandlePrev());
 
 
 
@@ -212,4 +212,5 @@ var_dump($account->getBitBalance());
 var_dump($prev_candle->getDateTime());
 //var_dump(\trading_engine\managers\OrderManager::getInstance());
 
-var_dump(memory_get_usage()/1024/1024);
+
+//var_dump(\trading_engine\objects\ChargeResult::$charge_list);

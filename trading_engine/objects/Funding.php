@@ -23,7 +23,7 @@ class Funding extends Singleton
 
         if (Config::getInstance()->isRealTrade())
         {
-            $result = GlobalVar::getInstance()->bybit->publics()->getFuding(['symbol'=>"BTCUSD"])['result'];
+            $result = GlobalVar::getInstance()->exchange->publics()->getFuding(['symbol'=>"BTCUSD"])['result'];
             $this->prev_time = $result['funding_rate_timestamp'];
             $this->funding_rate = $result['funding_rate'];
         }

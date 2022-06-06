@@ -128,14 +128,4 @@ class Publics extends Request
         $this->data=$data;
         return $this->exec();
     }
-
-    /*
-     *GET /v2/public/announcement
-     * */
-    public function getFuding(array $data=[]){
-        $this->type='GET';
-        $this->path='/open-api/funding/prev-funding-rate';
-        $this->data=$data;
-        return $this->exec();
-    }
 }

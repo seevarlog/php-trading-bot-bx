@@ -1,0 +1,8 @@
+{
+    "ProdPrefUrl" : "https://api.phemex.com",
+    "TestnetPrefUrl" : "https://testnet-api.phemex.com",
+    "ProdApiKey" : "prod_api_key",
+    "ProdSecret" : "prod_secret",
+    "TestnetApiKey" : "testnet_api_key",
+    "TestnetSecret" : "testnet_secret"
+}

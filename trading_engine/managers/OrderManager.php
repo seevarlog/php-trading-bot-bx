@@ -434,69 +434,69 @@ class OrderManager extends Singleton
         }
     }
 
-
-    public function updateBoxMode(Candle $last_candle)
-    {
-        foreach ($this->order_list as $strategy_key => $order_list)
-        {
-            foreach ($order_list as $k=>$order)
-            {
-                if ($order->date > $last_candle->getTime())
-                {
-                    continue;
-                }
-
-                if ($order->isContract($last_candle))
-                {
-                    $candle = $last_candle;
-                    $position_mng = PositionManager::getInstance();
-                    $position = $position_mng->getPosition($order->strategy_key);
-                    /*
-                    for($i=0; $i<50; $i++)
-                    {
-                        //var_dump($candle->getLow()."-".$candle->getHigh());
-                        $candle = $candle->getCandlePrev();
-                    }
-                    */
-                    //var_dump($position);
-                    //var_dump($order);
-
-                    /*
-                    $position->addPositionByOrder($order, $last_candle);
-                    if ($position->amount == 0)
-                    {
-                        $this->clearAllOrder($order->strategy_key);
-                        // 밸런스 동기화
-                        if (Config::getInstance()->isRealTrade())
-                        {
-                            $account = Account::getInstance();
-                            $account->balance = GlobalVar::getInstance()->
-                            getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
-                            Notify::sendMsg("지갑 동기화했다. usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
-                        }
-                        break;
-                    }
-                    */
-
-                    $orderMng = OrderManager::getInstance();
-                    $position->addPositionByOrderUT($order, $last_candle);
-                    if ($position->amount == 0)
-                    {
-                        $this->clearAllOrder($order->strategy_key);
-                        // 밸런스 동기화
-                        if (Config::getInstance()->isRealTrade())
-                        {
-                            $account = Account::getInstance();
-                            $account->balance = GlobalVar::getInstance()->
-                            getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
-                            Notify::sendMsg("지갑 동기화했다. usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
-                        }
-                        break;
-                    }
-
-                    unset($this->order_list[$strategy_key][$k]);
-                }
-            }
-        }
-    }
+//
+//    public function updateBoxMode(Candle $last_candle)
+//    {
+//        foreach ($this->order_list as $strategy_key => $order_list)
+//        {
+//            foreach ($order_list as $k=>$order)
+//            {
+//                if ($order->date > $last_candle->getTime())
+//                {
+//                    continue;
+//                }
+//
+//                if ($order->isContract($last_candle))
+//                {
+//                    $candle = $last_candle;
+//                    $position_mng = PositionManager::getInstance();
+//                    $position = $position_mng->getPosition($order->strategy_key);
+//                    /*
+//                    for($i=0; $i<50; $i++)
+//                    {
+//                        //var_dump($candle->getLow()."-".$candle->getHigh());
+//                        $candle = $candle->getCandlePrev();
+//                    }
+//                    */
+//                    //var_dump($position);
+//                    //var_dump($order);
+//
+//                    /*
+//                    $position->addPositionByOrder($order, $last_candle);
+//                    if ($position->amount == 0)
+//                    {
+//                        $this->clearAllOrder($order->strategy_key);
+//                        // 밸런스 동기화
+//                        if (Config::getInstance()->isRealTrade())
+//                        {
+//                            $account = Account::getInstance();
+//                            $account->balance = GlobalVar::getInstance()->
+//                            getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
+//                            Notify::sendMsg("지갑 동기화했다. usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
+//                        }
+//                        break;
+//                    }
+//                    */
+//
+//                    $orderMng = OrderManager::getInstance();
+//                    $position->addPositionByOrderUT($order, $last_candle);
+//                    if ($position->amount == 0)
+//                    {
+//                        $this->clearAllOrder($order->strategy_key);
+//                        // 밸런스 동기화
+//                        if (Config::getInstance()->isRealTrade())
+//                        {
+//                            $account = Account::getInstance();
+//                            $account->balance = GlobalVar::getInstance()->
+//                            getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
+//                            Notify::sendMsg("지갑 동기화했다. usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
+//                        }
+//                        break;
+//                    }
+//
+//                    unset($this->order_list[$strategy_key][$k]);
+//                }
+//            }
+//        }
+//    }
 }

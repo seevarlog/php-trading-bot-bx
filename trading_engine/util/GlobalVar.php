@@ -4,7 +4,7 @@
 namespace trading_engine\util;
 
 
-use Lin\Bybit\BybitInverse;
+use trading_engine\exchange\IExchange;
 
 /**
  * Class GlobalVar
@@ -12,19 +12,19 @@ use Lin\Bybit\BybitInverse;
  */
 class GlobalVar extends Singleton
 {
-    public BybitInverse $bybit;
+    public IExchange $exchange; // 거래소연결
     public $candleTick;
     public $CrossCount = 0;
     public $vol_1hour = 0;
     public $CrossZigZag = 0;
 
-    public function setByBit($bybit)
+    public function setByBit($exchange)
     {
-        $this->bybit = $bybit;
+        $this->exchange = $exchange;
     }
 
     public function getByBit()
     {
-        return $this->bybit;
+        return $this->exchange;
     }
 }

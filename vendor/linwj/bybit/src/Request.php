@@ -7,7 +7,6 @@ namespace Lin\Bybit;
 
 use GuzzleHttp\Exception\RequestException;
 use Lin\Bybit\Exceptions\Exception;
-use trading_engine\util\Notify;
 
 class Request
 {
@@ -33,6 +32,10 @@ class Request
 
     protected $options=[];
 
+    protected $platform='';
+
+    protected $version='';
+
     public function __construct(array $data)
     {
         $this->key=$data['key'] ?? '';
@@ -40,10 +43,13 @@ class Request
         $this->host=$data['host'] ?? 'https://api.bybit.com';
 
         $this->options=$data['options'] ?? [];
+
+        $this->platform=$data['platform'] ?? [];
+        $this->version=$data['version'] ?? [];
     }
 
-    /**
-     * 认证
+    /*
+     *
      * */
     protected function auth(){
         $this->nonce();
@@ -71,7 +77,11 @@ class Request
             $this->data['timestamp']=$this->nonce;
 
             ksort($this->data);
-            $this->signature = hash_hmac('sha256', urldecode(http_build_query($this->data)), $this->secret);
+
+            $temp=$this->data;
+            foreach ($temp as $k=>$v) if(is_bool($v)) $temp[$k]=$v?'true':'false';
+
+            $this->signature = hash_hmac('sha256', urldecode(http_build_query($temp)), $this->secret);
         }
     }
 
@@ -79,9 +89,21 @@ class Request
      *
      * */
     protected function headers(){
-        $this->headers=[
-            'Content-Type' => 'application/json',
-        ];
+        switch ($this->platform) {
+            case 'spot':{
+                if($this->type=='POST') {
+                    $this->headers=[
+                        'Content-Type' => 'application/x-www-form-urlencoded',
+                    ];
+                }
+                break;
+            }
+            default:{
+                $this->headers=[
+                    'Content-Type' => 'application/json',
+                ];
+            }
+        }
     }
 
     /*
@@ -92,14 +114,6 @@ class Request
 
         $this->options['headers']=$this->headers;
         $this->options['timeout'] = $this->options['timeout'] ?? 60;
-
-        if(isset($this->options['proxy']) && $this->options['proxy']===true) {
-            $this->options['proxy']=[
-                'http'  => 'http://127.0.0.1:12333',
-                'https' => 'http://127.0.0.1:12333',
-                'no'    =>  ['.cn']
-            ];
-        }
     }
 
     /*
@@ -110,7 +124,34 @@ class Request
         $url=$this->host.$this->path;
 
         if($this->type=='GET') $url.= '?'.http_build_query($this->data).($this->signature!=''?'&sign='.$this->signature:'');
-        else $this->options['body']=json_encode(array_merge($this->data,['sign'=>$this->signature]));
+        else {
+            $temp=$this->data;
+
+            foreach ($temp as $k=>$v){
+                if($v=='true') $temp[$k]=true;
+                if($v=='false') $temp[$k]=false;
+            }
+
+            switch ($this->platform) {
+                case 'spot':{
+                    if($this->type=='DELETE') {
+                        $url.= '?'.http_build_query($this->data).($this->signature!=''?'&sign='.$this->signature:'');
+                        break;
+                    }
+                    $this->options['form_params']=array_merge($temp,['sign'=>$this->signature]);
+                    break;
+                }
+                case 'linear':
+                case 'inverse':{
+                    $this->options['body']=json_encode(array_merge($temp,['sign'=>$this->signature]));
+                    break;
+                }
+            }
+        }
+
+//        echo $this->type.PHP_EOL;
+//        echo $url.PHP_EOL;
+//        print_r($this->options);
 
         $response = $client->request($this->type, $url, $this->options);
 
@@ -120,62 +161,30 @@ class Request
     /*
      *
      * */
-    protected function exec($retry = 50){
-        if ($retry < 0)
-        {
-            return -1;
-        }
+    protected function exec(){
+        $this->auth();
+
         try {
-            $ret = ['result'=>[]];
-            $count = 0;
-            while(1)
-            {
-                $this->auth();
-                if ($count > 10)
-                {
-                    return json_decode($this->send(), true);
-                }
-
-                $body = $this->send();
-                $ret = json_decode($body, true);
-                $count += 1;
-
-                if ($ret['ret_code'] == 0)
-                {
-                    break;
-                }
-
-                if ($ret['ret_code'] == 30032)
-                {
-                    break;
-                }
-
-                if ($ret['ret_code'] == 30004)
-                {
-                    break;
-                }
-
-                if ($ret['ret_code'] == 20001)
-                {
-                    break;
-                }
-
-                if ($ret['ret_code'] == 30076)
-                {
-                    break;
-                }
-
-                Notify::sendTradeMsg("ret 코드 에러 : ".$body);
-
-                sleep(1);
-            }
-            return $ret;
+            return json_decode($this->send(),true);
         }catch (RequestException $e){
-            sleep(0.5);
-            $this->exec($retry - 1);
-            Notify::sendMsg("http 전송이슈 발생");
-        }
+            if(method_exists($e->getResponse(),'getBody')){
+                $contents=$e->getResponse()->getBody()->getContents();
 
-        return -1;
+                $temp = empty($contents) ? [] : json_decode($contents,true);
+
+                if(!empty($temp)) {
+                    $temp['_method']=$this->type;
+                    $temp['_url']=$this->host.$this->path;
+                }else{
+                    $temp['_message']=$e->getMessage();
+                }
+            }else{
+                $temp['_message']=$e->getMessage();
+            }
+
+            $temp['_httpcode']=$e->getCode();
+
+            throw new Exception(json_encode($temp));
+        }
     }
 }

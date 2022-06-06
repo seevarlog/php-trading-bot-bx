@@ -106,7 +106,7 @@ class Position
         $prev_entry = $this->entry;
         $profit_balance = 0;
 
-        $fee = $order->getFee();
+        $fee = $order->getFee2($order, $candle);
         //$add_balance += $fee;
         $exec_order_price = $order->entry;
         if ($order->is_stop)
@@ -212,7 +212,7 @@ MSG;
         $prev_entry = $this->entry;
         $profit_balance = 0;
 
-        $fee = $order->getFee();
+        $fee = $order->getFee2($order, $candle);
         //$add_balance += $fee;
         $exec_order_price = $order->entry;
         if ($order->is_stop)

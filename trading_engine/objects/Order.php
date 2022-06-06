@@ -72,7 +72,7 @@ class Order
         {
             if (Config::getInstance()->isRealTrade())
             {
-                $result = GlobalVar::getInstance()->bybit->privates()->getOrder(
+                $result = GlobalVar::getInstance()->exchange->privates()->getOrder(
                     [
                         'order_id'=>$this->order_id,
                         'symbol'=>'BTCUSD'
@@ -107,7 +107,7 @@ class Order
             {
                 if (Config::getInstance()->isRealTrade() && $this->entry == $candle->l)
                 {
-                    $result = GlobalVar::getInstance()->bybit->privates()->getOrder(
+                    $result = GlobalVar::getInstance()->exchange->privates()->getOrder(
                         [
                             'order_id'=>$this->order_id,
                             'symbol'=>'BTCUSD'
@@ -174,7 +174,7 @@ class Order
             {
                 if (Config::getInstance()->isRealTrade() && $this->entry == $candle->h)
                 {
-                    $result = GlobalVar::getInstance()->bybit->privates()->getOrder(
+                    $result = GlobalVar::getInstance()->exchange->privates()->getOrder(
                         [
                             'order_id'=>$this->order_id,
                             'symbol'=>'BTCUSD'
@@ -253,6 +253,52 @@ class Order
     {
         return $this->amount > 0 ? "buy" : "sell";
     }
+
+    public function getFee2(Order $order, Candle $candle)
+    {
+        $is_limit = $order->is_limit;
+
+        // 판매할떄 limit 검증
+        if ($order->amount < 0)
+        {
+            if ($order->entry <= $candle->o)
+            {
+                $is_limit = 0;
+            }
+        }
+        else if ($order->amount > 0)
+        {
+            if ($order->entry >= $candle->o)
+            {
+                $is_limit = 0;
+            }
+        }
+
+        if ($is_limit)
+        {
+            if ($this->amount > 0)
+            {
+                return $this->amount * 0.00025;
+            }
+            else
+            {
+                return $this->amount * 0.00025 * -1;
+            }
+        }
+        else
+        {
+            // 스탑인 경우
+            if ($this->amount > 0)
+            {
+                return $this->amount * 0.00075 * -1;
+            }
+            else
+            {
+                return $this->amount * 0.00075;
+            }
+        }
+    }
+
 
     public function getFee()
     {

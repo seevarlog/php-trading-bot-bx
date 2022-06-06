@@ -19,10 +19,12 @@
     }
   },
   "require" : {
-    "php" : "*",
+    "php" : ">=8.0",
     "ext-mbstring": "*",
     "linwj/bybit": "*",
     "guzzlehttp/guzzle": "*",
-    "ext-json": "*"
+    "ccxt/ccxt": "*",
+    "ext-json": "*",
+    "ext-curl": "*"
   }
 }

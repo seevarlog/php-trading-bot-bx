@@ -44,7 +44,7 @@ class Publics extends Request
      * */
     public function getRecentTradingRecords(array $data=[]){
         $this->type='GET';
-        $this->path='/public/linear/recent-trading-record';
+        $this->path='/public/linear/recent-trading-records';
         $this->data=$data;
         return $this->exec();
     }
@@ -75,6 +75,16 @@ class Publics extends Request
     public function getFundingPrevRate(array $data=[]){
         $this->type='GET';
         $this->path='/public/linear/funding/prev-funding-rate';
+        $this->data=$data;
+        return $this->exec();
+    }
+
+    /*
+     *GET /public/linear/index-price-kline
+     * */
+    public function getIndexPriceKline(array $data=[]){
+        $this->type='GET';
+        $this->path='/public/linear/index-price-kline';
         $this->data=$data;
         return $this->exec();
     }
