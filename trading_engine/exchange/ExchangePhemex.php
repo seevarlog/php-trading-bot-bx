@@ -34,18 +34,20 @@ class ExchangePhemex implements IExchange
 
     public function postOrderCreate(Order $order)
     {
-        $this->phmex_api->create_order(
+        $ret = $this->phmex_api->create_order(
             "BTCUSD",
             $order->getLimitForCCXT(),
             $order->getSide(),
             abs($order->amount),
             $order->entry,
         );
+
+        $order->order_id = $ret['id'];
     }
 
     public function postStopOrderCreate(Order $order)
     {
-        $this->phmex_api->create_order(
+        $ret = $this->phmex_api->create_order(
             "BTCUSD",
             $order->getLimitForCCXT(),
             $order->getSide(),
@@ -53,6 +55,7 @@ class ExchangePhemex implements IExchange
             $order->entry,
         );
 
+        $order->order_id = $ret['id'];
     }
 
     public function postOrderReplace(Order $order)
@@ -139,7 +142,6 @@ class ExchangePhemex implements IExchange
 
     public function getOrder(Order $order)
     {
-        //$this->phmex_api->fetch_order()
-        // TODO: Implement getOrder() method.
+        return $this->phmex_api->fetch_order($order->order_id);
     }
 }

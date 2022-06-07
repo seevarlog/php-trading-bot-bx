@@ -113,7 +113,7 @@ $candle = CandleManager::getInstance()->getFirstCandle(1);
 $prev_candle = $candle;
 
 var_dump($candle->getDateTime());
-for ($i=0; $i<100000; $i++)
+for ($i=0; $i<300000; $i++)
 {
     $prev_candle = $candle;
     foreach ($make_candle_min_list as $min)

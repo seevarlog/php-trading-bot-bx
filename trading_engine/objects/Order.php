@@ -83,8 +83,8 @@ class Order
             if (Config::getInstance()->isRealTrade())
             {
                 $result = GlobalVar::getInstance()->exchange->privates()->getOrder($this);
-                $exec_amount = $result['result']['cum_exec_qty'];
-                $leaves_qty = $result['result']['leaves_qty'];
+                $exec_amount = $result['filled'];
+                $leaves_qty = $result['remaining'];
 
                 if ($exec_amount == abs($this->amount))
                 {
@@ -113,8 +113,8 @@ class Order
                 if (Config::getInstance()->isRealTrade() && $this->entry == $candle->l)
                 {
                     $result = GlobalVar::getInstance()->exchange->privates()->getOrder($this);
-                    $exec_amount = $result['result']['cum_exec_qty'];
-                    $leaves_qty = $result['result']['leaves_qty'];
+                    $exec_amount = $result['filled'];
+                    $leaves_qty = $result['remaining'];
 
                     if ($exec_amount == 0)
                     {
@@ -175,8 +175,8 @@ class Order
                 if (Config::getInstance()->isRealTrade() && $this->entry == $candle->h)
                 {
                     $result = GlobalVar::getInstance()->exchange->privates()->getOrder($this);
-                    $exec_amount = $result['result']['cum_exec_qty'];
-                    $leaves_qty = $result['result']['leaves_qty'];
+                    $exec_amount = $result['filled'];
+                    $leaves_qty = $result['remaining'];
 
                     if ($exec_amount == 0)
                     {
