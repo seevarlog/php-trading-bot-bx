@@ -56,31 +56,13 @@ class OrderManager extends Singleton
         {
             if ($order->is_limit)
             {
-                $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderCreate(
-                    [
-                        'side'=>$order->amount > 0 ? "Buy" : "Sell",
-                        'symbol'=>"BTCUSD",
-                        'order_type'=> $order->is_limit == 1 ? "Limit" : "Market",
-                        'qty' => abs($order->amount),
-                        'price'=> $order->entry,
-                        'time_in_force'=>'GoodTillCancel',
-                    ]
-                );
+                $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderCreate($order);
                 $order->order_id = $result['result']['order_id'];
                 Notify::sendTradeMsg(sprintf("%s 주문 넣었다. 진입가 : %f", $order->amount > 0 ? "매수" : "매도", $order->entry));
             }
             else if ($order->is_stop)
             {
-                $result = GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCreate(
-                    [
-                        'side'=>$order->amount > 0 ? "Sell" : "Buy",
-                        'symbol'=>"BTCUSD",
-                        'order_type'=> "Market",
-                        'qty' => abs($order->amount),
-                        'price'=> $order->entry,
-                        'time_in_force'=>'GoodTillCancel',
-                    ]
-                );
+                $result = GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCreate($order);
                 $order->order_id = $result['result']['order_id'];
                 Notify::sendTradeMsg(sprintf("스탑 %s 주문 넣었다. 진입가 : %f", $order->amount > 0 ? "매수" : "매도", $order->entry));
             }
@@ -147,33 +129,14 @@ class OrderManager extends Singleton
                 {
                     $bool_reduce_only = $order->is_reduce_only ? true : false;
 
-                    $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderCreate(
-                        [
-                            'side'=>$order->amount > 0 ? "Buy" : "Sell",
-                            'symbol'=>"BTCUSD",
-                            'order_type'=> $order->is_limit == 1 ? "Limit" : "Market",
-                            'qty' => abs($order->amount),
-                            'price'=> $order->entry,
-                            'time_in_force'=>'GoodTillCancel'
-                        ]
-                    );
+                    $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderCreate($order);
                     $order->order_id = $result['result']['order_id'];
                     Notify::sendTradeMsg(sprintf("주문 넣었다. 진입가 : %f 로그 : %s 액션 : %s", $order->entry, $order->log, $order->action));
                 }
                 else if ($order->is_stop)
                 {
                     $bool_reduce_only = $order->is_reduce_only ? true : false;
-                    $result = GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCreate(
-                        [
-                            'side'=>$order->amount < 0 ? "Sell" : "Buy",
-                            'symbol'=>"BTCUSD",
-                            'order_type'=> "Market",
-                            'qty' => abs($order->amount),
-                            'stop_px'=> $order->entry,
-                            'base_price'=> $order->amount < 0 ?  $order->entry : $order->entry - 0.5,
-                            'time_in_force'=>'GoodTillCancel'
-                        ]
-                    );
+                    $result = GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCreate($order);
                     $order->order_id = $result['result']['stop_order_id'];
                     Notify::sendTradeMsg(sprintf("손절도 넣었다. 진입가 : %f", $order->entry));
                 }
@@ -182,26 +145,12 @@ class OrderManager extends Singleton
             {
                 if ($order->is_limit)
                 {
-                    $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderReplace(
-                        [
-                            'order_id'=>$order->order_id,
-                            'symbol'=>"BTCUSD",
-                            'p_r_price'=>$order->entry,
-                            'p_r_qty'=>abs($order->amount)
-                        ]
-                    );
+                    $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderReplace($order);
                     //Notify::sendTradeMsg(sprintf("주문 수정했다. 진입가 : %f", $order->entry));
                 }
                 else if ($order->is_stop)
                 {
-                    $result = GlobalVar::getInstance()->getByBit()->privates()->postStopOrderReplace(
-                        [
-                            'stop_order_id'=>$order->order_id,
-                            'symbol'=>"BTCUSD",
-                            'p_r_trigger_price'=>(string)($order->entry),
-                            'p_r_qty'=>abs($order->amount)
-                        ]
-                    );
+                    $result = GlobalVar::getInstance()->getByBit()->privates()->postStopOrderReplace($order);
                     //Notify::sendTradeMsg(sprintf("주문 수정했다. 이건 손절가 : %f", $order->entry));
                 }
             }
@@ -260,73 +209,10 @@ class OrderManager extends Singleton
 
         if (Config::getInstance()->is_real_trade)
         {
-            GlobalVar::getInstance()->getByBit()->privates()->postOrderCancelAll(
-                ['symbol'=>"BTCUSD"]
-            );
-            GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCancelAll(
-                ['symbol'=>"BTCUSD"]
-            );
+            GlobalVar::getInstance()->getByBit()->privates()->postOrderCancelAll([]);
+            GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCancelAll();
 
             Notify::sendTradeMsg("모든 주문을 취소했다.");
-        }
-    }
-
-    public function cancelOrderByComment($comment)
-    {
-        if (!isset($this->order_list["BBS1"]))
-        {
-            return;
-        }
-
-        foreach ($this->order_list["BBS1"] as $key => $order)
-        {
-            if ($order->comment == $comment)
-            {
-                unset($this->order_list["BBS1"][$key]);
-                break;
-            }
-        }
-
-        if (Config::getInstance()->is_real_trade)
-        {
-            $_order = null;
-            $_order_key = -1;
-            foreach ($this->order_list["BBS1"] as $key => $order)
-            {
-                if ($order->comment == $comment)
-                {
-                    $_order = $this->order_list["BBS1"][$key];
-                    $_order_key = $key;
-                    break;
-                }
-            }
-
-            if ($_order_key === -1)
-            {
-                return ;
-            }
-
-            if ($_order->is_stop)
-            {
-                GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCancel(
-                    [
-                        'symbol'=>"BTCUSD",
-                        'stop_order_id'=>$_order->order_id,
-                    ]
-                );
-            }
-            else
-            {
-                GlobalVar::getInstance()->getByBit()->privates()->postOrderCancel(
-                    [
-                        'symbol'=>"BTCUSD",
-                        'order_id'=>$_order->order_id,
-                    ]
-                );
-            }
-            Notify::sendTradeMsg(sprintf("주문 취소했다. order_id : %s, 진입가 : %f", $_order->order_id, $_order->entry));
-
-            unset($this->order_list["BBS1"][$_order_key]);
         }
     }
 
@@ -350,21 +236,11 @@ class OrderManager extends Singleton
         {
             if ($_order->is_stop)
             {
-                GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCancel(
-                    [
-                        'symbol'=>"BTCUSD",
-                        'stop_order_id'=>$_order->order_id,
-                    ]
-                );
+                GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCancel($_order);
             }
             else
             {
-                GlobalVar::getInstance()->getByBit()->privates()->postOrderCancel(
-                    [
-                        'symbol'=>"BTCUSD",
-                        'order_id'=>$_order->order_id,
-                    ]
-                );
+                GlobalVar::getInstance()->getByBit()->privates()->postOrderCancel($_order);
             }
             Notify::sendTradeMsg(sprintf("주문 취소했다. order_id : %s, 진입가 : %f", $_order->order_id, $_order->entry));
         }

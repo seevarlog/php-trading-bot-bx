@@ -91,12 +91,12 @@ class ExchangePhemex implements IExchange
         // TODO: Implement postStopOrderCancel() method.
     }
 
-    public function postOrderCancelAll(Order $order)
+    public function postOrderCancelAll()
     {
         $this->phmex_api->cancel_all_orders("BTCUSD");
     }
 
-    public function postStopOrderCancelAll(Order $order)
+    public function postStopOrderCancelAll()
     {
         $this->phmex_api->cancel_all_orders("BTCUSD");
     }

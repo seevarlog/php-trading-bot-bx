@@ -16,8 +16,8 @@ interface IExchange
     public function postOrderCancel(Order $order);
     public function postStopOrderCancel(Order $order);
 
-    public function postOrderCancelAll(Order $order);
-    public function postStopOrderCancelAll(Order $order);
+    public function postOrderCancelAll();
+    public function postStopOrderCancelAll();
 
     public function getKlineList(array $arr) : array;
     public function getWalletBalance();

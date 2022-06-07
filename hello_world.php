@@ -16,7 +16,7 @@ header('Content-Type: text/html; charset=UTF-8');
 
 ob_start();
 $time_start = time();
-if (!($fp = fopen(__DIR__ . '/output (2).csv', 'r'))) {
+if (!($fp = fopen(__DIR__ . '/output.csv', 'r'))) {
     echo "err";
     return;
 }
@@ -113,7 +113,7 @@ $candle = CandleManager::getInstance()->getFirstCandle(1);
 $prev_candle = $candle;
 
 var_dump($candle->getDateTime());
-for ($i=0; $i<20000000; $i++)
+for ($i=0; $i<100000; $i++)
 {
     $prev_candle = $candle;
     foreach ($make_candle_min_list as $min)
