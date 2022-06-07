@@ -25,6 +25,7 @@
     "guzzlehttp/guzzle": "*",
     "ccxt/ccxt": "*",
     "ext-json": "*",
-    "ext-curl": "*"
+    "ext-curl": "*",
+    "ratchet/pawl": "^0.4.1"
   }
 }
