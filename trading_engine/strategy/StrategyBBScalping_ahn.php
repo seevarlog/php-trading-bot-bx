@@ -196,7 +196,7 @@ class StrategyBBScalping_ahn extends StrategyBase
         }
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m > $ema50_1m && $ema5_1h > $ema10_1h && $rsi < 60) 
-        if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 40) 
+        if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 60) 
         {
                 return self::POSITION_LONG;
         }
@@ -223,6 +223,7 @@ class StrategyBBScalping_ahn extends StrategyBase
 		$candle = $this->now_1m_candle;
         
         if ($iiFlag == True && $amount > 0)
+		#if ($iiFlag == True && $amount > 0 && $curPosition->entry * 1.005 < $candle->c+0.5)
         {
             $delta = 0;
             if ($amount > 0)
@@ -266,7 +267,7 @@ class StrategyBBScalping_ahn extends StrategyBase
         }
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m < $ema50_1m && $ema5_1h < $ema10_1h && $rsi > 40) 
-        if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 60) 
+        if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 40) 
         {
                 return self::POSITION_SHORT;
         }
