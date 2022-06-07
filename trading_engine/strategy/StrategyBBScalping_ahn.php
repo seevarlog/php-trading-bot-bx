@@ -28,8 +28,8 @@ class StrategyBBScalping_ahn extends StrategyBase
     public float $stop_ratio = 4;
     public $day = 40;
     public $k = 1.3;
-    #public $is_welfare = false;
-    public $is_welfare = true;
+    public $is_welfare = false;
+    #public $is_welfare = true;
     
     const POSITION_LONG = 'long';
     const POSITION_SHORT = 'short';
@@ -220,6 +220,7 @@ class StrategyBBScalping_ahn extends StrategyBase
         //$amount = PositionManager::getInstance()->getPosition($this->getStrategyKey())->amount;
         
         $amount = $curPosition->amount;
+		$candle = $this->now_1m_candle;
         
         if ($iiFlag == True && $amount > 0)
         {
@@ -287,6 +288,7 @@ class StrategyBBScalping_ahn extends StrategyBase
         }
         
         $amount = $curPosition->amount;
+		$candle = $this->now_1m_candle;
         
         if ($iiFlag == True && $amount < 0)
         {
@@ -395,10 +397,12 @@ class StrategyBBScalping_ahn extends StrategyBase
         #$sell_price = $entry_price - $range_price * $this->profit_ratio;
         
         $stop_price = $buy_price * 1.02;
-        $sell_price = $entry_price * 9999;
+        $sell_price = $entry_price * 0.1;
 
 
-        $leverage_correct = $leverage;
+		$leverage_correct = $leverage;
+		/*
+        
         if ($leverage > 1)
         {
             $leverage_standard_stop_per = 0.013;
@@ -412,6 +416,7 @@ class StrategyBBScalping_ahn extends StrategyBase
                 $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage));
             }
         }
+		*/
 
         $leverage_correct = abs($leverage_correct);
         if ($this->is_welfare)
@@ -476,7 +481,8 @@ class StrategyBBScalping_ahn extends StrategyBase
         $sell_price = $buy_price * 9999;
 
         $leverage_correct = $leverage;
-
+		
+		/*
         if ($leverage > 1)
         {
             $leverage_standard_stop_per = 0.013;
@@ -490,6 +496,7 @@ class StrategyBBScalping_ahn extends StrategyBase
                 $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage));
             }
         }
+		*/
 
 
         $leverage_correct = abs($leverage_correct);
