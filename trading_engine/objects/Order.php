@@ -48,6 +48,16 @@ class Order
         return $order;
     }
 
+    public function getLimitForCCXT()
+    {
+        return $this->is_limit ? "limit" : "stop";
+    }
+
+    public function getTypeForCCXT()
+    {
+        return $this->t ? "limit" : "stop";
+    }
+
     public static function correctEntry($entry)
     {
         if ($entry > 4000)
@@ -72,12 +82,7 @@ class Order
         {
             if (Config::getInstance()->isRealTrade())
             {
-                $result = GlobalVar::getInstance()->exchange->privates()->getOrder(
-                    [
-                        'order_id'=>$this->order_id,
-                        'symbol'=>'BTCUSD'
-                    ]
-                );
+                $result = GlobalVar::getInstance()->exchange->privates()->getOrder($this);
                 $exec_amount = $result['result']['cum_exec_qty'];
                 $leaves_qty = $result['result']['leaves_qty'];
 
@@ -107,12 +112,7 @@ class Order
             {
                 if (Config::getInstance()->isRealTrade() && $this->entry == $candle->l)
                 {
-                    $result = GlobalVar::getInstance()->exchange->privates()->getOrder(
-                        [
-                            'order_id'=>$this->order_id,
-                            'symbol'=>'BTCUSD'
-                        ]
-                    );
+                    $result = GlobalVar::getInstance()->exchange->privates()->getOrder($this);
                     $exec_amount = $result['result']['cum_exec_qty'];
                     $leaves_qty = $result['result']['leaves_qty'];
 
@@ -174,12 +174,7 @@ class Order
             {
                 if (Config::getInstance()->isRealTrade() && $this->entry == $candle->h)
                 {
-                    $result = GlobalVar::getInstance()->exchange->privates()->getOrder(
-                        [
-                            'order_id'=>$this->order_id,
-                            'symbol'=>'BTCUSD'
-                        ]
-                    );
+                    $result = GlobalVar::getInstance()->exchange->privates()->getOrder($this);
                     $exec_amount = $result['result']['cum_exec_qty'];
                     $leaves_qty = $result['result']['leaves_qty'];
 

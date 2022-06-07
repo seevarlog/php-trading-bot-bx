@@ -249,7 +249,7 @@ MSG;
 
         if (str_contains($order->comment, "진입"))
         {
-            StrategyBB::$last_last_entry = $candle->getGoldenDeadState();
+            //StrategyBB::$last_last_entry = $candle->getGoldenDeadState();
             $this->action = $order->action;
             $this->entry_tick = $order->tick;
         }

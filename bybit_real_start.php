@@ -447,7 +447,7 @@ try {
         {
             $account = Account::getInstance();
             $result = GlobalVar::getInstance()->
-            getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];  
+            getByBit()->privates()->getWalletBalance();
             if ($result !== null)
             {
                 $account->balance = $result;

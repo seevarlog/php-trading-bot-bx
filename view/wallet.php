@@ -98,7 +98,7 @@ $bybit = new BybitInverse(
 
 GlobalVar::getInstance()->setByBit($bybit);
 $account = Account::getInstance();
-$result = GlobalVar::getInstance()->getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
+$result = GlobalVar::getInstance()->getByBit()->privates()->getWalletBalance();
 if ($result !== null)
 {
     $account->balance = $result;

@@ -652,7 +652,7 @@ class phemex extends Exchange {
                 $v1ProductsValues = $this->safe_value($v1ProductsById, $id, array());
                 $market = array_merge($market, $v1ProductsValues);
                 $market = $this->parse_swap_market($market);
-                if ($market['id'] == "BTCUSD")
+                if ($market['id'] == "uBTCUSD")
                 {
                     continue;
                 }

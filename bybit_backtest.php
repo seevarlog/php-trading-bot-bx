@@ -3,19 +3,13 @@
 
 include __DIR__."/vendor/autoload.php";
 
-use Lin\Bybit\BybitInverse;
-use Lin\Bybit\BybitLinear;
 use trading_engine\managers\CandleManager;
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\PositionManager;
-use trading_engine\managers\TradeLogManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
-use trading_engine\objects\Order;
-use trading_engine\strategy\StrategyBB;
 use trading_engine\strategy\StrategyTest;
 use trading_engine\util\CoinPrice;
-use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
 use trading_engine\util\Notify;
 
@@ -35,7 +29,7 @@ for ($i=2; $i>0; $i--)
         }
 
         // 일봉셋팅 (14일꺼 가져옴)
-        $candle_1day_list = $bybit->publics()->getKlineList([
+        $candle_1day_list = $exchange->publics()->getKlineList([
             'symbol'=>"BTCUSD",
             'interval'=>$interval,
             'from'=>time()-60*$make_min*180*$i
@@ -74,7 +68,7 @@ $account->balance = 1;
 
 
 // 계정 밸런스 불러옴
-$account->balance = $bybit->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
+$account->balance = $exchange->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
 
 Notify::sendMsg("봇을 시작합니다. 시작 잔액 usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
 
@@ -94,7 +88,7 @@ try {
         }
 
         // 캔들 마감 전에는 빨리 갱신한다.
-        $candle_api_result = $bybit->publics()->getKlineList([
+        $candle_api_result = $exchange->publics()->getKlineList([
             'symbol' => "BTCUSD",
             'interval' => "1",
             'from' => time() - 60
@@ -161,7 +155,7 @@ try {
 
         foreach (OrderManager::getInstance()->getOrderList("BBS1") as $order) {
             if ($order->is_stop == 1) {
-                $order_result_list = $bybit->privates()->getOrderList(
+                $order_result_list = $exchange->privates()->getOrderList(
                     [
                         'symbol' => 'BTCUSD',
                         'order_status' => 'Filled',
@@ -195,7 +189,7 @@ try {
         {
             $account = Account::getInstance();
             $result = GlobalVar::getInstance()->
-            getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
+            getByBit()->privates()->getWalletBalance();
             if ($result !== null)
             {
                 $account->balance = $result;

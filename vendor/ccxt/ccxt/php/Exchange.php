@@ -2466,8 +2466,8 @@ class Exchange {
         {
             if (str_contains($k, "BTC"))
             {
-                var_dump($k);
-                var_dump($v);
+//                var_dump($k);
+//                var_dump($v);
             }
         }
 

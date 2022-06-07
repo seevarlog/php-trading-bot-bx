@@ -3,16 +3,14 @@ namespace trading_engine\exchange;
 
 use ccxt\phemex;
 use trading_engine\objects\Order;
-use trading_engine\util\Singleton;
 
-class ExchangePhemex extends Singleton implements IExchange
+class ExchangePhemex implements IExchange
 {
     public phemex $phmex_api;
 
-    protected function __construct()
+    public function __construct()
     {
         $config = json_decode(file_get_contents(__DIR__."/../../config/phmexConfig.json"), true);
-        var_dump($config);
         $this->phmex_api = new phemex(
             [
                 'apiKey' => $config['ProdApiKey'],
@@ -36,62 +34,112 @@ class ExchangePhemex extends Singleton implements IExchange
 
     public function postOrderCreate(Order $order)
     {
-        
-        // TODO: Implement postOrderCreate() method.
+        $this->phmex_api->create_order(
+            "BTCUSD",
+            $order->getLimitForCCXT(),
+            $order->getSide(),
+            abs($order->amount),
+            $order->entry,
+        );
     }
 
     public function postStopOrderCreate(Order $order)
     {
-        // TODO: Implement postStopOrderCreate() method.
+        $this->phmex_api->create_order(
+            "BTCUSD",
+            $order->getLimitForCCXT(),
+            $order->getSide(),
+            abs($order->amount),
+            $order->entry,
+        );
+
     }
 
     public function postOrderReplace(Order $order)
     {
-        // TODO: Implement postOrderReplace() method.
+        $this->phmex_api->edit_order(
+            $order->order_id,
+            "BTCUSD",
+            $order->getLimitForCCXT(),
+            $order->getSide(),
+            abs($order->amount),
+            $order->entry,
+        );
     }
 
     public function postStopOrderReplace(Order $order)
     {
-        // TODO: Implement postStopOrderReplace() method.
+        $this->phmex_api->edit_order(
+            $order->order_id,
+            "BTCUSD",
+            $order->getLimitForCCXT(),
+            $order->getSide(),
+            abs($order->amount),
+            $order->entry,
+        );
     }
 
     public function postOrderCancel(Order $order)
     {
+        $this->phmex_api->cancel_order($order->order_id, "BTCUSD");
         // TODO: Implement postOrderCancel() method.
     }
 
     public function postStopOrderCancel(Order $order)
     {
+        $this->phmex_api->cancel_order($order->order_id, "BTCUSD");
         // TODO: Implement postStopOrderCancel() method.
     }
 
     public function postOrderCancelAll(Order $order)
     {
-        // TODO: Implement postOrderCancelAll() method.
+        $this->phmex_api->cancel_all_orders("BTCUSD");
     }
 
     public function postStopOrderCancelAll(Order $order)
     {
-        // TODO: Implement postStopOrderCancelAll() method.
+        $this->phmex_api->cancel_all_orders("BTCUSD");
     }
 
     public function getKlineList(array $arr): array
     {
-        return $this->phmex_api->fetch_ohlcv("BTC/USD", $arr['interval']."m", null, $arr["limit"]);
+        $interval = $arr['interval'];
+        if ($interval < 60)
+        {
+            $interval .= "m";
+        }
+        else if ($interval < 60 * 24)
+        {
+            $interval = ((int)($interval / 60))."h";
+        }
+        else
+        {
+            $interval = ((int)($interval / 60 / 24))."d";
+        }
+
+
+        return $this->phmex_api->fetch_ohlcv("BTC/USD", $interval, null, $arr["limit"]);
     }
 
-    public function getWalletBalance()
+    public function getWalletBalance($symbol = "BTC")
     {
-        return $this->phmex_api->fetch_balance();
+        $result = $this->phmex_api->fetch_total_balance(["type"=>"swap", "code"=>"BTC"]);
+        if (!isset($result[$symbol]))
+        {
+            return 0;
+        }
+
+        return $result[$symbol];
     }
 
     public function privates(): static
     {
-        // TODO: Implement privates() method.
+        return $this;
     }
 
     public function getOrder(Order $order)
     {
+        //$this->phmex_api->fetch_order()
         // TODO: Implement getOrder() method.
     }
 }
