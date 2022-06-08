@@ -101,24 +101,31 @@ class ExchangePhemex implements IExchange
 
     public function postOrderCancel(Order $order)
     {
-        $this->phmex_api->cancel_order($order->order_id, self::SYMBOL);
-        // TODO: Implement postOrderCancel() method.
+        try{
+            $this->phmex_api->cancel_order($order->order_id, self::SYMBOL);
+        } catch (\Exception $e) {}
     }
 
     public function postStopOrderCancel(Order $order)
     {
-        $this->phmex_api->cancel_order($order->order_id, self::SYMBOL);
-        // TODO: Implement postStopOrderCancel() method.
+        try{
+            $this->phmex_api->cancel_order($order->order_id, self::SYMBOL);
+        } catch (\Exception $e) {}
     }
 
     public function postOrderCancelAll()
     {
-        $this->phmex_api->cancel_all_orders(self::SYMBOL);
+
+        try{
+            $this->phmex_api->cancel_all_orders(self::SYMBOL);
+        } catch (\Exception $e) {}
     }
 
     public function postStopOrderCancelAll()
     {
-        $this->phmex_api->cancel_all_orders(self::SYMBOL, ['untriggered'=>true]);
+        try {
+            $this->phmex_api->cancel_all_orders(self::SYMBOL, ['untriggered'=>true]);
+        } catch (\Exception $e) {}
     }
 
 
