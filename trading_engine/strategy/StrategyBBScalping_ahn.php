@@ -23,12 +23,12 @@ class StrategyBBScalping_ahn extends StrategyBase
     public static $order_action = "";
     public static $last_date = 0;
 
-    public int $leverage = 10;
+    public float $leverage = 1;
     public float $profit_ratio = 6;
     public float $stop_ratio = 4;
     public $day = 40;
     public $k = 1.3;
-    public $is_welfare = false;
+    public $is_welfare = 1;
     #public $is_welfare = true;
     
     const POSITION_LONG = 'long';

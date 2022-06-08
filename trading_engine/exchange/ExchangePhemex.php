@@ -54,13 +54,14 @@ class ExchangePhemex implements IExchange
     {
         $ret = $this->phmex_api->create_order(
             self::SYMBOL,
-            $order->getLimitForCCXT(),
+            'Stop',
             $order->getSide(),
             abs($order->amount),
             null,
             [
-                'stopPxEp' => $order->entry,
-                'ByMarkPrice' => "ByMarkPrice"
+                'stopPxEp' => $order->entry * 10000,
+                'triggerType'=> 'ByMarkPrice',
+
             ]
         );
 
@@ -83,14 +84,16 @@ class ExchangePhemex implements IExchange
     public function postStopOrderReplace(Order $order)
     {
         $ret = $this->phmex_api->edit_order(
+            $order->order_id,
             self::SYMBOL,
-            $order->getLimitForCCXT(),
+            'Stop',
             $order->getSide(),
             abs($order->amount),
             null,
             [
-                'stopPxEp' => $order->entry,
-                'ByMarkPrice' => "ByMarkPrice"
+                'stopPxEp' => $order->entry * 10000,
+                'triggerType'=> 'ByMarkPrice',
+
             ]
         );
         $order->order_id = $ret['id'];
@@ -115,7 +118,7 @@ class ExchangePhemex implements IExchange
 
     public function postStopOrderCancelAll()
     {
-        $this->phmex_api->cancel_all_orders(self::SYMBOL);
+        $this->phmex_api->cancel_all_orders(self::SYMBOL, ['untriggered'=>true]);
     }
 
 
@@ -206,6 +209,14 @@ class ExchangePhemex implements IExchange
 
     public function getOrder(Order $order)
     {
-        return $this->phmex_api->fetch_order($order->order_id);
+        $results = $this->phmex_api->fetch_open_orders(self::SYMBOL);
+        foreach($results as $result)
+        {
+            if ($result['info']['orderID'] == $order->order_id)
+            {
+                return $result['info'];
+            }
+        }
+        return null;
     }
 }

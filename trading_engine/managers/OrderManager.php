@@ -42,34 +42,34 @@ class OrderManager extends Singleton
     }
 
 
-    public function addOrder(Order $order)
-    {
-        $strategy_name = $order->strategy_key;
-        if (!isset($this->order_list[$strategy_name]))
-        {
-            $this->order_list[$strategy_name] = array();
-        }
-
-        $this->order_list[$strategy_name][] = $order;
-
-        if (Config::getInstance()->is_real_trade && $order->log != "동기화")
-        {
-            if ($order->is_limit)
-            {
-                $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderCreate($order);
-                $order->order_id = $result['result']['order_id'];
-                Notify::sendTradeMsg(sprintf("%s 주문 넣었다. 진입가 : %f", $order->amount > 0 ? "매수" : "매도", $order->entry));
-            }
-            else if ($order->is_stop)
-            {
-                $result = GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCreate($order);
-                $order->order_id = $result['result']['order_id'];
-                Notify::sendTradeMsg(sprintf("스탑 %s 주문 넣었다. 진입가 : %f", $order->amount > 0 ? "매수" : "매도", $order->entry));
-            }
-        }
-
-        return $order->order_id;
-    }
+//    public function addOrder(Order $order)
+//    {
+//        $strategy_name = $order->strategy_key;
+//        if (!isset($this->order_list[$strategy_name]))
+//        {
+//            $this->order_list[$strategy_name] = array();
+//        }
+//
+//        $this->order_list[$strategy_name][] = $order;
+//
+//        if (Config::getInstance()->is_real_trade && $order->log != "동기화")
+//        {
+//            if ($order->is_limit)
+//            {
+//                $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderCreate($order);
+//                $order->order_id = $result['result']['order_id'];
+//                Notify::sendTradeMsg(sprintf("%s 주문 넣었다. 진입가 : %f", $order->amount > 0 ? "매수" : "매도", $order->entry));
+//            }
+//            else if ($order->is_stop)
+//            {
+//                $result = GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCreate($order);
+//                $order->order_id = $result['result']['order_id'];
+//                Notify::sendTradeMsg(sprintf("스탑 %s 주문 넣었다. 진입가 : %f", $order->amount > 0 ? "매수" : "매도", $order->entry));
+//            }
+//        }
+//
+//        return $order->order_id;
+//    }
 
     public function modifyAmount($st_key, $amount, $comment)
     {
@@ -207,8 +207,8 @@ class OrderManager extends Singleton
 
         if (Config::getInstance()->is_real_trade)
         {
-            GlobalVar::getInstance()->getByBit()->privates()->postOrderCancelAll([]);
-            GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCancelAll();
+//            GlobalVar::getInstance()->getByBit()->privates()->postOrderCancelAll([]);
+//            GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCancelAll([]);
 
             Notify::sendTradeMsg("모든 주문을 취소했다.");
         }

@@ -182,12 +182,13 @@ try {
         $candle_prev_1m->cn = $candle_1m;
 
         // 캔들 연속성 체크
-        $t_candle = CandleManager::getInstance()->getLastCandle(1)->cp->cp;
-        for ($i=0; $i<3; $i++)
-        {
-            var_dump($t_candle->displayCandle());
-            $t_candle = $t_candle->cn;
-        }
+        // 잘됨
+//        $t_candle = CandleManager::getInstance()->getLastCandle(1)->cp->cp;
+//        for ($i=0; $i<3; $i++)
+//        {
+//            var_dump($t_candle->displayCandle());
+//            $t_candle = $t_candle->cn;
+//        }
 
         CoinPrice::getInstance()->bit_price = $candle_1m->c;
 
