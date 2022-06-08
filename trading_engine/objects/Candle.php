@@ -244,7 +244,7 @@ class Candle
 
     public function displayCandle()
     {
-        return "T:".$this->t." t:".$this->getDateTime()."  h:".$this->h." l:".$this->l." c:".$this->c." o:".$this->o. "tick:".$this->tick;
+        return "T:".$this->t." t:".$this->getDateTime()."  o:".$this->o." h:".$this->h." l:".$this->l." c:".$this->c. "tick:".$this->tick;
     }
     public function displayHeikenAshiCandle()
     {
@@ -697,6 +697,21 @@ class Candle
         if ($this->l > $low)  $this->l = $low;
         else if ($this->l == 0) $this->l = $low;
         $this->c = $close;
+    }
+
+
+    public function updateOrderBook($high, $low)
+    {
+        var_dump($high);
+        var_dump($low);
+        if ($this->c + 0.5 < $high)
+        {
+            $this->c = $high;
+        }
+        else if ($this->c - 0.5 > $low)
+        {
+            $this->c = $low;
+        }
     }
 
 

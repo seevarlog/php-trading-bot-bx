@@ -7,6 +7,7 @@ use trading_engine\objects\Order;
 class ExchangePhemex implements IExchange
 {
     public phemex $phmex_api;
+    const SYMBOL = "BTC/USD";
 
     public function __construct()
     {
@@ -20,6 +21,10 @@ class ExchangePhemex implements IExchange
 
     }
 
+    public function fetchTicker()
+    {
+        return $this->phmex_api->fetch_ticker(self::SYMBOL);
+    }
 
     public function publics(): static
     {
@@ -35,7 +40,7 @@ class ExchangePhemex implements IExchange
     public function postOrderCreate(Order $order)
     {
         $ret = $this->phmex_api->create_order(
-            "BTCUSD",
+            self::SYMBOL,
             $order->getLimitForCCXT(),
             $order->getSide(),
             abs($order->amount),
@@ -48,11 +53,15 @@ class ExchangePhemex implements IExchange
     public function postStopOrderCreate(Order $order)
     {
         $ret = $this->phmex_api->create_order(
-            "BTCUSD",
+            self::SYMBOL,
             $order->getLimitForCCXT(),
             $order->getSide(),
             abs($order->amount),
-            $order->entry,
+            null,
+            [
+                'stopPxEp' => $order->entry,
+                'ByMarkPrice' => "ByMarkPrice"
+            ]
         );
 
         $order->order_id = $ret['id'];
@@ -60,48 +69,101 @@ class ExchangePhemex implements IExchange
 
     public function postOrderReplace(Order $order)
     {
-        $this->phmex_api->edit_order(
+        $ret = $this->phmex_api->edit_order(
             $order->order_id,
-            "BTCUSD",
+            self::SYMBOL,
             $order->getLimitForCCXT(),
             $order->getSide(),
             abs($order->amount),
             $order->entry,
         );
+        $order->order_id = $ret['id'];
     }
 
     public function postStopOrderReplace(Order $order)
     {
-        $this->phmex_api->edit_order(
-            $order->order_id,
-            "BTCUSD",
+        $ret = $this->phmex_api->edit_order(
+            self::SYMBOL,
             $order->getLimitForCCXT(),
             $order->getSide(),
             abs($order->amount),
-            $order->entry,
+            null,
+            [
+                'stopPxEp' => $order->entry,
+                'ByMarkPrice' => "ByMarkPrice"
+            ]
         );
+        $order->order_id = $ret['id'];
     }
 
     public function postOrderCancel(Order $order)
     {
-        $this->phmex_api->cancel_order($order->order_id, "BTCUSD");
+        $this->phmex_api->cancel_order($order->order_id, self::SYMBOL);
         // TODO: Implement postOrderCancel() method.
     }
 
     public function postStopOrderCancel(Order $order)
     {
-        $this->phmex_api->cancel_order($order->order_id, "BTCUSD");
+        $this->phmex_api->cancel_order($order->order_id, self::SYMBOL);
         // TODO: Implement postStopOrderCancel() method.
     }
 
     public function postOrderCancelAll()
     {
-        $this->phmex_api->cancel_all_orders("BTCUSD");
+        $this->phmex_api->cancel_all_orders(self::SYMBOL);
     }
 
     public function postStopOrderCancelAll()
     {
-        $this->phmex_api->cancel_all_orders("BTCUSD");
+        $this->phmex_api->cancel_all_orders(self::SYMBOL);
+    }
+
+
+    public function getNowOrderBook(): array
+    {
+        $ch = curl_init();
+        $url = "https://api.phemex.com/md/orderbook?symbol=BTCUSD";
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_TIMEOUT_MS, 300000);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $response = curl_exec($ch);
+        if ($response == "")
+        {
+            throw new \Exception("orderbook server error");
+        }
+        curl_close($ch);
+        $ret = json_decode($response, true);
+
+        return [
+            'sell'=>$ret['result']['book']['asks'][0][0] / 10000,
+            'buy'=>$ret['result']['book']['bids'][0][0] / 10000
+        ];
+    }
+
+    public function getLocalLive1mKline(): array
+    {
+        $ch = curl_init();
+            $url = "http://127.0.0.1:8080";
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_TIMEOUT_MS, 300000);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $response = curl_exec($ch);
+        if ($response == "")
+        {
+            throw new \Exception("live socket server error");
+        }
+        curl_close($ch);
+        $ret = json_decode($response, true);
+
+        return [
+            $ret[0],
+            $ret[3] / 10000,
+            $ret[4] / 10000,
+            $ret[5] / 10000,
+            $ret[6] / 10000,
+        ];
     }
 
     public function getKlineList(array $arr): array
@@ -120,8 +182,10 @@ class ExchangePhemex implements IExchange
             $interval = ((int)($interval / 60 / 24))."d";
         }
 
-
-        return $this->phmex_api->fetch_ohlcv("BTC/USD", $interval, null, $arr["limit"]);
+        return array_map(function($arr) {
+            $arr[0] /= 1000;
+            return $arr;
+        }, $this->phmex_api->fetch_ohlcv(self::SYMBOL, $interval, null, $arr["limit"]));
     }
 
     public function getWalletBalance($symbol = "BTC")

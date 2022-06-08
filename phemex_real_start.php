@@ -37,20 +37,7 @@ $candle_1m_list = $exchange->publics()->getKlineList([
 
 //var_dump($candle_1m_list);
 
-
-// 계정 셋팅
-$account = Account::getInstance();
-$account->balance = 1;
-
-
-
-// 계정 밸런스 불러옴
-$account->balance = $exchange->privates()->getWalletBalance();
-//\trading_engine\objects\Funding::getInstance()->syncFunding();
-//var_dump(Funding::getInstance());
-Notify::sendMsg("봇을 시작합니다. 시작 잔액 usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
-
-
+var_dump($exchange->publics()->getLocalLive1mKline());
 // 1분봉 셋팅
 $prev_candle_1m = new \trading_engine\objects\Candle(1);
 foreach ($candle_1m_list as $candle_data)
@@ -106,15 +93,24 @@ foreach ($make_candle_min_list as $make_min)
 
         CandleManager::getInstance()->addNewCandle($new_candle);
     }
-    sleep(0.1);
+    usleep(100000);
 }
+
+
+
+// 계정 셋팅
+$account = Account::getInstance();
+$account->init_balance = $exchange->privates()->getWalletBalance();
+$account->balance = $exchange->privates()->getWalletBalance();
+Notify::sendMsg("봇을 시작합니다. 시작 잔액 usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
 
 
 try {
     $last_time = time();
     $candle_prev_1m = CandleManager::getInstance()->getLastCandle(1);
+    var_dump($candle_prev_1m->displayCandle());
     while (1) {
-        usleep(500);
+        usleep(300000);
         $time_second = time() % 60;
         // 55 ~ 05 초 사이에 갱신을 시도한다.
 
@@ -133,17 +129,9 @@ try {
 
 
         // 캔들 마감 전에는 빨리 갱신한다.
-        $candle_api_result = $exchange->publics()->getKlineList([
-            'symbol' => "BTCUSD",
-            'interval' => 1,
-            'limit' => 2
-        ]);
+        $candle_api_result = $exchange->publics()->getLocalLive1mKline();
 
-        if (!isset($candle_api_result[0])) {
-            continue;
-        }
-
-        $candle_data = $candle_api_result[0];
+        $candle_data = $candle_api_result;
         $candle_1m = new Candle(1);
         $candle_1m->t = $candle_data[0];
         $candle_1m->o = $candle_data[1];
@@ -155,7 +143,8 @@ try {
             $candle_prev_1m->updateCandle($candle_data[2], $candle_data[3], $candle_data[4]);
         }
 
-        if ($candle_prev_1m->t == $candle_1m->t) {
+        if (CandleManager::getInstance()->getLastCandle(1)->t == $candle_1m->t ||
+            CandleManager::getInstance()->getLastCandle(1)->t > $candle_1m->t) {
             continue;
         }
 
@@ -185,15 +174,33 @@ try {
             }
         }
 
+        $order_book = $exchange->getNowOrderBook();
+        $candle_1m->updateOrderBook($order_book['sell'], $order_book['buy']);
+
+        // 1분봉 캔들을 과거와 연결함
+        $candle_1m->cp = $candle_prev_1m;
+        $candle_prev_1m->cn = $candle_1m;
+
+        // 캔들 연속성 체크
+        $t_candle = CandleManager::getInstance()->getLastCandle(1)->cp->cp;
+        for ($i=0; $i<3; $i++)
+        {
+            var_dump($t_candle->displayCandle());
+            $t_candle = $t_candle->cn;
+        }
+
         CoinPrice::getInstance()->bit_price = $candle_1m->c;
 
         // 오더북 체크크
 
+
+        var_dump("live ".$candle_1m->displayCandle());
+        var_dump("now datetime:".date('Y-m-d H:i:s'));
         $global_var = GlobalVar::getInstance();
-        OrderManager::getInstance()->update($candle_prev_1m);
+        OrderManager::getInstance()->update($candle_1m);
 //        $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
 //        $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
-        \trading_engine\strategy\StrategyBBScalping_ahn::getInstance()->BBS($candle_prev_1m);
+        \trading_engine\strategy\StrategyBBScalping_ahn::getInstance()->BBS($candle_1m);
 
         //Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".$global_var->candleTick."cross:".$global_var->CrossCount."1hour_per:".$global_var->vol_1hour." buy:".$buy_msg." sell:".$sell_msg);
 
@@ -210,11 +217,8 @@ try {
             }
         }
 
-        $candle_1m->cp = $candle_prev_1m;
-        $candle_prev_1m->cn = $candle_1m;
         $candle_prev_1m = $candle_1m;
         CandleManager::getInstance()->addNewCandle($candle_1m);
-        var_dump(round(memory_get_usage() / 1024 / 1024, 2));
     }
 }catch (\Exception $e)
 {
