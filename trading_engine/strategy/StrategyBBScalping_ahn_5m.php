@@ -17,19 +17,19 @@ function iff ($statement_1, $statement_2, $statement_3)
     return $statement_1 == true ? $statement_2 : $statement_3;
 }
 
-class StrategyBBScalping_ahn extends StrategyBase
+class StrategyBBScalping_ahn3 extends StrategyBase
 {
     public static $last_last_entry = "sideways";
     public static $order_action = "";
     public static $last_date = 0;
 
-    public float $leverage = 1;
+    public float $leverage = 10;
     public float $profit_ratio = 6;
     public float $stop_ratio = 4;
     public $day = 40;
     public $k = 1.3;
     public $is_welfare = 1;
-    #public $is_welfare = true;
+    #public $is_welfare = false;
     
     const POSITION_LONG = 'long';
     const POSITION_SHORT = 'short';
@@ -167,7 +167,7 @@ class StrategyBBScalping_ahn extends StrategyBase
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
         
         $candle = $this->now_1m_candle;
-		$candle_5m = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5);
+	#$candle_5m = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5);
         #$candle_1h = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
 //        $ema240_1h = $candle_1h->getEMA240();
 //        $ema120_1h = $candle_1h->getEMA120();
@@ -175,19 +175,21 @@ class StrategyBBScalping_ahn extends StrategyBase
 //        $ema20_1h = $candle_1h->getEMA20();
 //        $ema10_1h = $candle_1h->getEMA10();
 //        $ema5_1h = $candle_1h->getEMA5();
-//        $ema50_1m = $candle->getEMA50();
-//        $ema20_1m = $candle->getEMA20();
-//        $ema10_1m = $candle->getEMA10();
+##        $ema50_1m = $candle->getEMA50();
+        $ema240_1m = $candle->getEMA240();
+        $ema120_1m = $candle->getEMA120();
+        $ema50_1m = $candle->getEMA50();
+        $ema20_1m = $candle->getEMA20();
         
-        $rsi = $candle->getRsiMA(20,20);
+        $rsi = $candle->getRsiMA(7,7);
         
         $iiFlag = True;
         
-		$candle = $candle_5m;
+#		$candle = $candle_5m;
         for($ii=0; $ii<3; $ii++)
         {
-                if($candle->o < $candle->c)
-                #if(($candle->l + $candle->h)/2 > ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
+		#if($candle->o < $candle->c)
+		if(($candle->c + $candle->o)/2 > ($candle->getCandlePrev()->c + $candle->getCandlePrev()->o)/2 )
                 {
                         $candle = $candle->getCandlePrev();
                 }else{
@@ -197,20 +199,20 @@ class StrategyBBScalping_ahn extends StrategyBase
         }
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m > $ema50_1m && $ema5_1h > $ema10_1h && $rsi < 60) 
-        if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 60) 
+        if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 60 && $ema50_1m * 1.003 > $ema120_1m) 
         {
                 return self::POSITION_LONG;
         }
         
         $candle = $this->now_1m_candle;
-		$candle = $candle_5m;
+#		$candle = $candle_5m;
         
         $iiFlag = True;
 
-        for($ii=0; $ii<1; $ii++)
+        for($ii=0; $ii<2; $ii++)
         {
-                if($candle->o > $candle->c)
-                #if(($candle->l + $candle->h)/2 < ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
+                #if($candle->o > $candle->c)
+                if(($candle->o + $candle->c)/2 < ($candle->getCandlePrev()->o + $candle->getCandlePrev()->c)/2 )
                 {
                         $candle = $candle->getCandlePrev();
                 }else{
@@ -223,9 +225,9 @@ class StrategyBBScalping_ahn extends StrategyBase
         
         $amount = $curPosition->amount;
 		$candle = $this->now_1m_candle;
-		$candle = $candle_5m;
+#		$candle = $candle_5m;
         
-        if ($iiFlag == True && $amount > 0)
+        if ($iiFlag == True && $amount != 0)
 		#if ($iiFlag == True && $amount > 0 && $curPosition->entry * 1.005 < $candle->c+0.5)
         {
             $delta = 0;
@@ -254,14 +256,14 @@ class StrategyBBScalping_ahn extends StrategyBase
         
         /*----------------------------*/
         $candle = $this->now_1m_candle;
-		$candle = $candle_5m;
+#		$candle = $candle_5m;
         
         $iiFlag = True;
         
         for($ii=0; $ii<3; $ii++)
         {
-                if($candle->o < $candle->c)
-                #if(($candle->l + $candle->h)/2 < ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
+                #if($candle->o > $candle->c)
+                if(($candle->c + $candle->o)/2 < ($candle->getCandlePrev()->c + $candle->getCandlePrev()->o)/2 )
                 {
                         $candle = $candle->getCandlePrev();
                 }else{
@@ -271,20 +273,20 @@ class StrategyBBScalping_ahn extends StrategyBase
         }
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m < $ema50_1m && $ema5_1h < $ema10_1h && $rsi > 40) 
-        if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 40) 
+        if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 40 && $ema20_1m < $ema50_1m * 1.003) 
         {
                 return self::POSITION_SHORT;
         }
         
         $candle = $this->now_1m_candle;
-		$candle = $candle_5m;
+#		$candle = $candle_5m;
         
         $iiFlag = True;
 
-        for($ii=0; $ii<1; $ii++)
+        for($ii=0; $ii<2; $ii++)
         {
-                if($candle->o > $candle->c)
-                #if(($candle->l + $candle->h)/2 > ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
+                #if($candle->o < $candle->c)
+                if(($candle->c + $candle->o)/2 > ($candle->getCandlePrev()->c + $candle->getCandlePrev()->o)/2 )
                 {
                         $candle = $candle->getCandlePrev();
                 }else{
@@ -295,7 +297,7 @@ class StrategyBBScalping_ahn extends StrategyBase
         
         $amount = $curPosition->amount;
 		$candle = $this->now_1m_candle;
-		$candle = $candle_5m;
+#		$candle = $candle_5m;
         
         if ($iiFlag == True && $amount < 0)
         {
@@ -579,3 +581,4 @@ class StrategyBBScalping_ahn extends StrategyBase
         return "BBS1";
     }
 }
+
