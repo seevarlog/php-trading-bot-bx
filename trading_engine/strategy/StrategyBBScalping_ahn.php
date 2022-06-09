@@ -242,7 +242,7 @@ class StrategyBBScalping_ahn extends StrategyBase
                 $candle->c+$delta,
                 1,
                 1,
-                "l익절2",
+                "l익절",
                 "롱전략",
                 "",
             );
@@ -310,7 +310,7 @@ class StrategyBBScalping_ahn extends StrategyBase
                 $candle->c+$delta,
                 1,
                 1,
-                "s익절2",
+                "s익절",
                 "숏전략",
                 "",
             );
