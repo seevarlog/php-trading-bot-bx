@@ -190,6 +190,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         {
 		#if($candle->o < $candle->c)
 		if(($candle->c + $candle->o)/2 > ($candle->getCandlePrev()->c + $candle->getCandlePrev()->o)/2 )
+		#if(($candle->l + $candle->h)/2 > ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
                 {
                         $candle = $candle->getCandlePrev();
                 }else{
@@ -199,7 +200,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         }
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m > $ema50_1m && $ema5_1h > $ema10_1h && $rsi < 60) 
-        if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 60 && $ema50_1m * 1.003 > $ema120_1m) 
+        if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 55 && $ema50_1m * 1.003 > $ema120_1m) 
         {
                 return self::POSITION_LONG;
         }
@@ -213,6 +214,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         {
                 #if($candle->o > $candle->c)
                 if(($candle->o + $candle->c)/2 < ($candle->getCandlePrev()->o + $candle->getCandlePrev()->c)/2 )
+                #if(($candle->l + $candle->h)/2 < ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
                 {
                         $candle = $candle->getCandlePrev();
                 }else{
@@ -263,7 +265,8 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         for($ii=0; $ii<3; $ii++)
         {
                 #if($candle->o > $candle->c)
-                if(($candle->c + $candle->o)/2 < ($candle->getCandlePrev()->c + $candle->getCandlePrev()->o)/2 )
+                if(($candle->o + $candle->c)/2 < ($candle->getCandlePrev()->o + $candle->getCandlePrev()->c)/2 )
+                #if(($candle->l + $candle->h)/2 < ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
                 {
                         $candle = $candle->getCandlePrev();
                 }else{
@@ -273,7 +276,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         }
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m < $ema50_1m && $ema5_1h < $ema10_1h && $rsi > 40) 
-        if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 40 && $ema20_1m < $ema50_1m * 1.003) 
+        if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 30 && $ema20_1m < $ema50_1m * 1.003) 
         {
                 return self::POSITION_SHORT;
         }
@@ -287,6 +290,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         {
                 #if($candle->o < $candle->c)
                 if(($candle->c + $candle->o)/2 > ($candle->getCandlePrev()->c + $candle->getCandlePrev()->o)/2 )
+                #if(($candle->l + $candle->h)/2 > ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
                 {
                         $candle = $candle->getCandlePrev();
                 }else{
