@@ -209,7 +209,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         
         $iiFlag = True;
 
-        for($ii=0; $ii<2; $ii++)
+        for($ii=0; $ii<3; $ii++)
         {
                 #if($candle->o > $candle->c)
                 if(($candle->o + $candle->c)/2 < ($candle->getCandlePrev()->o + $candle->getCandlePrev()->c)/2 )
@@ -227,7 +227,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 		$candle = $this->now_1m_candle;
 #		$candle = $candle_5m;
         
-        if ($iiFlag == True && $amount != 0)
+        if ($iiFlag == True && $amount > 0)
 		#if ($iiFlag == True && $amount > 0 && $curPosition->entry * 1.005 < $candle->c+0.5)
         {
             $delta = 0;
@@ -283,7 +283,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         
         $iiFlag = True;
 
-        for($ii=0; $ii<2; $ii++)
+        for($ii=0; $ii<3; $ii++)
         {
                 #if($candle->o < $candle->c)
                 if(($candle->c + $candle->o)/2 > ($candle->getCandlePrev()->c + $candle->getCandlePrev()->o)/2 )
