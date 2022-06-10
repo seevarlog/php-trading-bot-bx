@@ -216,14 +216,36 @@ class ExchangePhemex implements IExchange
 
     public function getOrder(Order $order)
     {
-        $results = $this->phmex_api->fetch_open_orders(self::SYMBOL);
-        foreach($results as $result)
-        {
-            if ($result['info']['orderID'] == $order->order_id)
+        try {
+            $results = $this->phmex_api->fetch_open_orders(self::SYMBOL);
+            foreach($results as $result)
             {
-                return $result['info'];
+                if ($result['id'] == $order->order_id)
+                {
+                    return $result;
+                }
             }
+        } catch (\Exception $e)
+        {
+            // 이미 체결되서 order 를 못찾았을수도?
+            echo "-------order error--------\n";
         }
+
+        try {
+            $results = $this->phmex_api->fetch_orders(self::SYMBOL, null, 10);
+            foreach($results as $result)
+            {
+                if ($result['id'] == $order->order_id)
+                {
+                    return $result;
+                }
+            }
+        } catch (\Exception $e)
+        {
+            // 이미 체결되서 order 를 못찾았을수도?
+            echo "-------order error--------\n";
+        }
+
         return null;
     }
 }

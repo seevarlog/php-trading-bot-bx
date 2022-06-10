@@ -702,8 +702,15 @@ class Candle
 
     public function updateOrderBook($high, $low)
     {
-        var_dump($high);
-        var_dump($low);
+        if ($this->h < $high)
+        {
+            $this->h = $high;
+        }
+        if ($this->l > $low)
+        {
+            $this->l = $low;
+        }
+
         if ($this->c + 0.5 < $high)
         {
             $this->c = $high;

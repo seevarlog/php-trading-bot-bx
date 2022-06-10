@@ -74,6 +74,11 @@ class OrderManager extends Singleton
     public function modifyAmount($st_key, $amount, $comment)
     {
         $order = $this->getOrder($st_key, $comment);
+        if ($order->amount < 0 && $amount > 0)
+        {
+            $amount *= 1;
+        }
+
         $this->updateOrder(
             $order->date,
             $order->strategy_key,
@@ -171,11 +176,30 @@ class OrderManager extends Singleton
         return [];
     }
 
-    public function getOrder($strategy_name, $comment)
+    public function getOrder($strategy_name, $comment, $is_search = 1)
     {
         if (!isset($this->order_list[$strategy_name]))
         {
             $this->order_list[$strategy_name] = [];
+        }
+
+
+        if ($is_search)
+        {
+
+            foreach ($this->order_list[$strategy_name] as $order)
+            {
+                if (str_contains($order->comment, $comment))
+                {
+                    return $order;
+                }
+            }
+
+            $order = new Order();
+            $order->comment = $comment;
+            $this->order_list[$strategy_name][] = $order;
+
+            return $order;
         }
 
         foreach ($this->order_list[$strategy_name] as $order)
@@ -232,14 +256,8 @@ class OrderManager extends Singleton
 
         if (Config::getInstance()->is_real_trade)
         {
-            if ($_order->is_stop)
-            {
-                GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCancel($_order);
-            }
-            else
-            {
-                GlobalVar::getInstance()->getByBit()->privates()->postOrderCancel($_order);
-            }
+            GlobalVar::getInstance()->getByBit()->postStopOrderCancelAll();
+            GlobalVar::getInstance()->getByBit()->postOrderCancelAll();
             Notify::sendTradeMsg(sprintf("주문 취소했다. order_id : %s, 진입가 : %f", $_order->order_id, $_order->entry));
         }
     }
