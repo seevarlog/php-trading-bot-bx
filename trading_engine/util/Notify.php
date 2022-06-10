@@ -40,7 +40,7 @@ class Notify
         $client = new \GuzzleHttp\Client(
             [
                 'headers' => [
-                    'Authorization' => 'Bearer szcnCThNjSBfNqFE4xMCJIqYjmBONR4GcFwJbyxq0be',
+                    'Authorization' => 'Bearer '.self::$bearer_basic,
                     'content_type' => "application/x-www-form-urlencoded"
                 ]
             ]
@@ -71,7 +71,7 @@ class Notify
         $client = new \GuzzleHttp\Client(
             [
                 'headers' => [
-                    'Authorization' => 'Bearer WsWEcQDtM7dPJnsS8uwsYv2in9PKBML43GcPJcRkrDV',
+                    'Authorization' => 'Bearer '.self::$bearer_entry,
                     'content_type' => "application/x-www-form-urlencoded"
                 ]
             ]

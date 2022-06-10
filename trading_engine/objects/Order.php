@@ -53,10 +53,6 @@ class Order
         return $this->is_limit ? "limit" : "stop";
     }
 
-    public function getTypeForCCXT()
-    {
-        return $this->t ? "limit" : "stop";
-    }
 
     public static function correctEntry($entry)
     {

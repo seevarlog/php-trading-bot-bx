@@ -4,7 +4,6 @@
 namespace trading_engine\strategy;
 
 
-use trading_engine\managers\CandleManager;
 use trading_engine\managers\OrderManager;
 use trading_engine\managers\OrderReserveManager;
 use trading_engine\managers\PositionManager;
@@ -17,7 +16,7 @@ function iff ($statement_1, $statement_2, $statement_3)
     return $statement_1 == true ? $statement_2 : $statement_3;
 }
 
-class StrategyBBScalping_ahn3 extends StrategyBase
+class StrategyBBScalping_ahn_5m extends StrategyBase
 {
     public static $last_last_entry = "sideways";
     public static $order_action = "";
@@ -102,60 +101,6 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         return "";
     }
 
-
-    public function getPositionTypePrev()
-    {
-        $candle = $this->now_1m_candle;
-        $candle_1h = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
-        $ema240_1h = $candle_1h->getEMA120();
-        $ema120_1h = $candle_1h->getEMA50();
-
-        $is_long_time = 1;
-        if ($ema120_1h < $ema240_1h)
-        {
-            $is_long_time = false;
-        }
-
-//        $volatility = $candle_1h->getVolatilityValue(48);
-//        $volatility_soft = 1 + ($volatility / $candle->c) * 1.5;
-//        $volatility_hard = $volatility_soft * $volatility_soft;
-//
-        $volatility_soft = 1.05;
-        $volatility_hard = 1.03;
-
-        $volatility = $candle_1h->getVolatilityValue(48);
-        $volatility_soft = 1 + ($volatility / $candle->c) * 1.5;
-        $volatility_hard = $volatility_soft * $volatility_soft;
-
-
-        //var_dump($volatility_soft);
-
-        if ($is_long_time)
-        {
-            // 골든 크로스를 했어도 값이 일정수치 이상 차이나면 골든크로스가 아님
-            if ($candle->c * $volatility_hard < $ema240_1h)
-            {
-                return self::POSITION_SHORT;
-            }
-            if ($candle->c * $volatility_soft < $ema240_1h)
-            {
-                return self::POSITION_NONE;
-            }
-
-            return self::POSITION_LONG;
-        }
-
-        if ($candle->c * $volatility_hard > $ema240_1h)
-        {
-            return self::POSITION_LONG;
-        }
-        if ($candle->c * $volatility_soft > $ema240_1h)
-        {
-            return self::POSITION_NONE;
-        }
-
-        return self::POSITION_SHORT;
-    }
 
 
     public function getPositionType()

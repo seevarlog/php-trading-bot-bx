@@ -167,7 +167,7 @@ class StrategyBBScalping_ahn extends StrategyBase
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
         
         $candle = $this->now_1m_candle;
-        $candle_1h = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
+//        $candle_1h = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
 //        $ema240_1h = $candle_1h->getEMA240();
 //        $ema120_1h = $candle_1h->getEMA120();
 //        $ema50_1h = $candle_1h->getEMA50();

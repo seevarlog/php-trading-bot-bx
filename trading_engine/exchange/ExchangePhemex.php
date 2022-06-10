@@ -39,15 +39,37 @@ class ExchangePhemex implements IExchange
 
     public function postOrderCreate(Order $order)
     {
-        $ret = $this->phmex_api->create_order(
-            self::SYMBOL,
-            $order->getLimitForCCXT(),
-            $order->getSide(),
-            abs($order->amount),
-            $order->entry,
-        );
+        $param = [];
+        if ($order->is_limit)
+        {
+            $param = ['timeInForce' => 'PostOnly']; // GoodTillCancel, PostOnly, ImmediateOrCancel,
+        }
+        $entry = $order->entry;
 
-        $order->order_id = $ret['id'];
+        for ($i=0; $i<100; $i++)
+        {
+            $ret = $this->phmex_api->create_order(
+                self::SYMBOL,
+                $order->getLimitForCCXT(),
+                $order->getSide(),
+                abs($order->amount),
+                $entry,
+                $param
+            );
+            $order->order_id = $ret['id'];
+
+            $order_ret = $this->getOrder($order);
+            if ($order_ret !== null)
+            {
+                break;
+            }
+
+            $book = $this->getNowOrderBook();
+            $entry = $order->amount < 0 ? $book['sell'] : $book['buy'];
+            $order->entry = $entry;
+        }
+
+
     }
 
     public function postStopOrderCreate(Order $order)
@@ -70,15 +92,36 @@ class ExchangePhemex implements IExchange
 
     public function postOrderReplace(Order $order)
     {
-        $ret = $this->phmex_api->edit_order(
-            $order->order_id,
-            self::SYMBOL,
-            $order->getLimitForCCXT(),
-            $order->getSide(),
-            abs($order->amount),
-            $order->entry,
-        );
-        $order->order_id = $ret['id'];
+        $param = [];
+        if ($order->is_limit)
+        {
+            $param = ['timeInForce' => 'PostOnly']; // GoodTillCancel, PostOnly, ImmediateOrCancel,
+        }
+        $entry = $order->entry;
+
+        $this->phmex_api->cancel_order($order->order_id, self::SYMBOL);
+        for ($i=0; $i<100; $i++)
+        {
+            $ret = $this->phmex_api->create_order(
+                self::SYMBOL,
+                $order->getLimitForCCXT(),
+                $order->getSide(),
+                abs($order->amount),
+                $entry,
+                $param
+            );
+            $order->order_id = $ret['id'];
+
+            $order_ret = $this->getOrder($order);
+            if ($order_ret !== null)
+            {
+                break;
+            }
+
+            $book = $this->getNowOrderBook();
+            $entry = $order->amount < 0 ? $book['sell'] : $book['buy'];
+            $order->entry = $entry;
+        }
     }
 
     public function postStopOrderReplace(Order $order)
