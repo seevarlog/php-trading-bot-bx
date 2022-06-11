@@ -194,10 +194,12 @@ class ExchangePhemex implements IExchange
         ];
     }
 
-    public function getLocalLive1mKline(): array
+   public function getLocalLive1mKline(): array
     {
         $ch = curl_init();
-            $url = "http://127.0.0.1:8080";
+        $t = time();
+        $t2 = $t-600;
+        $url = "https://api.phemex.com//exchange/public/md/kline?symbol=BTCUSD&to=".$t."&from=".$t2."&resolution=300";
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_TIMEOUT_MS, 300000);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -210,14 +212,39 @@ class ExchangePhemex implements IExchange
         curl_close($ch);
         $ret = json_decode($response, true);
 
-        return [
-            $ret[0],
-            $ret[3] / 10000,
-            $ret[4] / 10000,
-            $ret[5] / 10000,
-            $ret[6] / 10000,
-        ];
+        if ($ret["msg"] != "OK")
+        {
+            throw new \Exception("kline not OK");
+        }
+
+        if (count($ret["data"]["rows"]) == 0)
+        {
+                sleep(1);
+                return $this->getLocalLive1mKline();
+        }
+
+        if (count($ret["data"]["rows"]) == 1)
+        {
+            return [
+                $ret["data"]["rows"][0][0],
+                $ret["data"]["rows"][0][3] / 10000,
+                $ret["data"]["rows"][0][4] / 10000,
+                $ret["data"]["rows"][0][5] / 10000,
+                $ret["data"]["rows"][0][6] / 10000,
+            ];
+        }else{
+                echo($url);
+                print_r($ret);
+            return [
+                $ret["data"]["rows"][1][0],
+                $ret["data"]["rows"][1][3] / 10000,
+                $ret["data"]["rows"][1][4] / 10000,
+                $ret["data"]["rows"][1][5] / 10000,
+                $ret["data"]["rows"][1][6] / 10000,
+            ];
+        }
     }
+
 
     public function getKlineList(array $arr): array
     {

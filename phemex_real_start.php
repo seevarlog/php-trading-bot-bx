@@ -31,8 +31,8 @@ Config::getInstance()->setRealTrade();
 // 1분봉 셋팅
 $candle_1m_list = $exchange->publics()->getKlineList([
     'symbol'=>"BTCUSD",
-    'interval'=>1,
-    'limit'=>188*3
+    'interval'=>5,
+    'limit'=>188*5
 ]);
 
 //var_dump($candle_1m_list);
@@ -201,7 +201,7 @@ try {
         OrderManager::getInstance()->update($candle_1m);
 //        $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
 //        $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
-        \trading_engine\strategy\StrategyBBScalping_ahn::getInstance()->BBS($candle_1m);
+        \trading_engine\strategy\StrategyBBScalping_ahn3::getInstance()->BBS($candle_1m);
 
         //Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".$global_var->candleTick."cross:".$global_var->CrossCount."1hour_per:".$global_var->vol_1hour." buy:".$buy_msg." sell:".$sell_msg);
 
