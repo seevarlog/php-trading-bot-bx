@@ -137,11 +137,21 @@ try {
         $candle_1m->o = $candle_data[1];
         $candle_1m->h = $candle_data[2];
         $candle_1m->l = $candle_data[3];
-        $candle_1m->c = $candle_data[4];
+	$candle_1m->c = $candle_data[4];
+
+
+        var_dump("live1 ".$candle_1m->displayCandle());
+
+        OrderManager::getInstance()->update($candle_1m);
+
+        var_dump("live2 ".$candle_1m->displayCandle());
+
         if ($candle_prev_1m->t == $candle_data[0])
         {
             $candle_prev_1m->updateCandle($candle_data[2], $candle_data[3], $candle_data[4]);
-        }
+	}
+
+        var_dump("live3 ".$candle_1m->displayCandle());
 
         if (CandleManager::getInstance()->getLastCandle(1)->t == $candle_1m->t ||
             CandleManager::getInstance()->getLastCandle(1)->t > $candle_1m->t) {
@@ -175,7 +185,7 @@ try {
         }
 
         $order_book = $exchange->getNowOrderBook();
-        $candle_1m->updateOrderBook($order_book['sell'], $order_book['buy']);
+        //$candle_1m->updateOrderBook($order_book['sell'], $order_book['buy']);
 
         // 1분봉 캔들을 과거와 연결함
         $candle_1m->cp = $candle_prev_1m;
@@ -190,7 +200,7 @@ try {
 //            $t_candle = $t_candle->cn;
 //        }
 
-        CoinPrice::getInstance()->bit_price = $candle_1m->c;
+        //CoinPrice::getInstance()->bit_price = $candle_1m->c;
 
         // 오더북 체크크
 
@@ -198,10 +208,10 @@ try {
         var_dump("live ".$candle_1m->displayCandle());
         var_dump("now datetime:".date('Y-m-d H:i:s'));
         $global_var = GlobalVar::getInstance();
-        OrderManager::getInstance()->update($candle_1m);
+        //OrderManager::getInstance()->update($candle_1m);
 //        $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
 //        $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
-        \trading_engine\strategy\StrategyBBScalping_ahn3::getInstance()->BBS($candle_1m);
+        \trading_engine\strategy\StrategyBBScalping_ahn3::getInstance()->BBS($candle_1m, $order_book['sell'], $order_book['buy']);
 
         //Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".$global_var->candleTick."cross:".$global_var->CrossCount."1hour_per:".$global_var->vol_1hour." buy:".$buy_msg." sell:".$sell_msg);
 

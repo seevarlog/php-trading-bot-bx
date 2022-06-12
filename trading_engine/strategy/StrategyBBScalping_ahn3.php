@@ -39,10 +39,16 @@ class StrategyBBScalping_ahn3 extends StrategyBase
     const ORDERING_NONE = 'none';
 
     public Candle $now_1m_candle;
+    public float $order_book_sell_price;
+    public float $order_book_buy_price;
 
-    public function BBS(Candle $candle)
+    public function BBS(Candle $candle, float $order_book_sell, float $order_book_buy)
     {
-        $this->now_1m_candle = $candle;
+	$this->now_1m_candle = $candle;
+        
+	$this->order_book_sell_price = $order_book_sell;
+	$this->order_book_buy_price = $order_book_buy;
+
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
         $orderMng = OrderManager::getInstance();
@@ -317,7 +323,11 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         #$range_value = $candle->getBBUpLine($this->day, $this->k) - $candle->getBBDownLine($this->day, $this->k);
         #$this->buyBit($candle->t, $candle->getBBDownLine($this->day, $this->k), $range_value);
-        $this->buyBit($candle->t, $candle->c, 0);
+	#$this->buyBit($candle->t, $candle->c, 0);
+	
+	# 매수 시 매도 1호가 가격으로 buyBit 함수 호출. buyBit 함수 안에서 -0.5를 진행해주기 때문에, 
+	# 가장 체결 확률이 높은 가격으로 주문을 내게 됨
+	$this->buyBit($candle->t, $this->order_book_sell_price, 0);
         #print("==========================");
         #print($this->nowOrderingState());
         #print("==========================");
@@ -341,7 +351,11 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         #$range_value = $candle->getBBUpLine($this->day, $this->k) - $candle->getBBDownLine($this->day, $this->k);
         #$this->sellBit($candle->t, $candle->getBBUpLine($this->day, $this->k), $range_value);
-        $this->sellBit($candle->t, $candle->c, 0);
+	#$this->sellBit($candle->t, $candle->c, 0);
+	
+	# 매도 시 매수 1호가 가격으로 sellBit 함수 호출. 
+	# sellBit 함수 내부에서 +0.5를 진행해주기 때문에 가장 체결 확률이 높은 가격으로 주문을 내게 됨
+        $this->sellBit($candle->t, $this->order_book_buy_price, 0);
     }
 
     public function sellBit($time, $entry_price, $range_price)
