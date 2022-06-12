@@ -127,6 +127,21 @@ try {
             //\trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->traceTrade();
         }
 
+	if ($time_second % 5 == 0)
+        {
+            $candle_api_result = $exchange->publics()->getLocalLive1mKline();
+    
+            $candle_data = $candle_api_result;
+            $candle_1m = new Candle(1);
+            $candle_1m->t = $candle_data[0];
+            $candle_1m->o = $candle_data[1];
+            $candle_1m->h = $candle_data[2];
+            $candle_1m->l = $candle_data[3];
+            $candle_1m->c = $candle_data[4];
+   
+            $candle_1m->cp = $candle_prev_1m;
+            OrderManager::getInstance()->update($candle_1m);
+	}
 
         // 캔들 마감 전에는 빨리 갱신한다.
         $candle_api_result = $exchange->publics()->getLocalLive1mKline();
@@ -138,8 +153,6 @@ try {
         $candle_1m->h = $candle_data[2];
         $candle_1m->l = $candle_data[3];
 	$candle_1m->c = $candle_data[4];
-
-        OrderManager::getInstance()->update($candle_1m);
 
         if ($candle_prev_1m->t == $candle_data[0])
         {
