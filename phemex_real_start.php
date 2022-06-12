@@ -139,19 +139,12 @@ try {
         $candle_1m->l = $candle_data[3];
 	$candle_1m->c = $candle_data[4];
 
-
-        var_dump("live1 ".$candle_1m->displayCandle());
-
         OrderManager::getInstance()->update($candle_1m);
-
-        var_dump("live2 ".$candle_1m->displayCandle());
 
         if ($candle_prev_1m->t == $candle_data[0])
         {
             $candle_prev_1m->updateCandle($candle_data[2], $candle_data[3], $candle_data[4]);
 	}
-
-        var_dump("live3 ".$candle_1m->displayCandle());
 
         if (CandleManager::getInstance()->getLastCandle(1)->t == $candle_1m->t ||
             CandleManager::getInstance()->getLastCandle(1)->t > $candle_1m->t) {
