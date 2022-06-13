@@ -1,3 +1,13 @@
+# 사용법
+# linux 용
+# bot이 뒤지면 line으로 알람을 보내고, 포지션이 남아있는 경우 비상 탈출을 시도함
+#
+# 1. config_path 에서 phemex api key 파일 지정
+# 2. 118 line 에서 프로세스 이름 확인  
+# 3. 132 line 에서 감시할 시간 지정
+# 4. bot 실행 시 alive 스크립트도 같이 백그라운드로 실행
+#
+
 import json
 import ccxt
 import psutil
