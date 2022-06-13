@@ -73,12 +73,13 @@ class OrderManager extends Singleton
 
     public function modifyAmount($st_key, $amount, $comment)
     {
-        $order = $this->getOrder($st_key, $comment);
+	$order = $this->getOrder($st_key, $comment);
+	
         if ($order->amount < 0 && $amount > 0)
         {
-            $amount *= 1;
-        }
-
+            $amount *= -1;
+	}
+	 
         $this->updateOrder(
             $order->date,
             $order->strategy_key,
