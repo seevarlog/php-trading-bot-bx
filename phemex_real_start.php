@@ -114,19 +114,6 @@ try {
         $time_second = time() % 60;
         // 55 ~ 05 초 사이에 갱신을 시도한다.
 
-
-        if (!($time_second < 35 || $time_second > 25)) {
-            //\trading_engine\objects\Funding::getInstance()->syncFunding();
-        }
-
-        if (!($time_second < 3 || $time_second > 57)) {
-            continue;
-        }
-        else
-        {
-            //\trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->traceTrade();
-        }
-
 	if ($time_second % 5 == 0)
         {
             $candle_api_result = $exchange->publics()->getLocalLive1mKline();
@@ -143,6 +130,17 @@ try {
             OrderManager::getInstance()->update($candle_1m);
 	}
 
+        if (!($time_second < 35 || $time_second > 25)) {
+            //\trading_engine\objects\Funding::getInstance()->syncFunding();
+        }
+
+        if (!($time_second < 3 || $time_second > 57)) {
+            continue;
+        }
+        else
+        {
+            //\trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->traceTrade();
+        }
         // 캔들 마감 전에는 빨리 갱신한다.
         $candle_api_result = $exchange->publics()->getLocalLive1mKline();
 
