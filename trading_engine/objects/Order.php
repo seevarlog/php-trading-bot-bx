@@ -178,7 +178,7 @@ class Order
         {
             if ($this->entry <= $candle->getHigh() && $this->is_limit)
             {
-                if (Config::getInstance()->isRealTrade() && $this->entry == $candle->h)
+                if (Config::getInstance()->isRealTrade())
                 {
                     $result = GlobalVar::getInstance()->exchange->privates()->getOrder($this);
                     $exec_amount = $result['filled'];
