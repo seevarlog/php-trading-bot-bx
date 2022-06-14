@@ -129,7 +129,10 @@ class Order
             Notify::sendTradeMsg($this->comment."거래가 채워졌습니다. order : ".$this->amount." filled : ".$exec_amount);
 
             // 여기서 ID를 찾을 수 없음A
-            OrderManager::getInstance()->modifyAmount($this->strategy_key, $leaves_qty, '손절');
+            if ($leaves_qty > 0)
+            {
+                OrderManager::getInstance()->modifyAmount($this->strategy_key, $leaves_qty, '손절');
+            }
 
             if ($exec_amount == abs($this->amount))
             {
