@@ -219,6 +219,7 @@ class ExchangePhemex implements IExchange
 
         if (count($ret["data"]["rows"]) == 0)
         {
+            sleep(1);
                 return $this->getLocalLive1mKline();
         }
 
