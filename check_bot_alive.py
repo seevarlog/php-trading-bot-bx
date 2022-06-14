@@ -33,6 +33,40 @@ def notify(msg):
     except Exception as e:
         logger.exception("While notify...")
 
+def checkAbnormal():
+    config_path = "/root/phemex/bot3/php-trading-bot-bx/config/phmexConfig.json"
+
+    with open(config_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    
+    apikey = data.get("ProdApiKey")
+    secretkey = data.get("ProdSecret")
+    
+    ex = ccxt.phemex({
+        'apiKey': apikey,
+        'secret': secretkey,
+    })
+    
+    try:
+        positions = ex.fetch_positions(params={'currency':'BTC'})
+    
+        if len(positions) >= 1 and positions[0].get("contracts") > 0.0:
+            orders = ex.fetch_open_orders(symbol="BTCUSD")
+            
+            isThereConditionalOrder = False
+            for order in orders:
+                if order.get("info").get("orderType") == "MarketIfTouched":
+                    isThereConditionalOrder = True
+            
+            if isThereConditionalOrder == False:
+                # 포지션은 있는데 stop 주문이 없는 경우
+                notify("포지션은 있는데 stop 주문이 없음")
+                # 비상 탈출 필요
+                # emergencyExitPosition()
+    except Exception as e:
+        notify("checkAbnormal Exception")
+        notify(str(e))
+
 def emergencyExitPosition():
     config_path = "/root/phemex/bot3/php-trading-bot-bx/config/phmexConfig.json"
 
@@ -113,6 +147,7 @@ def emergencyExitPosition():
             ex.cancel_order(order.get("info").get("orderID"), symbol="BTCUSD")
         
     except Exception as e:
+        notify("emergencyExitPosition Exception")
         notify(str(e))
 
 while True:
@@ -139,3 +174,6 @@ while True:
 
         break
 
+    # 비정상 상황 탐지기
+    if int(time.time() % 5) == 10:
+        checkAbnormal()
