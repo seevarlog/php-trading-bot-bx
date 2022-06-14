@@ -205,11 +205,11 @@ class ExchangePhemex implements IExchange
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         $response = curl_exec($ch);
-        if ($response == "")
-        {
-            throw new \Exception("live socket server error");
-        }
         curl_close($ch);
+        if ($response == "" || json_decode($response) === null)
+        {
+            return $this->getLocalLive1mKline();
+        }
         $ret = json_decode($response, true);
 
         if ($ret["msg"] != "OK")
@@ -219,7 +219,6 @@ class ExchangePhemex implements IExchange
 
         if (count($ret["data"]["rows"]) == 0)
         {
-                sleep(1);
                 return $this->getLocalLive1mKline();
         }
 
