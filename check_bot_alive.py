@@ -55,14 +55,14 @@ def checkAbnormal():
             
             isThereConditionalOrder = False
             for order in orders:
-                if order.get("info").get("orderType") == "MarketIfTouched":
+                if order.get("info").get("orderType") == "MarketIfTouched" or order.get("info").get("orderType") == "Stop":
                     isThereConditionalOrder = True
             
             if isThereConditionalOrder == False:
                 # 포지션은 있는데 stop 주문이 없는 경우
                 notify("포지션은 있는데 stop 주문이 없음")
                 # 비상 탈출 필요
-                # emergencyExitPosition()
+                emergencyExitPosition()
     except Exception as e:
         notify("checkAbnormal Exception")
         notify(str(e))
@@ -175,5 +175,5 @@ while True:
         break
 
     # 비정상 상황 탐지기
-    if int(time.time() % 5) == 10:
+    if int(time.time() % 5) == 0:
         checkAbnormal()
