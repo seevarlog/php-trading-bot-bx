@@ -1667,9 +1667,17 @@ class Candle
     public function getADX($length)
     {
         $sum = 0;
+        $candle = $this;
         for ($i=0; $i<$length; $i++)
         {
-            $sum += $this->getDX($length);
+            try{
+                $sum += $candle->getDX($length);
+            } catch (\DivisionByZeroError $e)
+            {
+
+            }
+
+            $candle = $candle->getCandlePrev();
         }
 
         return $sum / $length;
