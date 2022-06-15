@@ -26,10 +26,6 @@ class Candle
     public $idx;
 
     // UT Bot Strategy
-    public $ut_long_start = 0;
-    public $ut_short_start = 0;
-    public $ut_short_drag = 0;
-    public $ut_long_drag = 0;
     public $xATRailingStop = -1;
 
     // ATR smooth
@@ -53,6 +49,9 @@ class Candle
     public $rd = 0;
     public $au = 0;
     public $ad = 0;
+
+    // dx 저장
+    public $dx = -1;
 
     // 평균 변동성 캐시
     public $av = 0;
@@ -184,12 +183,19 @@ class Candle
             abs($this->h - $this->getCandlePrev()->c),
             abs($this->l- $this->getCandlePrev()->c)
         );
+    }
 
-        return max (
-            $this->heiAshiHigh() - $this->heiAshiLow(),
-            abs($this->heiAshiHigh() - $this->getCandlePrev()->heiAshiClose()),
-            abs($this->heiAshiLow()- $this->getCandlePrev()->heiAshiClose())
-        );
+    public function getTrSum($length)
+    {
+        $sum = 0;
+        $candle = $this;
+        for($i=0; $i<$length; $i++)
+        {
+            $sum += $candle->getTR();
+            $candle = $candle->getCandlePrev();
+        }
+
+        return $sum;
     }
 
     public function getATR($length=14, $left = -1)
@@ -921,16 +927,6 @@ class Candle
         return $sum / $day;
     }
 
-    public function UTBotIsSellEntry()
-    {
-        return $this->ut_short_start && $this->ut_short_drag;
-    }
-
-    public function UTBotIsLongEntry()
-    {
-        return $this->ut_long_start && $this->ut_long_drag;
-    }
-
     public function getBBUpLine($day, $k)
     {
         return $this->getMA($day) + ($this->getStandardDeviationClose($day) * $k);
@@ -1595,5 +1591,87 @@ class Candle
 
         return "sideways";
     }
+    public function getDmPlus($length=1)
+    {
+        $sum = 0;
+        $candle = $this;
 
+        for ($i=0; $i<$length; $i++)
+        {
+            $v = 0;
+            $C14 = $candle->h;
+            $C13 = $candle->getCandlePrev()->h;
+            $D13 = $candle->getCandlePrev()->l;
+            $D14 = $candle->l;
+
+            if ($C14 - $C13 > $D13 - $D14)
+            {
+                $v = MAX($C14-$C13,0);
+            }
+            $sum += $v;
+            $candle = $candle->getCandlePrev();
+        }
+
+        return $sum;
+    }
+
+    public function getDmMinus($length=1)
+    {
+        $sum = 0;
+        $candle = $this;
+
+        for ($i=0; $i<$length; $i++)
+        {
+            $v = 0;
+            $C14 = $candle->h;
+            $C13 = $candle->getCandlePrev()->h;
+            $D13 = $candle->getCandlePrev()->l;
+            $D14 = $candle->l;
+
+            if ($D13-$D14 > $C14-$C13)
+            {
+                $v = MAX($D13-$D14,0);
+            }
+            $sum += $v;
+            $candle = $candle->getCandlePrev();
+        }
+
+        return $sum;
+    }
+
+    public function getDiPlus($length=1)
+    {
+        return (100*($this->getDmPlus($length)/$this->getTrSum($length)));
+    }
+
+    public function getDiMinus($length=1)
+    {
+        return (100*($this->getDmMinus($length)/$this->getTrSum($length)));
+    }
+
+
+    public function getDX($length)
+    {
+        if ($this->dx > 0)
+        {
+            return $this->dx;
+        }
+
+        $di_diff = abs($this->getDiPlus($length) - $this->getDiMinus($length));
+        $di_sum = $this->getDiPlus($length) + $this->getDiMinus($length);
+
+        $this->dx = (100*($di_diff/$di_sum));
+        return $this->dx;
+    }
+
+    public function getADX($length)
+    {
+        $sum = 0;
+        for ($i=0; $i<$length; $i++)
+        {
+            $sum += $this->getDX($length);
+        }
+
+        return $sum / $length;
+    }
 }
