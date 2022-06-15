@@ -56,11 +56,11 @@ class ExchangePhemex implements IExchange
                 $entry,
                 $param
             );
-            if (!isset($ret['id']))
+            if (isset($ret['id']))
             {
-                continue;
+                $order->order_id = $ret['id'];
+                break;
             }
-            $order->order_id = $ret['id'];
 
             sleep(1);
             $order_ret = $this->getOrder($order);
@@ -115,12 +115,12 @@ class ExchangePhemex implements IExchange
                 $entry,
                 $param
             );
-            
-            if (!isset($ret['id']))
+
+            if (isset($ret['id']))
             {
-                continue;
+                $order->order_id = $ret['id'];
+                break;
             }
-            $order->order_id = $ret['id'];
 
             sleep(1);
 
