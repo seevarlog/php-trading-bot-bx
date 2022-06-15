@@ -58,6 +58,7 @@ class ExchangePhemex implements IExchange
             );
             $order->order_id = $ret['id'];
 
+            sleep(1);
             $order_ret = $this->getOrder($order);
             if ($order_ret !== null)
             {
@@ -111,6 +112,8 @@ class ExchangePhemex implements IExchange
                 $param
             );
             $order->order_id = $ret['id'];
+
+            sleep(1);
 
             $order_ret = $this->getOrder($order);
             if ($order_ret !== null)
@@ -208,6 +211,7 @@ class ExchangePhemex implements IExchange
         curl_close($ch);
         if ($response == "" || json_decode($response) === null)
         {
+            usleep(300000);
             return $this->getLocalLive1mKline();
         }
         $ret = json_decode($response, true);
@@ -243,6 +247,31 @@ class ExchangePhemex implements IExchange
                 $ret["data"]["rows"][1][6] / 10000,
             ];
         }
+    }
+
+    public function getLocalLiveKline(): array
+    {
+        $ch = curl_init();
+        $url = "http://127.0.0.1:8080";
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_TIMEOUT_MS, 300000);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $response = curl_exec($ch);
+        if ($response == "")
+        {
+            throw new \Exception("live socket server error");
+        }
+        curl_close($ch);
+        $ret = json_decode($response, true);
+
+        return [
+            $ret[0],
+            $ret[3] / 10000,
+            $ret[4] / 10000,
+            $ret[5] / 10000,
+            $ret[6] / 10000,
+        ];
     }
 
 

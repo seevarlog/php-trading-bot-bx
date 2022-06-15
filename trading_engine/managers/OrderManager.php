@@ -73,12 +73,12 @@ class OrderManager extends Singleton
 
     public function modifyAmount($st_key, $amount, $comment)
     {
-	$order = $this->getOrder($st_key, $comment);
+	    $order = $this->getOrder($st_key, $comment);
 	
         if ($order->amount < 0 && $amount > 0)
         {
             $amount *= -1;
-	}
+	    }
 	 
         $this->updateOrder(
             $order->date,
@@ -279,32 +279,6 @@ class OrderManager extends Singleton
                     $candle = $last_candle;
                     $position_mng = PositionManager::getInstance();
                     $position = $position_mng->getPosition($order->strategy_key);
-                    /*
-                    for($i=0; $i<50; $i++)
-                    {
-                        //var_dump($candle->getLow()."-".$candle->getHigh());
-                        $candle = $candle->getCandlePrev();
-                    }
-                    */
-                    //var_dump($position);
-                    //var_dump($order);
-
-                    /*
-                    $position->addPositionByOrder($order, $last_candle);
-                    if ($position->amount == 0)
-                    {
-                        $this->clearAllOrder($order->strategy_key);
-                        // 밸런스 동기화
-                        if (Config::getInstance()->isRealTrade())
-                        {
-                            $account = Account::getInstance();
-                            $account->balance = GlobalVar::getInstance()->
-                            getByBit()->privates()->getWalletBalance()["result"]["BTC"]["wallet_balance"];
-                            Notify::sendMsg("지갑 동기화했다. usd:".$account->getUSDBalance()." BTC:".$account->getBitBalance());
-                        }
-                        break;
-                    }
-                    */
 
                     $position->addPositionByOrder($order, $last_candle);
                     if ($position->amount == 0)
