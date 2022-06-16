@@ -250,10 +250,12 @@ class Order
             // 스탑인 경우
             if ($this->amount > 0)
             {
+                #return $this->amount * 0.00025;
                 return $this->amount * 0.00075 * -1;
             }
             else
             {
+                #return $this->amount * 0.00025 * -1;
                 return $this->amount * 0.00075;
             }
         }
@@ -278,10 +280,12 @@ class Order
             // 스탑인 경우
             if ($this->amount > 0)
             {
+                #return $this->amount * 0.00025;
                 return $this->amount * 0.00075 * -1;
             }
             else
             {
+                #return $this->amount * 0.00025 * -1;
                 return $this->amount * 0.00075;
             }
         }
