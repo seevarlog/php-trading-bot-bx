@@ -269,6 +269,10 @@ class Position
 MSG;
             if (str_contains($order->comment, "익절") || str_contains($order->comment, "손절"))
             {
+                if (!str_contains($order->comment, "손절"))
+                {
+                    $profit_fee_usd *= 2;
+                }
                 $last_msg_profit = $profit_balance_usd + $profit_fee_usd;
                 $profit_per = round((($exec_order_price / $prev_entry) - 1) * 100, 2);
                 $msg .= "수익 : ".$last_msg_profit."(".$profit_per.")";

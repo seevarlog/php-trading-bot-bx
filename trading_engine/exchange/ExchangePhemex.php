@@ -48,6 +48,13 @@ class ExchangePhemex implements IExchange
 
         for ($i=0; $i<100; $i++)
         {
+            if ($i>=1)
+            {
+                $book = $this->getNowOrderBook();
+                $entry = $order->amount < 0 ? $book['sell'] : $book['buy'];
+                $order->entry = $entry;
+            }
+
             $ret = $this->phmex_api->create_order(
                 self::SYMBOL,
                 $order->getLimitForCCXT(),
@@ -59,19 +66,23 @@ class ExchangePhemex implements IExchange
             if (isset($ret['id']))
             {
                 $order->order_id = $ret['id'];
-                break;
+            }
+            else
+            {
+                continue;
             }
 
             sleep(1);
             $order_ret = $this->getOrder($order);
             if ($order_ret !== null)
             {
+                if ($order_ret['info']['ordStatus'] == "Canceled" ||
+                    $order_ret['info']['ordStatus'] == "Rejected")
+                {
+                    continue;
+                }
                 break;
             }
-
-            $book = $this->getNowOrderBook();
-            $entry = $order->amount < 0 ? $book['sell'] : $book['buy'];
-            $order->entry = $entry;
         }
 
 
@@ -107,6 +118,13 @@ class ExchangePhemex implements IExchange
         $this->phmex_api->cancel_order($order->order_id, self::SYMBOL);
         for ($i=0; $i<100; $i++)
         {
+            if ($i>=1)
+            {
+                $book = $this->getNowOrderBook();
+                $entry = $order->amount < 0 ? $book['sell'] : $book['buy'];
+                $order->entry = $entry;
+            }
+
             $ret = $this->phmex_api->create_order(
                 self::SYMBOL,
                 $order->getLimitForCCXT(),
@@ -116,23 +134,28 @@ class ExchangePhemex implements IExchange
                 $param
             );
 
+            // ret내용이 있다면 order_id는 항상 존재함
             if (isset($ret['id']))
             {
                 $order->order_id = $ret['id'];
-                break;
+            }
+            else
+            {
+                continue;
             }
 
             sleep(1);
-
             $order_ret = $this->getOrder($order);
             if ($order_ret !== null)
             {
+                if ($order_ret['info']['ordStatus'] == "Canceled" ||
+                    $order_ret['info']['ordStatus'] == "Rejected")
+                {
+                    continue;
+                }
                 break;
             }
 
-            $book = $this->getNowOrderBook();
-            $entry = $order->amount < 0 ? $book['sell'] : $book['buy'];
-            $order->entry = $entry;
         }
     }
 
