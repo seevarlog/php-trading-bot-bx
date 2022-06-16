@@ -132,10 +132,10 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         $ema50_1m = $candle->getEMA50();
         $ema20_1m = $candle->getEMA20();
 
-        $ema120_1m_2 = $candle->getCandlePrev()->getEMA120();
-        $ema50_1m_2 = $candle->getCandlePrev()->getEMA50();
-        $ema120_1m_3 = $candle->getCandlePrev()->getCandlePrev()->getEMA120();
-        $ema50_1m_3 = $candle->getCandlePrev()->getCandlePrev()->getEMA50();
+        #$ema120_1m_2 = $candle->getCandlePrev()->getEMA120();
+        #$ema50_1m_2 = $candle->getCandlePrev()->getEMA50();
+        #$ema120_1m_3 = $candle->getCandlePrev()->getCandlePrev()->getEMA120();
+        #$ema50_1m_3 = $candle->getCandlePrev()->getCandlePrev()->getEMA50();
  
 
         $rsi = $candle->getRsiMA(7,7);
@@ -157,17 +157,17 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 	#$slide = ($adx > $adx2) && ($adx2 > $adx3);
 	#$SLIDE_FLAG = $slide || $adx >= $adx_limit;
 	#$SLIDE_FLAG = $slide;
-	$SLIDE_FLAG = True;
+	#$SLIDE_FLAG = True;
 	#$SLIDE_FLAG = $adx >= $adx_limit;
 	#$SLIDE_FLAG = True;
 
 	$iiFlag = True;
 
-	#$sl = $candle->getEMA_slide(120, 100);
+        $sl = $candle->getEMA_slide(120, 100);
 
-	#$SLIDE_FLAG = abs($sl) > 0.0 && abs($sl) < 0.02;
+	$SLIDE_FLAG = abs($sl) > 0.0 && abs($sl) < 0.02;
 	#$SLIDE_FLAG = abs($sl) < 0.01;
-	$SLIDE_FLAG = True;
+	#$SLIDE_FLAG = True;
 	
 	#$SLIDE_FLAG = abs($ema120_1m - $ema50_1m) > abs($ema120_1m_2 - $ema50_1m_2) && abs($ema120_1m_2 - $ema50_1m_2) > abs($ema120_1m_3 - $ema50_1m_3);
 	#$no = (abs($ema120_1m - $ema50_1m) / $ema120_1m) > 0.0006;
