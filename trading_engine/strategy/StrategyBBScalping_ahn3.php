@@ -165,7 +165,8 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         $sl = $candle->getEMA_slide(120, 100);
 
-	$SLIDE_FLAG = abs($sl) > 0.0 && abs($sl) < 0.02;
+	$SLIDE_FLAG = (abs($sl) > 0.0 && abs($sl) < 0.02) || (abs($sl) > 0.04 && abs($sl) < 0.05);
+	#$SLIDE_FLAG = (abs($sl) > 0.0 && abs($sl) < 0.02);
 	#$SLIDE_FLAG = abs($sl) < 0.01;
 	#$SLIDE_FLAG = True;
 	
@@ -174,8 +175,8 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 	#$SLIDE_FLAG = $SLIDE_FLAG && $no;
 	#$SLIDE_FLAG = True && $no;
 
-	#$tt = date('Y-m-d H:i:s', $candle->t);
-	#var_dump($tt." : ".$sl);
+	$tt = date('Y-m-d H:i:s', $candle->t);
+	var_dump($tt." : ".$sl);
         
 #		$candle = $candle_5m;
         for($ii=0; $ii<3; $ii++)
