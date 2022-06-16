@@ -131,10 +131,51 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         $ema120_1m = $candle->getEMA120();
         $ema50_1m = $candle->getEMA50();
         $ema20_1m = $candle->getEMA20();
-        
+
+        $ema120_1m_2 = $candle->getCandlePrev()->getEMA120();
+        $ema50_1m_2 = $candle->getCandlePrev()->getEMA50();
+        $ema120_1m_3 = $candle->getCandlePrev()->getCandlePrev()->getEMA120();
+        $ema50_1m_3 = $candle->getCandlePrev()->getCandlePrev()->getEMA50();
+ 
+
         $rsi = $candle->getRsiMA(7,7);
-        
-        $iiFlag = True;
+	#$adx_value = 600;
+	#$aa = 1;
+	#$adx = $candle->getADX($adx_value);
+	#$adx_limit = 25;
+	#$adx_limit = 0;
+
+	#$adx2 = $candle->getCandlePrev()->getADX($adx_value);
+	#$adx3 = $candle->getCandlePrev()->getCandlePrev()->getADX($adx_value);
+	#$adx4 = $candle->getCandlePrev()->getCandlePrev()->getCandlePrev()->getADX($adx_value);
+	#$adx5 = $candle->getCandlePrev()->getCandlePrev()->getCandlePrev()->getCandlePrev()->getADX($adx_value);
+
+	#$slide = ($adx - $adx2) + ($adx2 - $adx3) + ($adx3 - $adx4) + ($adx4 - $adx5);
+	#$slide = ($adx - $adx2) + ($adx2 - $adx3) + ($adx3 - $adx4);
+	#$slide = ($adx*$aa > $adx2) && ($adx2*$aa > $adx3) && ($adx3*$aa > $adx4);
+	
+	#$slide = ($adx > $adx2) && ($adx2 > $adx3);
+	#$SLIDE_FLAG = $slide || $adx >= $adx_limit;
+	#$SLIDE_FLAG = $slide;
+	$SLIDE_FLAG = True;
+	#$SLIDE_FLAG = $adx >= $adx_limit;
+	#$SLIDE_FLAG = True;
+
+	$iiFlag = True;
+
+	#$sl = $candle->getEMA_slide(120, 100);
+
+	#$SLIDE_FLAG = abs($sl) > 0.0 && abs($sl) < 0.02;
+	#$SLIDE_FLAG = abs($sl) < 0.01;
+	$SLIDE_FLAG = True;
+	
+	#$SLIDE_FLAG = abs($ema120_1m - $ema50_1m) > abs($ema120_1m_2 - $ema50_1m_2) && abs($ema120_1m_2 - $ema50_1m_2) > abs($ema120_1m_3 - $ema50_1m_3);
+	#$no = (abs($ema120_1m - $ema50_1m) / $ema120_1m) > 0.0006;
+	#$SLIDE_FLAG = $SLIDE_FLAG && $no;
+	#$SLIDE_FLAG = True && $no;
+
+	#$tt = date('Y-m-d H:i:s', $candle->t);
+	#var_dump($tt." : ".$sl);
         
 #		$candle = $candle_5m;
         for($ii=0; $ii<3; $ii++)
@@ -151,7 +192,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         }
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m > $ema50_1m && $ema5_1h > $ema10_1h && $rsi < 60) 
-        if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 55 && $ema50_1m * 1.003 > $ema120_1m) 
+        if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 55 && $ema50_1m * 1.003 > $ema120_1m && $SLIDE_FLAG) 
         {
                 return self::POSITION_LONG;
         }
@@ -227,7 +268,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         }
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m < $ema50_1m && $ema5_1h < $ema10_1h && $rsi > 40) 
-        if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 30 && $ema20_1m < $ema50_1m * 1.003) 
+        if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 30 && $ema20_1m < $ema50_1m * 1.003 && $SLIDE_FLAG == True) 
         {
                 return self::POSITION_SHORT;
         }
