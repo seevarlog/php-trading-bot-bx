@@ -53,6 +53,10 @@ class Order
         return $this->is_limit ? "limit" : "stop";
     }
 
+    public function getExecLeftAmount()
+    {
+        return abs($this->amount) - abs($this->filled_amount);
+    }
 
     public static function correctEntry($entry)
     {

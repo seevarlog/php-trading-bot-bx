@@ -7,6 +7,7 @@ use trading_engine\managers\CandleManager;
 use trading_engine\managers\OrderManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
+use trading_engine\strategy\StrategyBBScalping_ahn3;
 use trading_engine\util\CoinPrice;
 use trading_engine\util\Config;
 use trading_engine\util\GlobalVar;
@@ -187,7 +188,7 @@ try {
 //        for ($i=0; $i<3; $i++)
 //        {
 //            var_dump($t_candle->displayCandle());
-//            $t_candle = $t_candle->cn;
+//            $t_candle = $t_candlb      e->cn;
 //        }
 
         CoinPrice::getInstance()->bit_price = $candle_1m->c;
@@ -201,8 +202,9 @@ try {
         OrderManager::getInstance()->update($candle_1m);
 //        $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);
 //        $sell_msg = StrategyBBShort::getInstance()->BBS($candle_prev_1m);
-        \trading_engine\strategy\StrategyBBScalping_ahn_5m::getInstance()->BBS($candle_1m);
+//        \trading_engine\strategy\StrategyBBScalping_ahn::getInstance()->BBS($candle_1m);
 
+        StrategyBBScalping_ahn3::getInstance()->BBS($candle_1m, $order_book['sell'], $order_book['buy']);
         //Notify::sendMsg("candle:".$candle_prev_1m->displayCandle()."t:".$global_var->candleTick."cross:".$global_var->CrossCount."1hour_per:".$global_var->vol_1hour." buy:".$buy_msg." sell:".$sell_msg);
 
 
@@ -224,8 +226,9 @@ try {
 }catch (\Exception $e)
 {
     var_dump($e->getPrevious());
-    var_dump($e->getPrevious()->getTraceAsString());
+//    var_dump($e->getPrevious()->getTraceAsString());
     var_dump($e->getMessage());
     var_dump($e->getLine());
     var_dump($e->getFile());
+    file_put_contents(__DIR__."/last_exception",json_encode($e));
 }

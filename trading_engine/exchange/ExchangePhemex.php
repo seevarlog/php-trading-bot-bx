@@ -59,7 +59,7 @@ class ExchangePhemex implements IExchange
                 self::SYMBOL,
                 $order->getLimitForCCXT(),
                 $order->getSide(),
-                abs($order->amount),
+                abs($order->getExecLeftAmount()),
                 $entry,
                 $param
             );
@@ -129,7 +129,7 @@ class ExchangePhemex implements IExchange
                 self::SYMBOL,
                 $order->getLimitForCCXT(),
                 $order->getSide(),
-                abs($order->amount),
+                abs($order->getExecLeftAmount()),
                 $entry,
                 $param
             );
