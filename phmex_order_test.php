@@ -37,21 +37,28 @@ try
 //    $exchange->postStopOrderReplace(
 //        $order
 //    );
-
+//
     $order = OrderManager::getInstance()->updateOrder(
         1,
         "BBS1",
-        -1,
-        28000,
-        0,
+        1,
+        25000,
+        1,
         0,
         "l손절",
         "롱전략",
         ""
     );
 
+    sleep(1);
 
-    OrderManager::getInstance()->modifyAmount("BBS1", -2, '손절');
+    var_dump($exchange->getOrder($order));
+
+    var_dump($exchange->getLocalLive1mKline());
+
+//
+//
+//    OrderManager::getInstance()->modifyAmount("BBS1", -2, '손절');
 //
 //    $order->amount = 2;
 //    $exchange->postOrderReplace($order);
@@ -70,9 +77,11 @@ try
 //        $order
 //    );
 
-    var_dump($exchange->getOrder($order));
+//    var_dump($exchange->getOrder($order));
 
     //$exchange->postOrderCancelAll();
+
+
 }
 catch (\Exception $e)
 {
