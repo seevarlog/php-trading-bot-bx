@@ -88,9 +88,9 @@ class ExchangePhemex implements IExchange
         }
         $entry = $order->entry;
 
-        try {
-            for ($i=0; $i<100; $i++)
-            {
+        for ($i=0; $i<100; $i++)
+        {
+            try {
                 if ($i>=1)
                 {
                     $book = $this->getNowOrderBook();
@@ -133,11 +133,11 @@ class ExchangePhemex implements IExchange
                     }
                     break;
                 }
-
+            } catch (\Exception $e)
+            {
+                var_dump($e);
             }
-        } catch (\Exception $e)
-        {
-            var_dump($e);
+
         }
 
 
