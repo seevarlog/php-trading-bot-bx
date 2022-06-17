@@ -137,6 +137,9 @@ class ExchangePhemex implements IExchange
                 }
             } catch (\Exception $e)
             {
+                $uuid = self::getUuid();
+                $param['clOrdID'] = $uuid;
+                $order->order_client_id = $uuid;
                 var_dump($e);
             }
 
