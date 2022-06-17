@@ -323,6 +323,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
                 "l익절",
                 "롱전략",
                 "",
+                15
             );
         
         }
@@ -406,6 +407,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
                 "s익절",
                 "숏전략",
                 "",
+                15
             );
         
         }
@@ -537,7 +539,8 @@ class StrategyBBScalping_ahn3 extends StrategyBase
             0,
             "s진입",
             "숏전략",
-            ""
+            "",
+            15
         );
 
         // 손절 주문
@@ -550,7 +553,8 @@ class StrategyBBScalping_ahn3 extends StrategyBase
             1,
             "s손절",
             "숏전략",
-            ""
+            "",
+            15
         );
 
 
@@ -564,7 +568,8 @@ class StrategyBBScalping_ahn3 extends StrategyBase
             1,
             "s익절",
             "숏전략",
-            ""
+            "",
+            15
         );
     }
 
@@ -617,7 +622,8 @@ class StrategyBBScalping_ahn3 extends StrategyBase
             0,
             "l진입",
             "롱전략",
-            ""
+            "",
+            15
         );
 
         // 손절 주문
@@ -630,7 +636,8 @@ class StrategyBBScalping_ahn3 extends StrategyBase
             1,
             "l손절",
             "롱전략",
-            ""
+            "",
+            15,
         );
         
         // 익절 주문?
@@ -659,6 +666,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
             "l익절",
             "롱전략",
             "",
+            15
         );
 
     }
