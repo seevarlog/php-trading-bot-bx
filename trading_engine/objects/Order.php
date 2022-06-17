@@ -164,7 +164,7 @@ class Order
             $stop_order = OrderManager::getInstance()->getOrder($this->strategy_key, "손절");
             $stop_exchange_order = GlobalVar::getInstance()->exchange->getOrder($stop_order);
             if ($stop_exchange_order != null &&
-                $stop_exchange_order['filled'] < abs($this->filled_amount))
+                $stop_exchange_order['amount'] > abs($this->filled_amount))
             {
                 var_dump("hi");
                 var_dump($stop_exchange_order);
@@ -189,7 +189,7 @@ class Order
             $stop_order = OrderManager::getInstance()->getOrder($this->strategy_key, "손절");
             $stop_exchange_order = GlobalVar::getInstance()->exchange->getOrder($stop_order);
             if ($leaves_qty > 0 && $stop_exchange_order !== null &&
-                $stop_exchange_order['filled'] < abs($this->filled_amount))
+                $stop_exchange_order['amount'] > abs($leaves_qty))
             {
                 var_dump("hi3");
                 OrderManager::getInstance()->modifyAmount($this->strategy_key, $leaves_qty, '손절');
