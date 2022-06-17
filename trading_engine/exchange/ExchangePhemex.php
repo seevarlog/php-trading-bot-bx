@@ -113,7 +113,9 @@ class ExchangePhemex implements IExchange
                 }
                 else
                 {
-                    var_dump("null 떨어짐");
+                    print("null 떨어짐\n");
+					var_dump($ret);
+					print("===========\n");
                     // 데이터를 못받았으니 같은 클라 아이디로 재주문
                     continue;
                 }
