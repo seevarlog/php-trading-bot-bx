@@ -161,18 +161,6 @@ class Order
         {
             Notify::sendTradeMsg("진입 거래가 채워졌다. prev:".$this->amount." filled:".$exec_amount);
             // 여기서 ID를 찾을 수 없음
-            $stop_order = OrderManager::getInstance()->getOrder($this->strategy_key, "손절");
-            $stop_exchange_order = GlobalVar::getInstance()->exchange->getOrder($stop_order);
-            if ($stop_exchange_order != null &&
-                $stop_exchange_order['amount'] > abs($this->filled_amount))
-            {
-                var_dump("hi");
-                var_dump($stop_exchange_order);
-                OrderManager::getInstance()->modifyAmount($this->strategy_key, $exec_amount, '손절');
-                var_dump("hi2");
-            }
-
-
             if ($exec_amount == abs($this->amount))
             {
                 return true;
@@ -183,19 +171,6 @@ class Order
         else if (str_contains($this->comment, "익절"))
         {
             Notify::sendTradeMsg($this->comment."거래가 채워졌습니다. order : ".$this->amount." filled : ".$exec_amount);
-
-            // 여기서 ID를 찾을 수 없음A
-
-            $stop_order = OrderManager::getInstance()->getOrder($this->strategy_key, "손절");
-            $stop_exchange_order = GlobalVar::getInstance()->exchange->getOrder($stop_order);
-            if ($leaves_qty > 0 && $stop_exchange_order !== null &&
-                $stop_exchange_order['amount'] > abs($leaves_qty))
-            {
-                var_dump("hi3");
-                OrderManager::getInstance()->modifyAmount($this->strategy_key, $leaves_qty, '손절');
-                var_dump("hi4");
-            }
-
             if ($exec_amount == abs($this->amount))
             {
                 return true;
