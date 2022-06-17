@@ -291,8 +291,8 @@ class ExchangePhemex implements IExchange
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         $response = curl_exec($ch);
         if ($response == "")
-        {
-            throw new \Exception("live socket server error");
+	{
+	    throw new \Exception("live socket server error");
         }
         curl_close($ch);
         $ret = json_decode($response, true);

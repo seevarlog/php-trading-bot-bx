@@ -155,7 +155,7 @@ for ($i=0; $i<300000; $i++)
     $candle = $candle->cn;
     if ($i < 60000)
     {
-        continue;
+        #continue;
     }
 
     if ($candle == null)
@@ -175,7 +175,7 @@ for ($i=0; $i<300000; $i++)
     \trading_engine\managers\OrderManager::getInstance()->update($candle->getCandlePrev());
 
 
-    \trading_engine\strategy\StrategyBBScalping_ahn::getInstance()->BBS($candle->getCandlePrev());
+    \trading_engine\strategy\StrategyBBScalping_ahn3::getInstance()->BBS($candle->getCandlePrev(), $candle->o, $candle->o);
 
 
 

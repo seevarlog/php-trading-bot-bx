@@ -109,13 +109,17 @@ try {
     $last_time = time();
     $candle_prev_1m = CandleManager::getInstance()->getLastCandle(1);
     var_dump($candle_prev_1m->displayCandle());
+    $timer_second = 0;
     while (1) {
         usleep(300000);
         $time_second = time() % 60;
-        // 55 ~ 05 초 사이에 갱신을 시도한다.
-
-	if ($time_second % 5 == 0)
-        {
+	// 1~59 초 사이에 매초 마다 갱신을 시도한다.
+        if (($time_second > 1 && $time_second < 59) && $timer_second != $time_second) 
+	{
+            # 1초에 한 번씩만 진행되도록.
+            #print($timer_second." / ".$time_second." - 1초에 한 번씩..\n");
+            $timer_second = $time_second;
+            
             $candle_api_result = $exchange->publics()->getLocalLive1mKline();
     
             $candle_data = $candle_api_result;
@@ -127,14 +131,32 @@ try {
             $candle_1m->c = $candle_data[4];
    
             $candle_1m->cp = $candle_prev_1m;
-            OrderManager::getInstance()->update($candle_1m);
+	    OrderManager::getInstance()->update($candle_1m);
+
+            if ($candle_prev_1m->t == $candle_data[0] && $candle_prev_1m->c != $candle_data[4])
+	    {
+		    print("[".date('Y-d-m h:i:s', time())."] : [update] ".$candle_1m->displayCandle()."\n");
+		    
+		    print("candle_prev_1m->c : ".$candle_prev_1m->c."\n");
+		    print("candle_data[4] : ".$candle_data[4]."\n");
+		    
+
+		    $candle_prev_1m->updateCandle($candle_data[2], $candle_data[3], $candle_data[4]);
+		    #var_dump("live ".$candle_1m->displayCandle());
+
+		 
+	    }else
+	    {
+		    #print("[".date('Y-d-m h:i:s', time())."] ".date('Y-m-d H:i:s')." : [update_debug] ".$candle_1m->displayCandle()."\n");
+	    }
+
 	}
 
         if (!($time_second < 35 || $time_second > 25)) {
             //\trading_engine\objects\Funding::getInstance()->syncFunding();
         }
 
-        if (!($time_second < 3 || $time_second > 57)) {
+        if (!($time_second < 1 || $time_second >= 59)) {
             continue;
         }
         else
@@ -142,7 +164,7 @@ try {
             //\trading_engine\strategy\StrategyHeikinAsiUtBot::getInstance()->traceTrade();
         }
         // 캔들 마감 전에는 빨리 갱신한다.
-        $candle_api_result = $exchange->publics()->getLocalLive1mKline();
+        $candle_api_result = $exchange->publics()->getLocalLiveKline();
 
         $candle_data = $candle_api_result;
         $candle_1m = new Candle(1);
@@ -152,15 +174,29 @@ try {
         $candle_1m->l = $candle_data[3];
 	$candle_1m->c = $candle_data[4];
 
-        if ($candle_prev_1m->t == $candle_data[0])
-        {
-            $candle_prev_1m->updateCandle($candle_data[2], $candle_data[3], $candle_data[4]);
+	if ($candle_prev_1m->t == $candle_data[0] &&
+	   ($candle_prev_1m->h != $candle_data[2] ||
+   	    $candle_prev_1m->l != $candle_data[3] ||
+    	    $candle_prev_1m->c != $candle_data[4]))
+	{
+	    print("[".date('Y-d-m h:i:s', time())."] : [update node] ".$candle_1m->displayCandle()."\n");
+	    print("AS : ".$candle_prev_1m->displayCandle()."\n");
+	    print("TO : ".$candle_1m->displayCandle()."\n");
+	    $candle_prev_1m->updateCandle($candle_data[2], $candle_data[3], $candle_data[4]);
+	    #var_dump(date('Y-m-d H:i:s')." : [update node] ".$candle_1m->displayCandle());   
+	    #print("[".date('Y-d-m h:i:s', time())."] ".date('Y-m-d H:i:s')." : [update node] ".$candle_1m->displayCandle()."\n");
 	}
 
-        if (CandleManager::getInstance()->getLastCandle(1)->t == $candle_1m->t ||
-            CandleManager::getInstance()->getLastCandle(1)->t > $candle_1m->t) {
+        #if (CandleManager::getInstance()->getLastCandle(1)->t == $candle_1m->t ||
+	#    CandleManager::getInstance()->getLastCandle(1)->t > $candle_1m->t) {
+        
+	if (time() - $candle_1m->t < 300 || 
+           (CandleManager::getInstance()->getLastCandle(1)->t == $candle_1m->t ||
+	    CandleManager::getInstance()->getLastCandle(1)->t > $candle_1m->t))
+        {
+	    #print(time()." --- ".$candle_1m->displayCandle()."\n");
             continue;
-        }
+	}
 
         foreach ($make_candle_min_list as $min)
         {
@@ -209,8 +245,11 @@ try {
         // 오더북 체크크
 
 
-        var_dump("live ".$candle_1m->displayCandle());
-        var_dump("now datetime:".date('Y-m-d H:i:s'));
+        //var_dump("live ".$candle_1m->displayCandle());
+	//var_dump("now datetime:".date('Y-m-d H:i:s'));
+
+        var_dump(date('Y-m-d H:i:s')." : [live] ".$candle_1m->displayCandle());
+
         $global_var = GlobalVar::getInstance();
         //OrderManager::getInstance()->update($candle_1m);
 //        $buy_msg = StrategyBB::getInstance()->BBS($candle_prev_1m);

@@ -27,6 +27,7 @@ class Order
     public $action;
     public $wait_min;
     public $tick = 1;
+    public $is_filled = False; // 채워진 주문인지, 안준이 추가한 변수로 아직 범용적이지 않아 신뢰하기 어려움
 
 
     public static function getNewOrderObj($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment, $log, $action = "", $wait_min =30)
@@ -74,12 +75,55 @@ class Order
         return $entry;
     }
 
+    public function updateFilled()
+    {
+        $result = GlobalVar::getInstance()->exchange->privates()->getOrder($this);
+        $this->filled_amount = $result['filled'];
+        
+        if ($this->filled_amount == abs($this->amount))
+        {
+            $this->is_filled = True;
+        }
+
+    }
+
+    # 주문이 채워졌는지. 채워졌으면 True
+    public function isOrderFilled()
+    {
+        if (Config::getInstance()->isRealTrade())
+        {
+            $this->updateFilled();
+            return $this->is_filled;
+	}else{
+	    return True;
+	}
+    }
+
+    # 주문이 안채워졌는지, 안채워졌으면 True
+    public function isOrdering()
+    {
+        if (Config::getInstance()->isRealTrade())
+        {
+            $this->updateFilled();
+            if ($this->is_filled == False)
+            {
+                return True;
+            }else{
+                return False;
+	    }
+	}else{
+		return False;
+	}
+    }
+
+
     public function isRealServerContract()
     {
+        $result = GlobalVar::getInstance()->exchange->privates()->getOrder($this);
+
         // 진입 filled 추적
         if ($this->filled_amount > 0 && str_contains($this->comment, "진입"))
         {
-            $result = GlobalVar::getInstance()->exchange->privates()->getOrder($this);
             $exec_amount = $result['filled'];
             $leaves_qty = $result['remaining'];
 
@@ -102,8 +146,6 @@ class Order
             }
         }
 
-
-        $result = GlobalVar::getInstance()->exchange->privates()->getOrder($this);
         $exec_amount = $result['filled'];
         $leaves_qty = $result['amount'] - $result['filled'];
 
@@ -254,10 +296,12 @@ class Order
             // 스탑인 경우
             if ($this->amount > 0)
             {
+                #return $this->amount * 0.00025;
                 return $this->amount * 0.00075 * -1;
             }
             else
             {
+                #return $this->amount * 0.00025 * -1;
                 return $this->amount * 0.00075;
             }
         }
@@ -282,10 +326,12 @@ class Order
             // 스탑인 경우
             if ($this->amount > 0)
             {
+                #return $this->amount * 0.00025;
                 return $this->amount * 0.00075 * -1;
             }
             else
             {
+                #return $this->amount * 0.00025 * -1;
                 return $this->amount * 0.00075;
             }
         }
