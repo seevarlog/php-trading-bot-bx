@@ -138,14 +138,25 @@ class ExchangePhemex implements IExchange
                 }
             }catch (DuplicateOrderId $duple_e)
             {
+                $order_ret = $this->getOrderByClientOrder($uuid);
+                if ($order_ret !== null)
+                {
+                    if ($order_ret['info']['ordStatus'] == "Canceled" ||
+                        $order_ret['info']['ordStatus'] == "Rejected")
+                    {
+                        // 취소된 경우만 클라 아이디 고쳐서 다시 보냄
 
+                        $uuid = self::getUuid();
+                        $param['clOrdID'] = $uuid;
+                        $order->order_client_id = $uuid;
+                        continue;
+                    }
+                    break;
+                }
             }
             catch (\Exception $e)
             {
-                $uuid = self::getUuid();
-                $param['clOrdID'] = $uuid;
-                $order->order_client_id = $uuid;
-                var_dump($e);
+                var_dump($e->getMessage());
             }
 
         }
