@@ -28,6 +28,7 @@ class Order
     public $wait_min;
     public $tick = 1;
     public $is_filled = False; // 채워진 주문인지, 안준이 추가한 변수로 아직 범용적이지 않아 신뢰하기 어려움
+    public $is_stop_amount_check_complete = false;   // 스탑 채우는 것이 완료된지 체크용
 
 
     public static function getNewOrderObj($date, $st_key, $amount, $entry, $is_limit, $is_reduce_only, $comment, $log, $action = "", $wait_min =30)
@@ -79,7 +80,7 @@ class Order
     {
         $result = GlobalVar::getInstance()->exchange->privates()->getOrder($this);
         $this->filled_amount = $result['filled'];
-        
+
         if ($this->filled_amount == abs($this->amount))
         {
             $this->is_filled = True;
@@ -110,11 +111,12 @@ class Order
                 return True;
             }else{
                 return False;
-	    }
-	}else{
-		return False;
-	}
+	        }
+        }else{
+            return False;
+        }
     }
+
 
 
     public function isRealServerContract()
@@ -130,7 +132,6 @@ class Order
             if ($exec_amount == abs($this->amount))
             {
                 $this->amount = $this->amount > 0 ? $exec_amount : -$exec_amount;
-                OrderManager::getInstance()->modifyAmount($this->strategy_key, -$this->amount, '손절');
                 return true;
             }
 
@@ -139,7 +140,6 @@ class Order
             {
                 $this->amount = $this->amount > 0 ? $exec_amount : -$exec_amount;
                 OrderManager::getInstance()->cancelOrder($this);
-                OrderManager::getInstance()->modifyAmount($this->strategy_key, -$this->amount, '손절');
                 Notify::sendTradeMsg("진입 거래를 마감함. prev:".$this->amount." filled:".$exec_amount);
 
                 return true;
