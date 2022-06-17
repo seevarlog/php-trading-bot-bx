@@ -110,16 +110,38 @@ class ExchangePhemex implements IExchange
                 if (isset($ret['id']))
                 {
                     $order->order_id = $ret['id'];
-                    return;
                 }
+                else
+                {
+                    var_dump("null 떨어짐");
+                    // 데이터를 못받았으니 같은 클라 아이디로 재주문
+                    continue;
+                }
+
+                $order_ret = $this->getOrderByClientOrder($uuid);
+                if ($order_ret !== null)
+                {
+                    if ($order_ret['info']['ordStatus'] == "Canceled" ||
+                        $order_ret['info']['ordStatus'] == "Rejected")
+                    {
+                        // 취소된 경우만 클라 아이디 고쳐서 다시 보냄
+
+                        $uuid = self::getUuid();
+                        $param['clOrdID'] = $uuid;
+                        $order->order_client_id = $uuid;
+                        continue;
+                    }
+                    break;
+                }
+
             }
         } catch (\Exception $e)
         {
-            // 중복으로 떨어짐
+            var_dump($e);
         }
 
 
-        sleep(2);
+        sleep(1);
         $order_ret = $this->getOrderByClientOrder($uuid);
         if ($order_ret !== null)
         {
@@ -181,56 +203,8 @@ class ExchangePhemex implements IExchange
 
     public function postOrderReplace(Order $order)
     {
-        $param = [];
         $this->postOrderCancel($order);
-        $uuid = self::getUuid();
-        $order->order_client_id = $uuid;
-        if ($order->is_limit)
-        {
-            $param = [
-                'timeInForce' => 'PostOnly',
-                'clOrdID' => $uuid
-            ]; // GoodTillCancel, PostOnly, ImmediateOrCancel,
-        }
-        $entry = $order->entry;
-        try {
-            for ($i=0; $i<100; $i++)
-            {
-                if ($i>=1)
-                {
-                    $book = $this->getNowOrderBook();
-                    $entry = $order->amount < 0 ? $book['sell'] : $book['buy'];
-                    $order->entry = $entry;
-                }
-
-                $ret = $this->phmex_api->create_order(
-                    self::SYMBOL,
-                    $order->getLimitForCCXT(),
-                    $order->getSide(),
-                    abs($order->getExecLeftAmount()),
-                    $entry,
-                    $param
-                );
-
-                if (isset($ret['id']))
-                {
-                    $order->order_id = $ret['id'];
-                    return;
-                }
-            }
-        } catch (\Exception $e)
-        {
-            // 중복으로 떨어짐
-        }
-
-
-        sleep(2);
-        $order_ret = $this->getOrderByClientOrder($uuid);
-        if ($order_ret !== null)
-        {
-            $order->order_id = $order_ret['id'];
-        }
-
+        $this->postOrderCreate($order);
     }
 
     public function postStopOrderReplace(Order $order)
