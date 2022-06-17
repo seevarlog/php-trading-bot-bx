@@ -1,6 +1,7 @@
 <?php
 namespace trading_engine\exchange;
 
+use ccxt\DuplicateOrderId;
 use ccxt\phemex;
 use trading_engine\objects\Order;
 
@@ -135,7 +136,11 @@ class ExchangePhemex implements IExchange
                     }
                     break;
                 }
-            } catch (\Exception $e)
+            }catch (DuplicateOrderId $duple_e)
+            {
+
+            }
+            catch (\Exception $e)
             {
                 $uuid = self::getUuid();
                 $param['clOrdID'] = $uuid;
