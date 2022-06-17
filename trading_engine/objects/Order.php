@@ -11,6 +11,7 @@ use trading_engine\util\Notify;
 
 class Order
 {
+    public $order_client_id = '';
     public $order_id = '';
     public $date;
     public $strategy_key;

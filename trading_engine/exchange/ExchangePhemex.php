@@ -39,65 +39,124 @@ class ExchangePhemex implements IExchange
 
     public function getPositionAmount()
     {
-        $results = $this->phmex_api->fetch_positions(self::SYMBOL,['currency'=>"USD"]);
+        $results = $this->phmex_api->fetch_positions(self::SYMBOL,['currency'=>"BTC"]);
         foreach ($results as $result)
         {
-            if ($result['symbol'] == "uBTCUSD")
+            if ($result['symbol'] == "BTCUSD")
             {
-                return $result['side'] == "Sell" ? $result['size'] * -1 : $result['size'];
+                $ret= $result['side'] == "Sell" ? $result['size'] * -1 : $result['size'];
+                return $ret;
             }
         }
 
         return 0;
     }
 
+    public static function getUuid()
+    {
+        return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            // 32 bits for "time_low"
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+
+            // 16 bits for "time_mid"
+            mt_rand(0, 0xffff),
+
+            // 16 bits for "time_hi_and_version",
+            // four most significant bits holds version number 4
+            mt_rand(0, 0x0fff) | 0x4000,
+
+            // 16 bits, 8 bits for "clk_seq_hi_res", 8 bits for "clk_seq_low",
+            // two most significant bits holds zero and one for variant DCE1.1
+            mt_rand(0, 0x3fff) | 0x8000,
+
+            // 48 bits for "node"
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+        );
+    }
+
     public function postOrderCreate(Order $order)
     {
         $param = [];
+        $uuid = self::getUuid();
+        $order->order_client_id = $uuid;
         if ($order->is_limit)
         {
-            $param = ['timeInForce' => 'PostOnly']; // GoodTillCancel, PostOnly, ImmediateOrCancel,
+            $param = [
+                'timeInForce' => 'PostOnly',
+                'clOrdID' => $uuid
+            ]; // GoodTillCancel, PostOnly, ImmediateOrCancel,
         }
         $entry = $order->entry;
 
-        for ($i=0; $i<100; $i++)
-        {
-            if ($i>=1)
+        try {
+            for ($i=0; $i<100; $i++)
             {
-                $book = $this->getNowOrderBook();
-                $entry = $order->amount < 0 ? $book['sell'] : $book['buy'];
-                $order->entry = $entry;
-            }
-
-            $ret = $this->phmex_api->create_order(
-                self::SYMBOL,
-                $order->getLimitForCCXT(),
-                $order->getSide(),
-                abs($order->getExecLeftAmount()),
-                $entry,
-                $param
-            );
-            if (isset($ret['id']))
-            {
-                $order->order_id = $ret['id'];
-            }
-            else
-            {
-                continue;
-            }
-
-            sleep(1);
-            $order_ret = $this->getOrder($order);
-            if ($order_ret !== null)
-            {
-                if ($order_ret['info']['ordStatus'] == "Canceled" ||
-                    $order_ret['info']['ordStatus'] == "Rejected")
+                if ($i>=1)
                 {
-                    continue;
+                    $book = $this->getNowOrderBook();
+                    $entry = $order->amount < 0 ? $book['sell'] : $book['buy'];
+                    $order->entry = $entry;
                 }
-                break;
+
+                $ret = $this->phmex_api->create_order(
+                    self::SYMBOL,
+                    $order->getLimitForCCXT(),
+                    $order->getSide(),
+                    abs($order->getExecLeftAmount()),
+                    $entry,
+                    $param
+                );
+
+                if (isset($ret['id']))
+                {
+                    $order->order_id = $ret['id'];
+                    return;
+                }
             }
+        } catch (\Exception $e)
+        {
+            // 중복으로 떨어짐
         }
+
+
+        sleep(2);
+        $order_ret = $this->getOrderByClientOrder($uuid);
+        if ($order_ret !== null)
+        {
+            $order->order_id = $order_ret['id'];
+        }
+
+//
+//        for ($i=0; $i<100; $i++)
+//        {
+//            if ($i>=1)
+//            {
+//                $book = $this->getNowOrderBook();
+//                $entry = $order->amount < 0 ? $book['sell'] : $book['buy'];
+//                $order->entry = $entry;
+//            }
+//
+//            $ret = $this->phmex_api->create_order(
+//                self::SYMBOL,
+//                $order->getLimitForCCXT(),
+//                $order->getSide(),
+//                abs($order->getExecLeftAmount()),
+//                $entry,
+//                $param
+//            );
+//
+//            sleep(1);
+//            $order_ret = $this->getOrder($order);
+//            if ($order_ret !== null)
+//            {
+//                if ($order_ret['info']['ordStatus'] == "Canceled" ||
+//                    $order_ret['info']['ordStatus'] == "Rejected")
+//                {
+//                    continue;
+//                }
+//                break;
+//            }
+//        }
 
 
     }
@@ -113,7 +172,7 @@ class ExchangePhemex implements IExchange
             [
                 'stopPxEp' => $order->entry * 10000,
                 'triggerType'=> 'ByMarkPrice',
-
+                'closeOnTrigger' => true
             ]
         );
 
@@ -123,54 +182,55 @@ class ExchangePhemex implements IExchange
     public function postOrderReplace(Order $order)
     {
         $param = [];
+        $this->postOrderCancel($order);
+        $uuid = self::getUuid();
+        $order->order_client_id = $uuid;
         if ($order->is_limit)
         {
-            $param = ['timeInForce' => 'PostOnly']; // GoodTillCancel, PostOnly, ImmediateOrCancel,
+            $param = [
+                'timeInForce' => 'PostOnly',
+                'clOrdID' => $uuid
+            ]; // GoodTillCancel, PostOnly, ImmediateOrCancel,
         }
         $entry = $order->entry;
-
-        $this->phmex_api->cancel_order($order->order_id, self::SYMBOL);
-        for ($i=0; $i<100; $i++)
-        {
-            if ($i>=1)
+        try {
+            for ($i=0; $i<100; $i++)
             {
-                $book = $this->getNowOrderBook();
-                $entry = $order->amount < 0 ? $book['sell'] : $book['buy'];
-                $order->entry = $entry;
-            }
-
-            $ret = $this->phmex_api->create_order(
-                self::SYMBOL,
-                $order->getLimitForCCXT(),
-                $order->getSide(),
-                abs($order->getExecLeftAmount()),
-                $entry,
-                $param
-            );
-
-            // ret내용이 있다면 order_id는 항상 존재함
-            if (isset($ret['id']))
-            {
-                $order->order_id = $ret['id'];
-            }
-            else
-            {
-                continue;
-            }
-
-            sleep(1);
-            $order_ret = $this->getOrder($order);
-            if ($order_ret !== null)
-            {
-                if ($order_ret['info']['ordStatus'] == "Canceled" ||
-                    $order_ret['info']['ordStatus'] == "Rejected")
+                if ($i>=1)
                 {
-                    continue;
+                    $book = $this->getNowOrderBook();
+                    $entry = $order->amount < 0 ? $book['sell'] : $book['buy'];
+                    $order->entry = $entry;
                 }
-                break;
-            }
 
+                $ret = $this->phmex_api->create_order(
+                    self::SYMBOL,
+                    $order->getLimitForCCXT(),
+                    $order->getSide(),
+                    abs($order->getExecLeftAmount()),
+                    $entry,
+                    $param
+                );
+
+                if (isset($ret['id']))
+                {
+                    $order->order_id = $ret['id'];
+                    return;
+                }
+            }
+        } catch (\Exception $e)
+        {
+            // 중복으로 떨어짐
         }
+
+
+        sleep(2);
+        $order_ret = $this->getOrderByClientOrder($uuid);
+        if ($order_ret !== null)
+        {
+            $order->order_id = $order_ret['id'];
+        }
+
     }
 
     public function postStopOrderReplace(Order $order)
@@ -185,7 +245,7 @@ class ExchangePhemex implements IExchange
             [
                 'stopPxEp' => $order->entry * 10000,
                 'triggerType'=> 'ByMarkPrice',
-
+                'closeOnTrigger' => true
             ]
         );
         $order->order_id = $ret['id'];
@@ -357,6 +417,41 @@ class ExchangePhemex implements IExchange
     public function privates(): static
     {
         return $this;
+    }
+
+    public function getOrderByClientOrder($client_order)
+    {
+        try {
+            $results = $this->phmex_api->fetch_open_orders(self::SYMBOL);
+            foreach($results as $result)
+            {
+                if ($result['clientOrderId'] == $client_order)
+                {
+                    return $result;
+                }
+            }
+        } catch (\Exception $e)
+        {
+            // 이미 체결되서 order 를 못찾았을수도?
+            echo "-------order error--------\n";
+        }
+
+        try {
+            $results = $this->phmex_api->fetch_orders(self::SYMBOL, null, 30);
+            foreach($results as $result)
+            {
+                if ($result['clientOrderId'] == $client_order)
+                {
+                    return $result;
+                }
+            }
+        } catch (\Exception $e)
+        {
+            // 이미 체결되서 order 를 못찾았을수도?
+            echo "-------order error--------\n";
+        }
+
+        return null;
     }
 
     public function getOrder(Order $order)
