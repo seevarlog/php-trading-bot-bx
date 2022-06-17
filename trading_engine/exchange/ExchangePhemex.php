@@ -37,6 +37,20 @@ class ExchangePhemex implements IExchange
     }
 
 
+    public function getPositionAmount()
+    {
+        $results = $this->phmex_api->fetch_positions(self::SYMBOL,['currency'=>"USD"]);
+        foreach ($results as $result)
+        {
+            if ($result['symbol'] == "uBTCUSD")
+            {
+                return $result['side'] == "Sell" ? $result['size'] * -1 : $result['size'];
+            }
+        }
+
+        return 0;
+    }
+
     public function postOrderCreate(Order $order)
     {
         $param = [];

@@ -21,6 +21,7 @@ interface IExchange
 
     public function getKlineList(array $arr) : array;
     public function getWalletBalance();
+    public function getPositionAmount();
     //public function getPositionList();
     //public function getOrderList();
 

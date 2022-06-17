@@ -26,7 +26,7 @@ class OrderManager extends Singleton
     {
         foreach ($this->getOrderList($strategy_key) as $order)
         {
-            if ($order->comment == $comment)
+            if (str_contains($order->comment, $comment))
             {
                 return true;
             }
@@ -272,6 +272,48 @@ class OrderManager extends Singleton
             Notify::sendTradeMsg(sprintf("주문 취소했다. order_id : %s, 진입가 : %f", $_order->order_id, $_order->entry));
         }
 
+    }
+
+
+    /**
+     * 실서버일 때만 진입가와 현재 물량을 보면서 손절가를 업데이트 한다
+     * @return void
+     */
+    public function updateStopPrice()
+    {
+        if(!Config::getInstance()->is_real_trade)
+            return;
+
+        $strategy_key = "BBS1";
+        // 손절 주무니 없다면 패스
+        if(!OrderManager::getInstance()->isExistPosition($strategy_key, "손절"))
+        {
+            return;
+        }
+
+
+        $stop_order = OrderManager::getInstance()->getOrder($strategy_key, "손절");
+        // 스탑 오더를 전부 채웠다면 패스
+        if ($stop_order->is_stop_amount_check_complete)
+        {
+            return;
+        }
+
+        // 진입이 완전히 끝난 경우
+        if(!OrderManager::getInstance()->isExistPosition($strategy_key, "진입"))
+        {
+            $stop_order->is_stop_amount_check_complete = true;
+            OrderManager::getInstance()->modifyAmount($strategy_key, abs(GlobalVar::getInstance()->getByBit()->getPositionAmount()), '손절');
+        }
+
+
+        // 설마 익절중에 손절이 날일은 없을거라 봄 ;;
+//        $entry_order = OrderManager::getInstance()->getOrder($strategy_key, "익절");
+//        if (!$entry_order->is_stop_filled_complete &&
+//            abs($entry_order->filled_amount) > ($stop_order->filled_amount))
+//        {
+//            OrderManager::getInstance()->modifyAmount($strategy_key, abs(GlobalVar::getInstance()->getByBit()->getPositionAmount()), '손절');
+//        }
     }
 
     public function update(Candle $last_candle)
