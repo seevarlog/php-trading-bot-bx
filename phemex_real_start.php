@@ -135,7 +135,7 @@ try {
 
             if ($candle_prev_1m->t == $candle_data[0] && $candle_prev_1m->c != $candle_data[4])
 	    {
-		    print("[".date('Y-d-m h:i:s', time())."] ".date('Y-m-d H:i:s')." : [update] ".$candle_1m->displayCandle()."\n");
+		    print("[".date('Y-d-m h:i:s', time())."] : [update] ".$candle_1m->displayCandle()."\n");
 		    
 		    print("candle_prev_1m->c : ".$candle_prev_1m->c."\n");
 		    print("candle_data[4] : ".$candle_data[4]."\n");
@@ -179,7 +179,7 @@ try {
    	    $candle_prev_1m->l != $candle_data[3] ||
     	    $candle_prev_1m->c != $candle_data[4]))
 	{
-	    print("[".date('Y-d-m h:i:s', time())."] ".date('Y-m-d H:i:s')." : [update node] ".$candle_1m->displayCandle()."\n");
+	    print("[".date('Y-d-m h:i:s', time())."] : [update node] ".$candle_1m->displayCandle()."\n");
 	    print("AS : ".$candle_prev_1m->displayCandle()."\n");
 	    print("TO : ".$candle_1m->displayCandle()."\n");
 	    $candle_prev_1m->updateCandle($candle_data[2], $candle_data[3], $candle_data[4]);

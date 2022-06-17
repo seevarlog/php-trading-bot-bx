@@ -90,19 +90,30 @@ class Order
     # 주문이 채워졌는지. 채워졌으면 True
     public function isOrderFilled()
     {
-        $this->updateFilled();
-        return $this->is_filled;
+        if (Config::getInstance()->isRealTrade())
+        {
+            $this->updateFilled();
+            return $this->is_filled;
+	}else{
+	    return True;
+	}
     }
 
     # 주문이 안채워졌는지, 안채워졌으면 True
     public function isOrdering()
     {
-        if ($this->is_filled == False)
+        if (Config::getInstance()->isRealTrade())
         {
-            return True;
-        }else{
-            return False;
-        }
+            $this->updateFilled();
+            if ($this->is_filled == False)
+            {
+                return True;
+            }else{
+                return False;
+	    }
+	}else{
+		return False;
+	}
     }
 
 
