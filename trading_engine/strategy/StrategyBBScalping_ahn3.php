@@ -111,13 +111,25 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
     public function getPositionType()
     {
+        date_default_timezone_set('Asia/Seoul');
+
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
         
         $orderMng = OrderManager::getInstance();
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
         
-        $candle = $this->now_1m_candle;
+	$candle = $this->now_1m_candle;
+
+	# 시간대 조정 : -9시간
+	# 5분이 안되었는데 존재하는 5분봉은 미리 만들어둔거라...
+	/*
+	if ((now() - (60*60*9)) - 299 <=  $candle->t)
+	{
+	    $candle = $candle->getCandlePrev();
+	}
+	 */
+
 	#$candle_5m = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5);
         #$candle_1h = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
 //        $ema240_1h = $candle_1h->getEMA240();
@@ -177,6 +189,18 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
 	$tt = date('Y-m-d H:i:s', $candle->t);
 	var_dump($tt." : ".$sl);
+	
+	$candle_tmp = $candle;
+
+	print("======= Candle Info ======\n");
+	print(date('Y-d-m h:i:s', time())."\n");
+	print($tt." : [EMA SLIDE. TRADE TIME :  0.0 ~ 0.02 && 0.04 ~ 0.05] abs(".$sl.")\n");
+	for($i=0; $i<4; $i++)
+	{
+	    print("[candle-".$i."] ".$candle_tmp->displayCandle()."\n");
+            $candle_tmp = $candle_tmp->getCandlePrev();
+	}
+	print("==========================\n");
         
 #		$candle = $candle_5m;
         for($ii=0; $ii<3; $ii++)
