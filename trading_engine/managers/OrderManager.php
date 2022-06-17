@@ -274,6 +274,7 @@ class OrderManager extends Singleton
                     continue;
                 }
 
+                /* @var Order $oder */
                 if ($order->isContract($last_candle))
                 {
                     $candle = $last_candle;

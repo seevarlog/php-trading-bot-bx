@@ -23,7 +23,7 @@ class StrategyBBScalping_ahn extends StrategyBase
     public static $order_action = "";
     public static $last_date = 0;
 
-    public float $leverage = 1;
+    public float $leverage = 10;
     public float $profit_ratio = 6;
     public float $stop_ratio = 4;
     public $day = 40;
@@ -68,6 +68,8 @@ class StrategyBBScalping_ahn extends StrategyBase
         // 오래된 주문은 취소한다
         foreach ($order_list as $order)
         {
+//            var_dump($order);
+//            var_dump($candle);
             if (str_contains($order->comment, "손절"))
             {
                 continue;
@@ -393,7 +395,7 @@ class StrategyBBScalping_ahn extends StrategyBase
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
 
-        $buy_price = $entry_price + 0.5;
+        $buy_price = $entry_price + 50;
         #$stop_price = $buy_price + $range_price * $this->stop_ratio;
         #$sell_price = $entry_price - $range_price * $this->profit_ratio;
         
@@ -471,7 +473,7 @@ class StrategyBBScalping_ahn extends StrategyBase
     public function buyBit($time, $entry_price, $range_price)
     {
         $leverage = $this->leverage;
-        $buy_price = $entry_price-0.5;
+        $buy_price = $entry_price-50;
         #$stop_price = $buy_price - ($range_price * $this->stop_ratio);
         #$sell_price = $buy_price + $range_price * $this->profit_ratio;
         $positionMng = PositionManager::getInstance();

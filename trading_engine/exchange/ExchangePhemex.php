@@ -363,7 +363,7 @@ class ExchangePhemex implements IExchange
         }
 
         try {
-            $results = $this->phmex_api->fetch_orders(self::SYMBOL, null, 10);
+            $results = $this->phmex_api->fetch_orders(self::SYMBOL, null, 20);
             foreach($results as $result)
             {
                 if ($result['id'] == $order->order_id)
