@@ -109,13 +109,17 @@ try {
     $last_time = time();
     $candle_prev_1m = CandleManager::getInstance()->getLastCandle(1);
     var_dump($candle_prev_1m->displayCandle());
+    $timer_second = 0;
     while (1) {
         usleep(300000);
         $time_second = time() % 60;
-        // 55 ~ 05 초 사이에 갱신을 시도한다.
-
-        if (($time_second > 10 && $time_second < 30)) 
-        {
+	// 1~59 초 사이에 매초 마다 갱신을 시도한다.
+        if (($time_second > 1 && $time_second < 59) && $timer_second != $time_second) 
+	{
+            # 1초에 한 번씩만 진행되도록.
+            #print($timer_second." / ".$time_second." - 1초에 한 번씩..\n");
+            $timer_second = $time_second;
+            
             $candle_api_result = $exchange->publics()->getLocalLive1mKline();
     
             $candle_data = $candle_api_result;

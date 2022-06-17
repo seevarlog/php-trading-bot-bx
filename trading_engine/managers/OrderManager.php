@@ -262,6 +262,17 @@ class OrderManager extends Singleton
             Notify::sendTradeMsg(sprintf("주문 취소했다. order_id : %s, 진입가 : %f", $_order->order_id, $_order->entry));
         }
     }
+    
+    # 진입 주문만 취소
+    public function postOrderCancel(Order $_order)
+    {	    
+        if (Config::getInstance()->is_real_trade)
+        {
+            GlobalVar::getInstance()->getByBit()->postOrderCancel($_order);
+            Notify::sendTradeMsg(sprintf("주문 취소했다. order_id : %s, 진입가 : %f", $_order->order_id, $_order->entry));
+        }
+
+    }
 
     public function update(Candle $last_candle)
     {

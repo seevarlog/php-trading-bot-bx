@@ -107,7 +107,51 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         return "";
     }
 
+    public function isThereOrdering()
+    {
+        $orderMng = OrderManager::getInstance();
+        $order_list = $orderMng->getOrderList($this->getStrategyKey());
 
+        foreach ($order_list as $order)
+        {
+            if (str_contains($order->comment, "손절"))
+	    {
+	        continue;
+	    }
+
+    	    if (str_contains($order->comment, "진입"))
+            {
+                # 거래소로부터 주문의 filled 양을 가져와서 업데이트 후 채워진건지 리턴해줌
+                # 완전히 채워지지 않은 경우, 주문중이라고 판단함
+                return $order->isOrdering();
+            }
+	}
+	return False;
+    }
+
+    # 진입 주문만 취소
+    public function cancelOrdering()
+    {
+	$orderMng = OrderManager::getInstance();
+	$order_list = $orderMng->getOrderList($this->getStrategyKey());
+
+        foreach ($order_list as $order)
+        {
+		if (str_contains($order->comment, "손절"))
+		{
+		    continue;
+		}
+
+		if (str_contains($order->comment, "진입"))
+		{
+		    OrderReserveManager::getInstance()->order_bb_scalping = [];
+		    $orderMng->postOrderCancel($order);
+		    continue;
+		}
+		$orderMng->cancelOrder($order);
+        }
+ 
+    }
 
     public function getPositionType()
     {
@@ -218,8 +262,12 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m > $ema50_1m && $ema5_1h > $ema10_1h && $rsi < 60) 
         if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 55 && $ema50_1m * 1.003 > $ema120_1m && $SLIDE_FLAG) 
-        {
-                return self::POSITION_LONG;
+	{
+		# 주문이 없을때만 주문 넣음
+		if ($this->isThereOrdering() == False)
+		{
+	                return self::POSITION_LONG;
+		}
         }
         
         $candle = $this->now_1m_candle;
@@ -243,7 +291,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         //$amount = PositionManager::getInstance()->getPosition($this->getStrategyKey())->amount;
         
         $amount = $curPosition->amount;
-		$candle = $this->now_1m_candle;
+	$candle = $this->now_1m_candle;
 #		$candle = $candle_5m;
         
         if ($iiFlag == True && $amount > 0)
@@ -257,7 +305,13 @@ class StrategyBBScalping_ahn3 extends StrategyBase
             else
             {
                 $delta -= 0.5;
-            }
+	    }
+	    # 익절 시점에도  진입되어있는 주문이 있을 경우 전부 취소.
+	    # 부분 체결된 내용들에 대해.. 아래서 익절 주문 넣음
+	    if ($this->isThereOrdering() == True)
+	    {
+		$this->cancelOrdering();
+	    }
 
             OrderManager::getInstance()->updateOrder(
                 $candle->t,
@@ -294,12 +348,16 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m < $ema50_1m && $ema5_1h < $ema10_1h && $rsi > 40) 
         if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 30 && $ema20_1m < $ema50_1m * 1.003 && $SLIDE_FLAG == True) 
-        {
-                return self::POSITION_SHORT;
+	{
+		# 주문이 없을때만 주문 넣음.
+		if ($this->isThereOrdering() == False)
+		{
+	                return self::POSITION_SHORT;
+		}
         }
         
         $candle = $this->now_1m_candle;
-#		$candle = $candle_5m;
+#	$candle = $candle_5m;
         
         $iiFlag = True;
 
@@ -317,8 +375,8 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         }
         
         $amount = $curPosition->amount;
-		$candle = $this->now_1m_candle;
-#		$candle = $candle_5m;
+	$candle = $this->now_1m_candle;
+#	$candle = $candle_5m;
         
         if ($iiFlag == True && $amount < 0)
         {
@@ -331,6 +389,12 @@ class StrategyBBScalping_ahn3 extends StrategyBase
             {
                 $delta -= 0.5;
             }
+
+	    # 진입되어있는 주문이 있을 경우 전부 취소
+	    if ($this->isThereOrdering() == True)
+	    {
+	    	$this->cancelOrdering();
+	    }
 
             OrderManager::getInstance()->updateOrder(
                 $candle->t,
