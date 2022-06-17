@@ -209,20 +209,8 @@ class ExchangePhemex implements IExchange
 
     public function postStopOrderReplace(Order $order)
     {
-        $ret = $this->phmex_api->edit_order(
-            $order->order_id,
-            self::SYMBOL,
-            'Stop',
-            $order->getSide(),
-            abs($order->amount),
-            null,
-            [
-                'stopPxEp' => $order->entry * 10000,
-                'triggerType'=> 'ByMarkPrice',
-                'closeOnTrigger' => true
-            ]
-        );
-        $order->order_id = $ret['id'];
+        $this->postStopOrderCancel($order);
+        $this->postStopOrderCreate($order);
     }
 
     public function postOrderCancel(Order $order)
