@@ -133,14 +133,11 @@ class OrderManager extends Singleton
             {
                 if ($order->is_limit)
                 {
-                    $bool_reduce_only = $order->is_reduce_only ? true : false;
-
                     $result = GlobalVar::getInstance()->getByBit()->privates()->postOrderCreate($order);
                     Notify::sendTradeMsg(sprintf("주문 넣었다. 진입가 : %f 로그 : %s 액션 : %s", $order->entry, $order->log, $order->action));
                 }
                 else if ($order->is_stop)
                 {
-                    $bool_reduce_only = $order->is_reduce_only ? true : false;
                     $result = GlobalVar::getInstance()->getByBit()->privates()->postStopOrderCreate($order);
                     Notify::sendTradeMsg(sprintf("손절도 넣었다. 진입가 : %f", $order->entry));
                 }
