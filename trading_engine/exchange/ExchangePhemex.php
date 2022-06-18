@@ -84,7 +84,8 @@ class ExchangePhemex implements IExchange
         {
             $param = [
                 'timeInForce' => 'PostOnly',
-                'clOrdID' => $uuid
+                'clOrdID' => $uuid,
+                'reduceOnly' => $order->is_reduce_only
             ]; // GoodTillCancel, PostOnly, ImmediateOrCancel,
         }
         $entry = $order->entry;
