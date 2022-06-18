@@ -84,8 +84,8 @@ class ExchangePhemex implements IExchange
         {
             $param = [
                 'timeInForce' => 'PostOnly',
-                'clOrdID' => $uuid,
-                'reduceOnly' => $order->is_reduce_only
+                'clOrdID' => $uuid//,
+                //'reduceOnly' => $order->is_reduce_only
             ]; // GoodTillCancel, PostOnly, ImmediateOrCancel,
         }
         $entry = $order->entry;
@@ -417,7 +417,8 @@ class ExchangePhemex implements IExchange
         } catch (\Exception $e)
         {
             // 이미 체결되서 order 를 못찾았을수도?
-            echo "-------order error--------\n";
+            print("[".date('Y-d-m h:i:s', time())."] : -------order error--------1\n");
+			var_dump($e);
         }
 
         try {
@@ -432,7 +433,9 @@ class ExchangePhemex implements IExchange
         } catch (\Exception $e)
         {
             // 이미 체결되서 order 를 못찾았을수도?
-            echo "-------order error--------\n";
+            //echo "-------order error--------\n";
+            print("[".date('Y-d-m h:i:s', time())."] : -------order error--------2\n");
+			var_dump($e);
         }
 
         return null;
@@ -452,7 +455,9 @@ class ExchangePhemex implements IExchange
         } catch (\Exception $e)
         {
             // 이미 체결되서 order 를 못찾았을수도?
-            echo "-------order error--------\n";
+            //echo "-------order error--------\n";
+            print("[".date('Y-d-m h:i:s', time())."] : -------order error--------3\n");
+			var_dump($e);
         }
 
         try {
@@ -467,7 +472,9 @@ class ExchangePhemex implements IExchange
         } catch (\Exception $e)
         {
             // 이미 체결되서 order 를 못찾았을수도?
-            echo "-------order error--------\n";
+            //echo "-------order error--------\n";
+            print("[".date('Y-d-m h:i:s', time())."] : -------order error--------4\n");
+			var_dump($e);
         }
 
         return null;
