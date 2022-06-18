@@ -46,6 +46,7 @@ class Order
         $order->comment = $comment;
         $order->log = $log;
         $order->action = $action;
+        $order->wait_min = $wait_min;
 
 
         return $order;
