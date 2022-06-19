@@ -448,7 +448,7 @@ class ExchangePhemex implements IExchange
                 print("[".date('Y-d-m h:i:s', time())."] : -------order error--------1\n");
                 var_dump($e);
                 print("\n===============\n");
-                print($results);
+                var_dump($results);
                 print("\n===============\n");
                 sleep(2);
             }
@@ -475,7 +475,7 @@ class ExchangePhemex implements IExchange
                 print("[".date('Y-d-m h:i:s', time())."] : -------order error--------2\n");
                 var_dump($e);
                 print("\n===============\n");
-                print($results);
+                var_dump($results);
                 print("\n===============\n");
                 sleep(2);
                 $retry_count++;
@@ -560,7 +560,7 @@ class ExchangePhemex implements IExchange
                 print("[".date('Y-d-m h:i:s', time())."] : -------order error--------3\n");
                 var_dump($e);
                 print("\n===============\n");
-                print($results);
+                var_dump($results);
                 print("\n===============\n");
                 sleep(2);
             }
@@ -587,7 +587,7 @@ class ExchangePhemex implements IExchange
                 print("[".date('Y-d-m h:i:s', time())."] : -------order error--------4\n");
                 var_dump($e);
                 print("\n===============\n");
-                print($results);
+                var_dump($results);
                 print("\n===============\n");
                 sleep(2);
                 $retry_count++;
