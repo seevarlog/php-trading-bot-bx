@@ -419,6 +419,7 @@ class ExchangePhemex implements IExchange
             // 이미 체결되서 order 를 못찾았을수도?
             print("[".date('Y-d-m h:i:s', time())."] : -------order error--------1\n");
 			var_dump($e);
+			sleep(1);
         }
 
         try {
@@ -436,6 +437,7 @@ class ExchangePhemex implements IExchange
             //echo "-------order error--------\n";
             print("[".date('Y-d-m h:i:s', time())."] : -------order error--------2\n");
 			var_dump($e);
+			sleep(1);
         }
 
         return null;
@@ -458,6 +460,7 @@ class ExchangePhemex implements IExchange
             //echo "-------order error--------\n";
             print("[".date('Y-d-m h:i:s', time())."] : -------order error--------3\n");
 			var_dump($e);
+			sleep(1);
         }
 
         try {
@@ -475,6 +478,7 @@ class ExchangePhemex implements IExchange
             //echo "-------order error--------\n";
             print("[".date('Y-d-m h:i:s', time())."] : -------order error--------4\n");
 			var_dump($e);
+			sleep(1);
         }
 
         return null;
