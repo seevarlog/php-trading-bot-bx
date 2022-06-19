@@ -421,7 +421,7 @@ class ExchangePhemex implements IExchange
     public function getOrderByClientOrder($client_order)
     {
 		$retry_count = 0;
-		while (True)
+		while (true)
 		{
 			if ($retry_count >3)
 			{
@@ -533,7 +533,7 @@ class ExchangePhemex implements IExchange
     public function getOrder(Order $order)
     {
 		$retry_count = 0;
-		while (True)
+		while (true)
 		{
 			if ($retry_count >3)
 			{
