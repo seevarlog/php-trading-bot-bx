@@ -116,8 +116,8 @@ class ExchangePhemex implements IExchange
                 else
                 {
                     print("null 떨어짐\n");
-					var_dump($ret);
-					print("===========\n");
+                    var_dump($ret);
+                    print("===========\n");
                     // 데이터를 못받았으니 같은 클라 아이디로 재주문
                     continue;
                 }
@@ -137,21 +137,21 @@ class ExchangePhemex implements IExchange
                     }
                     break;
                 }else{
-					if (isset($ret['id']))
-					{
-						# getOrderByClientOrder를 가져오는게 실패했..
-						# getOrderByClientOrder를 3번까지 시도했음에도 null이 뜬다면...
-						# create_order의 return값이 있으면 일단 주문이 들어갔다고 판단하고 break
-						# 해당 주문은 Canceled, Rejected가 됐을수도 있지만
-						# 중복 주문 보다는 나을듯
+                    if (isset($ret['id']))
+                    {
+                        # getOrderByClientOrder를 가져오는게 실패했..
+                        # getOrderByClientOrder를 3번까지 시도했음에도 null이 뜬다면...
+                        # create_order의 return값이 있으면 일단 주문이 들어갔다고 판단하고 break
+                        # 해당 주문은 Canceled, Rejected가 됐을수도 있지만
+                        # 중복 주문 보다는 나을듯
 
-						# 주기적으로 진입한 주문은 없는데, 스탑 주문만 있다면 해당 order를 삭제하는 로직을 돌리면 
-						# 서버 안정화 이후 정상화 될듯
-						break;
-					}
-					# create_order 의 ret도 null이고
-					# getOrderByClientOrder도 null이면 재시도
-				}
+                        # 주기적으로 진입한 주문은 없는데, 스탑 주문만 있다면 해당 order를 삭제하는 로직을 돌리면 
+                        # 서버 안정화 이후 정상화 될듯
+                        break;
+                    }
+                    # create_order 의 ret도 null이고
+                    # getOrderByClientOrder도 null이면 재시도
+                }
             }catch (DuplicateOrderId $duple_e)
             {
                 $order_ret = $this->getOrderByClientOrder($uuid);
@@ -364,8 +364,8 @@ class ExchangePhemex implements IExchange
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         $response = curl_exec($ch);
         if ($response == "")
-	{
-	    throw new \Exception("live socket server error");
+    {
+        throw new \Exception("live socket server error");
         }
         curl_close($ch);
         $ret = json_decode($response, true);
@@ -420,69 +420,69 @@ class ExchangePhemex implements IExchange
 
     public function getOrderByClientOrder($client_order)
     {
-		$retry_count = 0;
-		while (true)
-		{
-			if ($retry_count >3)
-			{
-				break;
-			}
-			try {
-				$results = $this->phmex_api->fetch_open_orders(self::SYMBOL);
+        $retry_count = 0;
+        while (true)
+        {
+            if ($retry_count >3)
+            {
+                break;
+            }
+            try {
+                $results = $this->phmex_api->fetch_open_orders(self::SYMBOL);
 
-				if (!isset($results) || count($results) == 0)
-				{
-					throw new Exception("results is 0 or len(0)");
-				}
+                if (!isset($results) || count($results) == 0)
+                {
+                    throw new Exception("results is 0 or len(0)");
+                }
 
-				foreach($results as $result)
-				{
-					if ($result['clientOrderId'] == $client_order)
-					{
-						return $result;
-					}
-				}
-			} catch (\Exception $e)
-			{
-				// 이미 체결되서 order 를 못찾았을수도?
-				print("[".date('Y-d-m h:i:s', time())."] : -------order error--------1\n");
-				var_dump($e);
-				print("\n===============\n");
-				print($results);
-				print("\n===============\n");
-				sleep(2);
-			}
+                foreach($results as $result)
+                {
+                    if ($result['clientOrderId'] == $client_order)
+                    {
+                        return $result;
+                    }
+                }
+            } catch (\Exception $e)
+            {
+                // 이미 체결되서 order 를 못찾았을수도?
+                print("[".date('Y-d-m h:i:s', time())."] : -------order error--------1\n");
+                var_dump($e);
+                print("\n===============\n");
+                print($results);
+                print("\n===============\n");
+                sleep(2);
+            }
 
-			try {
-				$results = $this->phmex_api->fetch_orders(self::SYMBOL, null, 30);
-	 
-				if (!isset($results) || count($results) == 0)
-				{
-					throw new Exception("results is 0 or len(0)");
-				}
+            try {
+                $results = $this->phmex_api->fetch_orders(self::SYMBOL, null, 30);
+     
+                if (!isset($results) || count($results) == 0)
+                {
+                    throw new Exception("results is 0 or len(0)");
+                }
 
-				foreach($results as $result)
-				{
-					if ($result['clientOrderId'] == $client_order)
-					{
-						return $result;
-					}
-				}
-			} catch (\Exception $e)
-			{
-				// 이미 체결되서 order 를 못찾았을수도?
-				//echo "-------order error--------\n";
-				print("[".date('Y-d-m h:i:s', time())."] : -------order error--------2\n");
-				var_dump($e);
-				print("\n===============\n");
-				print($results);
-				print("\n===============\n");
-				sleep(2);
-				$retry_count++;
-				continue;
-			}
-			return null;
-		}
+                foreach($results as $result)
+                {
+                    if ($result['clientOrderId'] == $client_order)
+                    {
+                        return $result;
+                    }
+                }
+            } catch (\Exception $e)
+            {
+                // 이미 체결되서 order 를 못찾았을수도?
+                //echo "-------order error--------\n";
+                print("[".date('Y-d-m h:i:s', time())."] : -------order error--------2\n");
+                var_dump($e);
+                print("\n===============\n");
+                print($results);
+                print("\n===============\n");
+                sleep(2);
+                $retry_count++;
+                continue;
+            }
+            return null;
+        }
         return null;
     }
 
@@ -503,8 +503,8 @@ class ExchangePhemex implements IExchange
             // 이미 체결되서 order 를 못찾았을수도?
             //echo "-------order error--------\n";
             print("[".date('Y-d-m h:i:s', time())."] : -------order error--------3\n");
-			var_dump($e);
-			sleep(1);
+            var_dump($e);
+            sleep(1);
         }
 
         try {
@@ -521,8 +521,8 @@ class ExchangePhemex implements IExchange
             // 이미 체결되서 order 를 못찾았을수도?
             //echo "-------order error--------\n";
             print("[".date('Y-d-m h:i:s', time())."] : -------order error--------4\n");
-			var_dump($e);
-			sleep(1);
+            var_dump($e);
+            sleep(1);
         }
 
         return null;
@@ -532,69 +532,69 @@ class ExchangePhemex implements IExchange
 
     public function getOrder(Order $order)
     {
-		$retry_count = 0;
-		while (true)
-		{
-			if ($retry_count >3)
-			{
-				break;
-			}
-			try {
-				$results = $this->phmex_api->fetch_open_orders(self::SYMBOL);
+        $retry_count = 0;
+        while (true)
+        {
+            if ($retry_count >3)
+            {
+                break;
+            }
+            try {
+                $results = $this->phmex_api->fetch_open_orders(self::SYMBOL);
 
-				if (!isset($results) || count($results) == 0)
-				{
-					throw new Exception("results is 0 or len(0)");
-				}
+                if (!isset($results) || count($results) == 0)
+                {
+                    throw new Exception("results is 0 or len(0)");
+                }
 
-				foreach($results as $result)
-				{
-					if ($result['id'] == $order->order_id)
-					{
-						return $result;
-					}
-				}
-			} catch (\Exception $e)
-			{
-				// 이미 체결되서 order 를 못찾았을수도?
-				print("[".date('Y-d-m h:i:s', time())."] : -------order error--------3\n");
-				var_dump($e);
-				print("\n===============\n");
-				print($results);
-				print("\n===============\n");
-				sleep(2);
-			}
+                foreach($results as $result)
+                {
+                    if ($result['id'] == $order->order_id)
+                    {
+                        return $result;
+                    }
+                }
+            } catch (\Exception $e)
+            {
+                // 이미 체결되서 order 를 못찾았을수도?
+                print("[".date('Y-d-m h:i:s', time())."] : -------order error--------3\n");
+                var_dump($e);
+                print("\n===============\n");
+                print($results);
+                print("\n===============\n");
+                sleep(2);
+            }
 
-			try {
-				$results = $this->phmex_api->fetch_orders(self::SYMBOL, null, 20);
-	 
-				if (!isset($results) || count($results) == 0)
-				{
-					throw new Exception("results is 0 or len(0)");
-				}
+            try {
+                $results = $this->phmex_api->fetch_orders(self::SYMBOL, null, 20);
+     
+                if (!isset($results) || count($results) == 0)
+                {
+                    throw new Exception("results is 0 or len(0)");
+                }
 
-				foreach($results as $result)
-				{
-                	if ($result['id'] == $order->order_id)
-					{
-						return $result;
-					}
-				}
-			} catch (\Exception $e)
-			{
-				// 이미 체결되서 order 를 못찾았을수도?
-				//echo "-------order error--------\n";
-				print("[".date('Y-d-m h:i:s', time())."] : -------order error--------4\n");
-				var_dump($e);
-				print("\n===============\n");
-				print($results);
-				print("\n===============\n");
-				sleep(2);
-				$retry_count++;
-				continue;
-			}
-			return null;
-		}
+                foreach($results as $result)
+                {
+                    if ($result['id'] == $order->order_id)
+                    {
+                        return $result;
+                    }
+                }
+            } catch (\Exception $e)
+            {
+                // 이미 체결되서 order 를 못찾았을수도?
+                //echo "-------order error--------\n";
+                print("[".date('Y-d-m h:i:s', time())."] : -------order error--------4\n");
+                var_dump($e);
+                print("\n===============\n");
+                print($results);
+                print("\n===============\n");
+                sleep(2);
+                $retry_count++;
+                continue;
+            }
+            return null;
+        }
         return null;
     }
 
