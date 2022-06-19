@@ -125,6 +125,14 @@ class Order
     {
         $result = GlobalVar::getInstance()->exchange->privates()->getOrder($this);
 
+		if ($result['info']['ordStatus'] == "Canceled" ||
+			$result['info']['ordStatus'] == "Rejected")
+			{
+	            OrderManager::getInstance()->cancelOrder($this);
+                Notify::sendTradeMsg("취소 또는 거절된 거래가 확인되어 모든 주문 취소 진행함");
+				return true;
+			}
+
         // 진입 filled 추적
         if ($this->filled_amount > 0 && str_contains($this->comment, "진입"))
         {
