@@ -642,6 +642,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         
         // 익절 주문?
         /*
+w
         OrderManager::getInstance()->updateOrder(
             $time,
             $this->getStrategyKey(),
