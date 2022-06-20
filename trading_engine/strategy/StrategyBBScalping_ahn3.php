@@ -235,7 +235,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 	var_dump($tt." : ".$sl);
 	
 	$candle_tmp = $candle;
-
+    
 	print("======= Candle Info ======\n");
 	print(date('Y-d-m h:i:s', time())."\n");
 	print($tt." : [EMA SLIDE. TRADE TIME :  0.0 ~ 0.02 && 0.04 ~ 0.05] abs(".$sl.")\n");
@@ -245,7 +245,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
             $candle_tmp = $candle_tmp->getCandlePrev();
 	}
 	print("==========================\n");
-        
+    
 #		$candle = $candle_5m;
         for($ii=0; $ii<3; $ii++)
         {

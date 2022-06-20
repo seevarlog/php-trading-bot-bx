@@ -97,7 +97,7 @@ class ExchangePhemex implements IExchange
                 if ($i>=1)
                 {
                     $book = $this->getNowOrderBook();
-                    $entry = $order->amount < 0 ? $book['sell'] : $book['buy'];
+                    $entry = $order->amount > 0 ? $book['sell']-0.5 : $book['buy']+0.5;
                     $order->entry = $entry;
                 }
 
@@ -122,6 +122,8 @@ class ExchangePhemex implements IExchange
                     // 데이터를 못받았으니 같은 클라 아이디로 재주문
                     continue;
                 }
+            
+                sleep(1);
 
                 $order_ret = $this->getOrderByClientOrder($uuid);
                 if ($order_ret !== null)
@@ -135,6 +137,10 @@ class ExchangePhemex implements IExchange
                         $param['clOrdID'] = $uuid;
                         $order->order_client_id = $uuid;
                         continue;
+                    }else{
+                        print("=============== after getOrderByClientOrder ==============\n");
+                        var_dump($order_ret);
+                        print("==========================================================\n");
                     }
                     break;
                 }else{
@@ -155,6 +161,7 @@ class ExchangePhemex implements IExchange
                 }
             }catch (DuplicateOrderId $duple_e)
             {
+                sleep(1);
                 $order_ret = $this->getOrderByClientOrder($uuid);
                 if ($order_ret !== null)
                 {
