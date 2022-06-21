@@ -51,7 +51,8 @@ class Candle
     public $ad = 0;
 
     // dx 저장
-    public $dx = -1;
+    public $dx = [];
+    public $adx = [];
 
     // 평균 변동성 캐시
     public $av = 0;
@@ -1668,19 +1669,19 @@ class Candle
 
     public function getDX($length)
     {
-        if ($this->dx > 0)
+        if (isset($this->dx[$length]))
         {
-            return $this->dx;
+            return $this->dx[$length];
         }
 
         $di_diff = abs($this->getDiPlus($length) - $this->getDiMinus($length));
         $di_sum = $this->getDiPlus($length) + $this->getDiMinus($length);
 
-        $this->dx = (100*($di_diff/$di_sum));
-        return $this->dx;
+        $this->dx[$length] = (100*($di_diff/$di_sum));
+        return $this->dx[$length];
     }
 
-    public function getADX($length)
+    public function getADXprev($length, $left = -1)
     {
         $sum = 0;
         $candle = $this;
@@ -1697,5 +1698,53 @@ class Candle
         }
 
         return $sum / $length;
+    }
+
+
+    public function getADX($length, $left = -1)
+    {
+        if ($left == -1)
+        {
+            $left = 60;
+        }
+
+        if (isset($this->adx[$length]))
+        {
+            return $this->adx[$length];
+        }
+
+        if ($this->cp == null)
+        {
+            return 50;
+        }
+
+        if ($left == 0)
+        {
+            $sum = 0;
+            $candle = $this;
+            for ($i=0; $i<$length; $i++)
+            {
+                try{
+                    $sum += $candle->getDX($length);
+                } catch (\DivisionByZeroError $e)
+                {
+
+                }
+
+                $candle = $candle->getCandlePrev();
+            }
+
+            $this->adx[$length] = $sum / $length;
+            return $this->adx[$length];
+        }
+
+        $alpha = 1 / $length;
+        $temp = $alpha * $this->getDX($length) + (1 - $alpha) * $this->getCandlePrev()->getADX($length);
+        if ($this->cn !== null)
+        {
+            $this->adx[$length] = $temp;
+        }
+
+        return $this->adx[$length];
     }
 }
