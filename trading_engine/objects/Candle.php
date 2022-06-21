@@ -53,6 +53,8 @@ class Candle
     // dx 저장
     public $dx = [];
     public $adx = [];
+    public $d_p = [];
+    public $d_m = [];
 
     // 평균 변동성 캐시
     public $av = 0;
@@ -1608,52 +1610,130 @@ class Candle
 
         return "sideways";
     }
-    public function getDmPlus($length=1)
+    public function getDmPlus($length=1, $left = -1)
     {
-        $sum = 0;
-        $candle = $this;
-
-        for ($i=0; $i<$length; $i++)
+        if ($left == -1)
         {
-            $v = 0;
-            $C14 = $candle->h;
-            $C13 = $candle->getCandlePrev()->h;
-            $D13 = $candle->getCandlePrev()->l;
-            $D14 = $candle->l;
-
-            if ($C14 - $C13 > $D13 - $D14)
-            {
-                $v = MAX($C14-$C13,0);
-            }
-            $sum += $v;
-            $candle = $candle->getCandlePrev();
+            $left = 60;
         }
 
-        return $sum;
+        if (isset($this->d_p[$length]))
+        {
+            return $this->d_p[$length];
+        }
+
+        if ($this->cp == null)
+        {
+            return 0;
+        }
+
+        if ($left == 0)
+        {
+            $sum = 0;
+            $candle = $this;
+
+            for ($i=0; $i<$length; $i++)
+            {
+                $v = 0;
+                $C14 = $candle->h;
+                $C13 = $candle->getCandlePrev()->h;
+                $D13 = $candle->getCandlePrev()->l;
+                $D14 = $candle->l;
+
+                if ($C14 - $C13 > $D13 - $D14)
+                {
+                    $v = MAX($C14-$C13,0);
+                }
+                $sum += $v;
+                $candle = $candle->getCandlePrev();
+            }
+
+            $this->d_p[$length] = $sum;
+        }
+
+        $v = 0;
+        $candle = $this;
+        $C14 = $candle->h;
+        $C13 = $candle->getCandlePrev()->h;
+        $D13 = $candle->getCandlePrev()->l;
+        $D14 = $candle->l;
+
+        if ($C14 - $C13 > $D13 - $D14)
+        {
+            $v = MAX($C14-$C13,0);
+        }
+
+        $alpha = 1 / $length;
+        $temp = $v + $this->getCandlePrev()->getDmPlus($length, $left) * (1 - $alpha);
+        if ($this->cn !== null)
+        {
+            $this->d_p[$length] = $temp;
+        }
+
+        return $temp;
     }
 
-    public function getDmMinus($length=1)
+    public function getDmMinus($length=1, $left = -1)
     {
-        $sum = 0;
-        $candle = $this;
-
-        for ($i=0; $i<$length; $i++)
+        if ($left == -1)
         {
-            $v = 0;
-            $C14 = $candle->h;
-            $C13 = $candle->getCandlePrev()->h;
-            $D13 = $candle->getCandlePrev()->l;
-            $D14 = $candle->l;
-
-            if ($D13-$D14 > $C14-$C13)
-            {
-                $v = MAX($D13-$D14,0);
-            }
-            $sum += $v;
-            $candle = $candle->getCandlePrev();
+            $left = 60;
         }
 
-        return $sum;
+        if (isset($this->d_m[$length]))
+        {
+            return $this->d_m[$length];
+        }
+
+        if ($this->cp == null)
+        {
+            return 0;
+        }
+
+        if ($left == 0)
+        {
+            $sum = 0;
+            $candle = $this;
+
+            for ($i=0; $i<$length; $i++)
+            {
+                $v = 0;
+                $C14 = $candle->h;
+                $C13 = $candle->getCandlePrev()->h;
+                $D13 = $candle->getCandlePrev()->l;
+                $D14 = $candle->l;
+
+                if ($D13-$D14 > $C14-$C13)
+                {
+                    $v = MAX($D13-$D14,0);
+                }
+                $sum += $v;
+                $candle = $candle->getCandlePrev();
+            }
+
+            $this->d_m[$length] = $sum;
+        }
+
+        $v = 0;
+        $candle = $this;
+        $C14 = $candle->h;
+        $C13 = $candle->getCandlePrev()->h;
+        $D13 = $candle->getCandlePrev()->l;
+        $D14 = $candle->l;
+
+        if ($D13-$D14 > $C14-$C13)
+        {
+            $v = MAX($D13-$D14,0);
+        }
+
+        $alpha = 1 / $length;
+        $temp = $v + $this->getCandlePrev()->getDmMinus($length, $left) * (1 - $alpha);
+        if ($this->cn !== null)
+        {
+            $this->d_m[$length] = $temp;
+        }
+
+        return $temp;
     }
 
     public function getDiPlus($length=1)
@@ -1739,12 +1819,12 @@ class Candle
         }
 
         $alpha = 1 / $length;
-        $temp = $alpha * $this->getDX($length) + (1 - $alpha) * $this->getCandlePrev()->getADX($length);
+        $temp = $alpha * $this->getDX($length) + (1 - $alpha) * $this->getCandlePrev()->getADX($length, $left);
         if ($this->cn !== null)
         {
             $this->adx[$length] = $temp;
         }
 
-        return $this->adx[$length];
+        return $temp;
     }
 }
