@@ -331,13 +331,20 @@ class ExchangePhemex implements IExchange
 
         if ($ret["msg"] != "OK")
         {
+            print("===\n");
+            print("Exception : kline not OK\n");
+            var_dump($ret);
+            print("===\n");
+            sleep(1);
+            return $this->getLocalLive1mKline();
+
             throw new \Exception("kline not OK");
         }
 
         if (count($ret["data"]["rows"]) == 0)
         {
             sleep(1);
-                return $this->getLocalLive1mKline();
+            return $this->getLocalLive1mKline();
         }
 
         if (count($ret["data"]["rows"]) == 1)
