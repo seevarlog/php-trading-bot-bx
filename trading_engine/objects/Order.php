@@ -141,7 +141,7 @@ class Order
                 var_dump(OrderManager::getInstance()->order_list);
                 print("=========================================\n");
 
-                $order_book = GlobalVar::getInstance()->exchange->public()->getNowOrderBook();
+                $order_book = GlobalVar::getInstance()->exchange->publics()->getNowOrderBook();
 
                 if (str_contains($this->comment, "익절") || str_contains($this->comment, "진입"))
                 {
@@ -153,7 +153,7 @@ class Order
                         $this->strategy_key,
                         $this->amount,
                         $this->amount > 0 ? $order_book['sell']-0.5 : $order_book['buy']+0.5, // 새로운 진입가, $this->side => buy -> sell_price-0.5, sell -> buy_price+0.5
-                        $this->limit,
+                        $this->is_limit,
                         $this->is_reduce_only,
                         $this->comment,
                         $this->log,
@@ -169,7 +169,7 @@ class Order
                         $this->strategy_key,
                         $this->amount,
                         $this->entry, // 손절가는 기존거 그대로 사용
-                        $this->limit,
+                        $this->is_limit,
                         $this->is_reduce_only,
                         $this->comment,
                         $this->log,
@@ -301,20 +301,20 @@ class Order
         $is_limit = $order->is_limit;
 
         // 판매할떄 limit 검증
-        if ($order->amount < 0)
-        {
-            if ($order->entry <= $candle->o)
-            {
-                $is_limit = 0;
-            }
-        }
-        else if ($order->amount > 0)
-        {
-            if ($order->entry >= $candle->o)
-            {
-                $is_limit = 0;
-            }
-        }
+//        if ($order->amount < 0)
+//        {
+//            if ($order->entry <= $candle->o)
+//            {
+//                $is_limit = 0;
+//            }
+//        }
+//        else if ($order->amount > 0)
+//        {
+//            if ($order->entry >= $candle->o)
+//            {
+//                $is_limit = 0;
+//            }
+//        }
 
         if ($is_limit)
         {
