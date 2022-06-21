@@ -134,9 +134,54 @@ class Order
         if ($result['info']['ordStatus'] == "Canceled" ||
             $result['info']['ordStatus'] == "Rejected")
             {
-                OrderManager::getInstance()->cancelOrder($this);
-                Notify::sendTradeMsg("취소 또는 거절된 거래가 확인되어 모든 주문 취소 진행함");
-                return true;
+                print("=========================================\n");
+                print("cancel 또는 reject 된 주문이 발견됨\n");
+                var_dump($result);
+                print("=========================================\n");
+                var_dump(OrderManager::getInstance()->order_list);
+                print("=========================================\n");
+
+                $order_book = GlobalVar::getInstance()->exchange->public()->getNowOrderBook();
+
+                if (str_contains($this->comment, "익절") || str_contains($this->comment, "진입"))
+                {
+                    // 진입/익절 주문의 경우, 주문을 다시 넣어야함.
+                    Notify::sendTradeMsg("진입/익절 주문이 취소된 것을 확인함. 전체 주문 취소 후 재주문 진행");
+                    OrderManager::getInstance()->cancelOrder($this);
+                    OrderManager::getInstance()->updateOrder(
+                        $this->date,
+                        $this->strategy_key,
+                        $this->amount,
+                        $this->amount > 0 ? $order_book['sell']-0.5 : $order_book['buy']+0.5, // 새로운 진입가, $this->side => buy -> sell_price-0.5, sell -> buy_price+0.5
+                        $this->limit,
+                        $this->is_reduce_only,
+                        $this->comment,
+                        $this->log,
+                        $this->action,
+                        $this->wait_min
+                    );
+                }else{
+                    // 손절 케이스. rejected 만 있을듯..
+                    Notify::sendTradeMsg("손절 주문이 취소된 것을 확인함. 전체 주문 취소 후 손절 재주문");
+                    OrderManager::getInstance()->cancelOrder($this);
+                    OrderManager::getInstance()->updateOrder(
+                        $this->date,
+                        $this->strategy_key,
+                        $this->amount,
+                        $this->entry, // 손절가는 기존거 그대로 사용
+                        $this->limit,
+                        $this->is_reduce_only,
+                        $this->comment,
+                        $this->log,
+                        $this->action,
+                        $this->wait_min
+                    );
+                }
+
+                //Notify::sendTradeMsg("취소 또는 거절된 거래가 확인되어 모든 주문 취소 진행함");
+                //OrderManager::getInstance()->cancelOrder($this);
+                Notify::sendTradeMsg("취소 및 재주문 완료");
+                return false;
             }
 
         // 진입 filled 추적
