@@ -220,7 +220,7 @@ class Order
 
         if (str_contains($this->comment, "진입"))
         {
-            Notify::sendTradeMsg("진입 거래가 채워졌다. prev:".$this->amount." filled:".$exec_amount);
+            #Notify::sendTradeMsg("진입 거래가 채워졌다. prev:".$this->amount." filled:".$exec_amount);
             // 여기서 ID를 찾을 수 없음
             if ($exec_amount == abs($this->amount))
             {

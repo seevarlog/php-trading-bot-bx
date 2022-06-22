@@ -1837,7 +1837,7 @@ class Candle
     {
         if ($left == -1)
         {
-            $left = 60;
+            $left = 50;
         }
 
         if (isset($this->adx[$length]))
