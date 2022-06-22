@@ -45,10 +45,10 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
     public function BBS(Candle $candle, float $order_book_sell, float $order_book_buy)
     {
-    $this->now_1m_candle = $candle;
-        
-    $this->order_book_sell_price = $order_book_sell;
-    $this->order_book_buy_price = $order_book_buy;
+        $this->now_1m_candle = $candle;
+            
+        $this->order_book_sell_price = $order_book_sell;
+        $this->order_book_buy_price = $order_book_buy;
 
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
@@ -116,39 +116,39 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         foreach ($order_list as $order)
         {
             if (str_contains($order->comment, "손절"))
-        {
-            continue;
-        }
-
-            if (str_contains($order->comment, "진입"))
             {
-                # 거래소로부터 주문의 filled 양을 가져와서 업데이트 후 채워진건지 리턴해줌
-                # 완전히 채워지지 않은 경우, 주문중이라고 판단함
-                return $order->isOrdering();
+                continue;
             }
-    }
-    return False;
+
+                if (str_contains($order->comment, "진입"))
+                {
+                    # 거래소로부터 주문의 filled 양을 가져와서 업데이트 후 채워진건지 리턴해줌
+                    # 완전히 채워지지 않은 경우, 주문중이라고 판단함
+                    return $order->isOrdering();
+                }
+        }
+        return False;
     }
 
     # 진입 주문만 취소
     public function cancelOrdering()
     {
-    $orderMng = OrderManager::getInstance();
-    $order_list = $orderMng->getOrderList($this->getStrategyKey());
+        $orderMng = OrderManager::getInstance();
+        $order_list = $orderMng->getOrderList($this->getStrategyKey());
 
         foreach ($order_list as $order)
         {
-        if (str_contains($order->comment, "손절"))
-        {
-            continue;
-        }
+            if (str_contains($order->comment, "손절"))
+            {
+                continue;
+            }
 
-        if (str_contains($order->comment, "진입"))
-        {
-            OrderReserveManager::getInstance()->order_bb_scalping = [];
-            $orderMng->postOrderCancel($order);
-            continue;
-        }
+            if (str_contains($order->comment, "진입"))
+            {
+                OrderReserveManager::getInstance()->order_bb_scalping = [];
+                $orderMng->postOrderCancel($order);
+                continue;
+            }
         $orderMng->cancelOrder($order);
         }
  
@@ -166,24 +166,24 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         
         $candle = $this->now_1m_candle;
 
-    # 시간대 조정 : -9시간
-    # 5분이 안되었는데 존재하는 5분봉은 미리 만들어둔거라...
-    /*
-    if ((now() - (60*60*9)) - 299 <=  $candle->t)
-    {
-        $candle = $candle->getCandlePrev();
-    }
-     */
+        # 시간대 조정 : -9시간
+        # 5분이 안되었는데 존재하는 5분봉은 미리 만들어둔거라...
+        /*
+        if ((now() - (60*60*9)) - 299 <=  $candle->t)
+        {
+            $candle = $candle->getCandlePrev();
+        }
+         */
 
-    #$candle_5m = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5);
-        #$candle_1h = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
-//        $ema240_1h = $candle_1h->getEMA240();
-//        $ema120_1h = $candle_1h->getEMA120();
-//        $ema50_1h = $candle_1h->getEMA50();
-//        $ema20_1h = $candle_1h->getEMA20();
-//        $ema10_1h = $candle_1h->getEMA10();
-//        $ema5_1h = $candle_1h->getEMA5();
-##        $ema50_1m = $candle->getEMA50();
+        #$candle_5m = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5);
+            #$candle_1h = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
+        //        $ema240_1h = $candle_1h->getEMA240();
+        //        $ema120_1h = $candle_1h->getEMA120();
+        //        $ema50_1h = $candle_1h->getEMA50();
+        //        $ema20_1h = $candle_1h->getEMA20();
+        //        $ema10_1h = $candle_1h->getEMA10();
+        //        $ema5_1h = $candle_1h->getEMA5();
+        ##        $ema50_1m = $candle->getEMA50();
         $ema240_1m = $candle->getEMA240();
         $ema120_1m = $candle->getEMA120();
         $ema50_1m = $candle->getEMA50();
@@ -199,26 +199,26 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         $adx_value = 14;
         $aa = 0.9;
         $adx = $candle->getADX($adx_value);
-    #$adx_limit = 25;
-    #$adx_limit = 0;
+        #$adx_limit = 25;
+        #$adx_limit = 0;
 
         $adx2 = $candle->getCandlePrev()->getADX($adx_value);
         $adx3 = $candle->getCandlePrev()->getCandlePrev()->getADX($adx_value);
         $adx4 = $candle->getCandlePrev()->getCandlePrev()->getCandlePrev()->getADX($adx_value);
         #$adx5 = $candle->getCandlePrev()->getCandlePrev()->getCandlePrev()->getCandlePrev()->getADX($adx_value);
 
-    #$slide = ($adx - $adx2) + ($adx2 - $adx3) + ($adx3 - $adx4) + ($adx4 - $adx5);
-    #$slide = ($adx - $adx2) + ($adx2 - $adx3) + ($adx3 - $adx4);
+        #$slide = ($adx - $adx2) + ($adx2 - $adx3) + ($adx3 - $adx4) + ($adx4 - $adx5);
+        #$slide = ($adx - $adx2) + ($adx2 - $adx3) + ($adx3 - $adx4);
         $slide_1 = ($adx*$aa > $adx2) && ($adx2*$aa > $adx3) && ($adx3*$aa > $adx4);
         $slide_2 = abs($candle->getDiPlus($adx_value) - $candle->getDiMinus($adx_value)) > 10;
         #$slide = ($adx*$aa > $adx2) && ($adx2*$aa > $adx3);
     
-    #$slide = ($adx > $adx2) && ($adx2 > $adx3);
-    #$SLIDE_FLAG = $slide || $adx >= $adx_limit;
-    #$SLIDE_FLAG = $slide;
-    #$SLIDE_FLAG = True;
-    #$SLIDE_FLAG = $adx >= $adx_limit;
-    #$SLIDE_FLAG = True;
+        #$slide = ($adx > $adx2) && ($adx2 > $adx3);
+        #$SLIDE_FLAG = $slide || $adx >= $adx_limit;
+        #$SLIDE_FLAG = $slide;
+        #$SLIDE_FLAG = True;
+        #$SLIDE_FLAG = $adx >= $adx_limit;
+        #$SLIDE_FLAG = True;
 
         $iiFlag = True;
 
@@ -231,14 +231,14 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         }
         $SLIDE_FLAG = ($slide_1 || $slide_2) && $slide_3;
         #$SLIDE_FLAG = (abs($sl) > 0.0 && abs($sl) < 0.02) || (abs($sl) > 0.04 && abs($sl) < 0.05);
-    #$SLIDE_FLAG = (abs($sl) > 0.0 && abs($sl) < 0.02);
-    #$SLIDE_FLAG = abs($sl) < 0.01;
-    #$SLIDE_FLAG = True;
-    
-    #$SLIDE_FLAG = abs($ema120_1m - $ema50_1m) > abs($ema120_1m_2 - $ema50_1m_2) && abs($ema120_1m_2 - $ema50_1m_2) > abs($ema120_1m_3 - $ema50_1m_3);
-    #$no = (abs($ema120_1m - $ema50_1m) / $ema120_1m) > 0.0006;
-    #$SLIDE_FLAG = $SLIDE_FLAG && $no;
-    #$SLIDE_FLAG = True && $no;
+        #$SLIDE_FLAG = (abs($sl) > 0.0 && abs($sl) < 0.02);
+        #$SLIDE_FLAG = abs($sl) < 0.01;
+        #$SLIDE_FLAG = True;
+        
+        #$SLIDE_FLAG = abs($ema120_1m - $ema50_1m) > abs($ema120_1m_2 - $ema50_1m_2) && abs($ema120_1m_2 - $ema50_1m_2) > abs($ema120_1m_3 - $ema50_1m_3);
+        #$no = (abs($ema120_1m - $ema50_1m) / $ema120_1m) > 0.0006;
+        #$SLIDE_FLAG = $SLIDE_FLAG && $no;
+        #$SLIDE_FLAG = True && $no;
 
         $tt = date('Y-m-d H:i:s', $candle->t);
         #var_dump($tt." : ".$sl);
@@ -298,15 +298,15 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         for($ii=0; $ii<3; $ii++)
         {
-                #if($candle->o > $candle->c)
-                if(($candle->o + $candle->c)/2 < ($candle->getCandlePrev()->o + $candle->getCandlePrev()->c)/2 )
-                #if(($candle->l + $candle->h)/2 < ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
-                {
-                        $candle = $candle->getCandlePrev();
-                }else{
-                        $iiFlag = False;
-                        break;
-                }
+            #if($candle->o > $candle->c)
+            if(($candle->o + $candle->c)/2 < ($candle->getCandlePrev()->o + $candle->getCandlePrev()->c)/2 )
+            #if(($candle->l + $candle->h)/2 < ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
+            {
+                $candle = $candle->getCandlePrev();
+            }else{
+                $iiFlag = False;
+                break;
+            }
         }
         #print($this->nowOrderingState());
         //$amount = PositionManager::getInstance()->getPosition($this->getStrategyKey())->amount;
@@ -357,15 +357,15 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         
         for($ii=0; $ii<3; $ii++)
         {
-                #if($candle->o > $candle->c)
-                if(($candle->o + $candle->c)/2 < ($candle->getCandlePrev()->o + $candle->getCandlePrev()->c)/2 )
-                #if(($candle->l + $candle->h)/2 < ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
-                {
-                        $candle = $candle->getCandlePrev();
-                }else{
-                        $iiFlag = False;
-                        break;
-                }
+            #if($candle->o > $candle->c)
+            if(($candle->o + $candle->c)/2 < ($candle->getCandlePrev()->o + $candle->getCandlePrev()->c)/2 )
+            #if(($candle->l + $candle->h)/2 < ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
+            {
+                $candle = $candle->getCandlePrev();
+            }else{
+                $iiFlag = False;
+                break;
+            }
         }
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m < $ema50_1m && $ema5_1h < $ema10_1h && $rsi > 40) 
@@ -385,15 +385,15 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         for($ii=0; $ii<3; $ii++)
         {
-                #if($candle->o < $candle->c)
-                if(($candle->c + $candle->o)/2 > ($candle->getCandlePrev()->c + $candle->getCandlePrev()->o)/2 )
-                #if(($candle->l + $candle->h)/2 > ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
-                {
-                        $candle = $candle->getCandlePrev();
-                }else{
-                        $iiFlag = False;
-                        break;
-                }
+            #if($candle->o < $candle->c)
+            if(($candle->c + $candle->o)/2 > ($candle->getCandlePrev()->c + $candle->getCandlePrev()->o)/2 )
+            #if(($candle->l + $candle->h)/2 > ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
+            {
+                $candle = $candle->getCandlePrev();
+            }else{
+                $iiFlag = False;
+                break;
+            }
         }
         
         $amount = $curPosition->amount;
@@ -476,11 +476,11 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         #$range_value = $candle->getBBUpLine($this->day, $this->k) - $candle->getBBDownLine($this->day, $this->k);
         #$this->buyBit($candle->t, $candle->getBBDownLine($this->day, $this->k), $range_value);
-    #$this->buyBit($candle->t, $candle->c, 0);
-    
-    # 매수 시 매도 1호가 가격으로 buyBit 함수 호출. buyBit 함수 안에서 -0.5를 진행해주기 때문에, 
-    # 가장 체결 확률이 높은 가격으로 주문을 내게 됨
-    $this->buyBit($candle->t, $this->order_book_sell_price, 0);
+        #$this->buyBit($candle->t, $candle->c, 0);
+        
+        # 매수 시 매도 1호가 가격으로 buyBit 함수 호출. buyBit 함수 안에서 -0.5를 진행해주기 때문에, 
+        # 가장 체결 확률이 높은 가격으로 주문을 내게 됨
+        $this->buyBit($candle->t, $this->order_book_sell_price, 0);
         #print("==========================");
         #print($this->nowOrderingState());
         #print("==========================");
@@ -504,10 +504,10 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         #$range_value = $candle->getBBUpLine($this->day, $this->k) - $candle->getBBDownLine($this->day, $this->k);
         #$this->sellBit($candle->t, $candle->getBBUpLine($this->day, $this->k), $range_value);
-    #$this->sellBit($candle->t, $candle->c, 0);
-    
-    # 매도 시 매수 1호가 가격으로 sellBit 함수 호출. 
-    # sellBit 함수 내부에서 +0.5를 진행해주기 때문에 가장 체결 확률이 높은 가격으로 주문을 내게 됨
+        #$this->sellBit($candle->t, $candle->c, 0);
+        
+        # 매도 시 매수 1호가 가격으로 sellBit 함수 호출. 
+        # sellBit 함수 내부에서 +0.5를 진행해주기 때문에 가장 체결 확률이 높은 가격으로 주문을 내게 됨
         $this->sellBit($candle->t, $this->order_book_buy_price, 0);
     }
 
