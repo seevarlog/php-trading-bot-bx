@@ -215,6 +215,8 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         $slide_1 = ($adx*$aa > $adx2) && ($adx2*$aa > $adx3) && ($adx3*$aa > $adx4);
         $slide_2 = abs($DiPlus - $DiMinus) > 10;
         #$slide = ($adx*$aa > $adx2) && ($adx2*$aa > $adx3);
+
+        $adx200 = $candle->getADX(200);
     
         #$slide = ($adx > $adx2) && ($adx2 > $adx3);
         #$SLIDE_FLAG = $slide || $adx >= $adx_limit;
@@ -233,7 +235,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         $sl = $candle->getEMA_slide(120, 100);
         
-        if ($candle->getADX(200) > 10){
+        if ($adx200 > 10){
             $slide_3 = (abs($sl) > 0.0 && abs($sl) < 0.01) || (abs($sl) > 0.03 && abs($sl) < 0.05);
         }else{
             $slide_3 = (abs($sl) > 0.0 && abs($sl) < 0.02) || (abs($sl) > 0.04 && abs($sl) < 0.05);
@@ -268,10 +270,10 @@ class StrategyBBScalping_ahn3 extends StrategyBase
             print("======= Candle Info ======\n");
             print(date('Y-d-m h:i:s', time())."\n");
 
-            if ($candle->getADX(200) > 10){
-                print($tt." : [EMA SLIDE. TRADE TIME :  0.0 ~ 0.01 && 0.03 ~ 0.05] abs(".$sl.")\n");
+            if ($adx200 > 10){
+                print($tt." : [EMA SLIDE. TRADE TIME :  0.0 ~ 0.01 && 0.03 ~ 0.05] abs(".$sl.") - adx200 : ".$adx200."\n");
             }else{
-                print($tt." : [EMA SLIDE. TRADE TIME :  0.0 ~ 0.02 && 0.04 ~ 0.05] abs(".$sl.")\n");
+                print($tt." : [EMA SLIDE. TRADE TIME :  0.0 ~ 0.02 && 0.04 ~ 0.05] abs(".$sl.") - adx200 : ".$adx200."\n");
             }
             print("slide_1 - ($adx*$aa > $adx2) && ($adx2*$aa > $adx3) && ($adx3*$aa > $adx4) : $slide_1.\n");
             print("slide_2 - abs($DiPlus - $DiMinus) > 10; : $slide_2.\n");
