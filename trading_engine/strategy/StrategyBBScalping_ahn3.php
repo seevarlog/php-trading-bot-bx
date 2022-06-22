@@ -202,6 +202,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         #$adx_limit = 25;
         #$adx_limit = 0;
 
+
         $DiPlus = $candle->getDiPlus($adx_value);
         $DiMinus = $candle->getDiMinus($adx_value);
 
@@ -218,6 +219,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         $adx200 = $candle->getADX(200);
     
+        #print($adx200."\n");
         #$slide = ($adx > $adx2) && ($adx2 > $adx3);
         #$SLIDE_FLAG = $slide || $adx >= $adx_limit;
         #$SLIDE_FLAG = $slide;

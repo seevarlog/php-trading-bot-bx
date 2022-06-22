@@ -4,6 +4,7 @@ namespace trading_engine\exchange;
 use ccxt\DuplicateOrderId;
 use ccxt\phemex;
 use trading_engine\objects\Order;
+use trading_engine\managers\OrderManager;
 
 class ExchangePhemex implements IExchange
 {
