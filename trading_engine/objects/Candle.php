@@ -55,6 +55,7 @@ class Candle
     public $adx = [];
     public $d_p = [];
     public $d_m = [];
+    public $d_s = [];
 
     // 평균 변동성 캐시
     public $av = 0;
@@ -201,6 +202,46 @@ class Candle
         return $sum;
     }
 
+    public function getTrSumRma($length= 14, $left = -1)
+    {
+        if ($left == -1)
+        {
+            $left = 100;
+        }
+
+        if (isset($this->d_s[$length]))
+        {
+            return $this->d_s[$length];
+        }
+
+        if ($this->cp == null)
+        {
+            return 0;
+        }
+
+        if ($left == 0)
+        {
+            $sum = 0;
+            $candle = $this;
+            for($i=0; $i<$length; $i++)
+            {
+                $sum += $candle->getTR();
+                $candle = $candle->getCandlePrev();
+            }
+            $this->d_s[$length] = $sum / $length;
+            return $this->d_s[$length];
+        }
+
+        $alpha = 1 / $length;
+        $temp = $alpha * $this->getTR() + (1 - $alpha) * $this->getCandlePrev()->getTrSumRma($length, $left);
+        if ($this->cn !== null)
+        {
+            $this->d_s[$length] = $temp;
+        }
+
+        return $temp;
+    }
+
     public function getATR($length=14, $left = -1)
     {
         if ($left == -1)
@@ -236,7 +277,7 @@ class Candle
         //$temp = (($this->getCandlePrev()->getATR($length, $left - 1) * ($length - 1)) + $this->getTR()) / $length;
 
         $alpha = 1 / $length;
-        $temp = $alpha * $this->getTR() + (1 - $alpha) * $this->getCandlePrev()->getATR($length);
+        $temp = $alpha * ($this->getTR() + (1 - $alpha) * $this->getCandlePrev()->getATR($length, $left));
         if ($this->cn !== null)
         {
             $this->atr[$length] = $temp;
@@ -745,7 +786,7 @@ class Candle
     }
 
     /**
-     * @return self
+     * @return Candle
      */
     public function getCandlePrev()
     {
@@ -1610,6 +1651,12 @@ class Candle
 
         return "sideways";
     }
+
+    public function getDmiPlus($length, $atr_length)
+    {
+        ($this->getDmPlus($length) / $this->getATR($atr_length));
+    }
+
     public function getDmPlus($length=1, $left = -1)
     {
         if ($left == -1)
@@ -1648,7 +1695,7 @@ class Candle
                 $candle = $candle->getCandlePrev();
             }
 
-            $this->d_p[$length] = $sum;
+            $this->d_p[$length] = $sum / $length;
         }
 
         $v = 0;
@@ -1664,7 +1711,7 @@ class Candle
         }
 
         $alpha = 1 / $length;
-        $temp = $v + $this->getCandlePrev()->getDmPlus($length, $left) * (1 - $alpha);
+        $temp = $v * $alpha + $this->getCandlePrev()->getDmPlus($length, $left) * (1 - $alpha);
         if ($this->cn !== null)
         {
             $this->d_p[$length] = $temp;
@@ -1711,7 +1758,7 @@ class Candle
                 $candle = $candle->getCandlePrev();
             }
 
-            $this->d_m[$length] = $sum;
+            $this->d_m[$length] = $sum / $length;
         }
 
         $v = 0;
@@ -1727,7 +1774,7 @@ class Candle
         }
 
         $alpha = 1 / $length;
-        $temp = $v + $this->getCandlePrev()->getDmMinus($length, $left) * (1 - $alpha);
+        $temp = $v * $alpha + $this->getCandlePrev()->getDmMinus($length, $left) * (1 - $alpha);
         if ($this->cn !== null)
         {
             $this->d_m[$length] = $temp;
@@ -1738,12 +1785,17 @@ class Candle
 
     public function getDiPlus($length=1)
     {
-        return (100*($this->getDmPlus($length)/$this->getTrSum($length)));
+        return 100 * (($this->getDmPlus($length)/$this->getTrSumRma($length)));
     }
 
     public function getDiMinus($length=1)
     {
-        return (100*($this->getDmMinus($length)/$this->getTrSum($length)));
+        return 100 * (($this->getDmMinus($length)/$this->getTrSumRma($length)));
+    }
+
+    public function getDmiDiplus()
+    {
+
     }
 
 
