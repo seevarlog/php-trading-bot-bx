@@ -32,7 +32,7 @@ Config::getInstance()->setRealTrade();
 $candle_1m_list = $exchange->publics()->getKlineList([
     'symbol'=>"BTCUSD",
     'interval'=>5,
-    'limit'=>188*5
+    'limit'=>1999
 ]);
 
 //var_dump($candle_1m_list);
@@ -68,7 +68,7 @@ foreach ($make_candle_min_list as $make_min)
     $candle_1day_list = $exchange->publics()->getKlineList([
         'symbol'=>"BTCUSD",
         'interval'=>$interval,
-        'limit'=>540
+        'limit'=>1999
     ]);
     //var_dump($candle_1day_list);
 
