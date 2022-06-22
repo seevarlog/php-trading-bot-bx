@@ -197,10 +197,13 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         $rsi = $candle->getRsiMA(7,7);
         $adx_value = 14;
-        $aa = 0.9;
+        $aa = 1;
         $adx = $candle->getADX($adx_value);
         #$adx_limit = 25;
         #$adx_limit = 0;
+
+        $DiPlus = $candle->getDiPlus($adx_value);
+        $DiMinus = $candle->getDiMinus($adx_value);
 
         $adx2 = $candle->getCandlePrev()->getADX($adx_value);
         $adx3 = $candle->getCandlePrev()->getCandlePrev()->getADX($adx_value);
@@ -210,7 +213,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         #$slide = ($adx - $adx2) + ($adx2 - $adx3) + ($adx3 - $adx4) + ($adx4 - $adx5);
         #$slide = ($adx - $adx2) + ($adx2 - $adx3) + ($adx3 - $adx4);
         $slide_1 = ($adx*$aa > $adx2) && ($adx2*$aa > $adx3) && ($adx3*$aa > $adx4);
-        $slide_2 = abs($candle->getDiPlus($adx_value) - $candle->getDiMinus($adx_value)) > 10;
+        $slide_2 = abs($DiPlus - $DiMinus) > 10;
         #$slide = ($adx*$aa > $adx2) && ($adx2*$aa > $adx3);
     
         #$slide = ($adx > $adx2) && ($adx2 > $adx3);
@@ -221,6 +224,12 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         #$SLIDE_FLAG = True;
 
         $iiFlag = True;
+
+        $BuyFlag = true;
+        $SellFlag = true;
+ 
+        #$BuyFlag = $candle->getDiPlus($adx_value)-5 > $candle->getDiMinus($adx_value);
+        #$SellFlag = $candle->getDiPlus($adx_value) < $candle->getDiMinus($adx_value)-5;
 
         $sl = $candle->getEMA_slide(120, 100);
         
@@ -258,7 +267,15 @@ class StrategyBBScalping_ahn3 extends StrategyBase
             var_dump($tt." : ".$sl);
             print("======= Candle Info ======\n");
             print(date('Y-d-m h:i:s', time())."\n");
-            print($tt." : [EMA SLIDE. TRADE TIME :  0.0 ~ 0.02 && 0.04 ~ 0.05] abs(".$sl.")\n");
+
+            if ($candle->getADX(200) > 10){
+                print($tt." : [EMA SLIDE. TRADE TIME :  0.0 ~ 0.01 && 0.03 ~ 0.05] abs(".$sl.")\n");
+            }else{
+                print($tt." : [EMA SLIDE. TRADE TIME :  0.0 ~ 0.02 && 0.04 ~ 0.05] abs(".$sl.")\n");
+            }
+            print("slide_1 - ($adx*$aa > $adx2) && ($adx2*$aa > $adx3) && ($adx3*$aa > $adx4) : $slide_1.\n");
+            print("slide_2 - abs($DiPlus - $DiMinus) > 10; : $slide_2.\n");
+
             for($i=0; $i<4; $i++)
             {
                 print("[candle-".$i."] ".$candle_tmp->displayCandle()."\n");
@@ -282,7 +299,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         }
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m > $ema50_1m && $ema5_1h > $ema10_1h && $rsi < 60) 
-        if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 55 && $ema50_1m * 1.003 > $ema120_1m && $SLIDE_FLAG) 
+        if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 55 && $ema50_1m * 1.003 > $ema120_1m && $SLIDE_FLAG && $BuyFlag) 
         {
         # 주문이 없을때만 주문 넣음
             if ($this->isThereOrdering() == False)
@@ -369,7 +386,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         }
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m < $ema50_1m && $ema5_1h < $ema10_1h && $rsi > 40) 
-        if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 30 && $ema20_1m < $ema50_1m * 1.003 && $SLIDE_FLAG == True) 
+        if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 30 && $ema20_1m < $ema50_1m * 1.003 && $SLIDE_FLAG && $SellFlag) 
         {
         # 주문이 없을때만 주문 넣음.
             if ($this->isThereOrdering() == False)
