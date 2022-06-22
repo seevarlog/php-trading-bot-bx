@@ -153,9 +153,9 @@ for ($i=0; $i<300000; $i++)
 
 
     $candle = $candle->cn;
-    if ($i < 60000)
+    if ($i < 60)
     {
-        #continue;
+        continue;
     }
 
     if ($candle == null)

@@ -335,10 +335,10 @@ class ExchangePhemex implements IExchange
             print("Exception : kline not OK\n");
             var_dump($ret);
             print("===\n");
-            sleep(1);
+            sleep(2);
             return $this->getLocalLive1mKline();
 
-            throw new \Exception("kline not OK");
+            //throw new \Exception("kline not OK");
         }
 
         if (count($ret["data"]["rows"]) == 0)
@@ -483,6 +483,13 @@ class ExchangePhemex implements IExchange
                         return $result;
                     }
                 }
+
+                print("client order id와 같은 주문을 찾지 못함. error2 부근.\n");
+                print("client order id : ".$client_order."\n");
+                print("===============\n");
+                var_dump(OrderManager::getInstance()->order_list);
+                print("===============\n");
+
             } catch (\Exception $e)
             {
                 // 이미 체결되서 order 를 못찾았을수도?
@@ -595,6 +602,12 @@ class ExchangePhemex implements IExchange
                         return $result;
                     }
                 }
+                print("order id와 같은 주문을 찾지 못함. error4 부근.\n");
+                print("order id : ".$order->order_id."\n");
+                print("===============\n");
+                var_dump(OrderManager::getInstance()->order_list);
+                print("===============\n");
+
             } catch (\Exception $e)
             {
                 // 이미 체결되서 order 를 못찾았을수도?

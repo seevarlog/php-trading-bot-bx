@@ -9,6 +9,7 @@ use trading_engine\managers\OrderReserveManager;
 use trading_engine\managers\PositionManager;
 use trading_engine\objects\Account;
 use trading_engine\objects\Candle;
+use trading_engine\util\Config;
 
 
 function iff ($statement_1, $statement_2, $statement_3)
@@ -44,10 +45,10 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
     public function BBS(Candle $candle, float $order_book_sell, float $order_book_buy)
     {
-	$this->now_1m_candle = $candle;
+    $this->now_1m_candle = $candle;
         
-	$this->order_book_sell_price = $order_book_sell;
-	$this->order_book_buy_price = $order_book_buy;
+    $this->order_book_sell_price = $order_book_sell;
+    $this->order_book_buy_price = $order_book_buy;
 
         $positionMng = PositionManager::getInstance();
         $curPosition = $positionMng->getPosition($this->getStrategyKey());
@@ -115,40 +116,40 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         foreach ($order_list as $order)
         {
             if (str_contains($order->comment, "손절"))
-	    {
-	        continue;
-	    }
+        {
+            continue;
+        }
 
-    	    if (str_contains($order->comment, "진입"))
+            if (str_contains($order->comment, "진입"))
             {
                 # 거래소로부터 주문의 filled 양을 가져와서 업데이트 후 채워진건지 리턴해줌
                 # 완전히 채워지지 않은 경우, 주문중이라고 판단함
                 return $order->isOrdering();
             }
-	}
-	return False;
+    }
+    return False;
     }
 
     # 진입 주문만 취소
     public function cancelOrdering()
     {
-	$orderMng = OrderManager::getInstance();
-	$order_list = $orderMng->getOrderList($this->getStrategyKey());
+    $orderMng = OrderManager::getInstance();
+    $order_list = $orderMng->getOrderList($this->getStrategyKey());
 
         foreach ($order_list as $order)
         {
-		if (str_contains($order->comment, "손절"))
-		{
-		    continue;
-		}
+        if (str_contains($order->comment, "손절"))
+        {
+            continue;
+        }
 
-		if (str_contains($order->comment, "진입"))
-		{
-		    OrderReserveManager::getInstance()->order_bb_scalping = [];
-		    $orderMng->postOrderCancel($order);
-		    continue;
-		}
-		$orderMng->cancelOrder($order);
+        if (str_contains($order->comment, "진입"))
+        {
+            OrderReserveManager::getInstance()->order_bb_scalping = [];
+            $orderMng->postOrderCancel($order);
+            continue;
+        }
+        $orderMng->cancelOrder($order);
         }
  
     }
@@ -163,18 +164,18 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         $orderMng = OrderManager::getInstance();
         $order_list = $orderMng->getOrderList($this->getStrategyKey());
         
-	$candle = $this->now_1m_candle;
+        $candle = $this->now_1m_candle;
 
-	# 시간대 조정 : -9시간
-	# 5분이 안되었는데 존재하는 5분봉은 미리 만들어둔거라...
-	/*
-	if ((now() - (60*60*9)) - 299 <=  $candle->t)
-	{
-	    $candle = $candle->getCandlePrev();
-	}
-	 */
+    # 시간대 조정 : -9시간
+    # 5분이 안되었는데 존재하는 5분봉은 미리 만들어둔거라...
+    /*
+    if ((now() - (60*60*9)) - 299 <=  $candle->t)
+    {
+        $candle = $candle->getCandlePrev();
+    }
+     */
 
-	#$candle_5m = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5);
+    #$candle_5m = CandleManager::getInstance()->getCurOtherMinCandle($candle, 5);
         #$candle_1h = CandleManager::getInstance()->getCurOtherMinCandle($candle, 60);
 //        $ema240_1h = $candle_1h->getEMA240();
 //        $ema120_1h = $candle_1h->getEMA120();
@@ -195,63 +196,83 @@ class StrategyBBScalping_ahn3 extends StrategyBase
  
 
         $rsi = $candle->getRsiMA(7,7);
-	#$adx_value = 600;
-	#$aa = 1;
-	#$adx = $candle->getADX($adx_value);
-	#$adx_limit = 25;
-	#$adx_limit = 0;
+        $adx_value = 14;
+        $aa = 0.9;
+        $adx = $candle->getADX($adx_value);
+    #$adx_limit = 25;
+    #$adx_limit = 0;
 
-	#$adx2 = $candle->getCandlePrev()->getADX($adx_value);
-	#$adx3 = $candle->getCandlePrev()->getCandlePrev()->getADX($adx_value);
-	#$adx4 = $candle->getCandlePrev()->getCandlePrev()->getCandlePrev()->getADX($adx_value);
-	#$adx5 = $candle->getCandlePrev()->getCandlePrev()->getCandlePrev()->getCandlePrev()->getADX($adx_value);
+        $adx2 = $candle->getCandlePrev()->getADX($adx_value);
+        $adx3 = $candle->getCandlePrev()->getCandlePrev()->getADX($adx_value);
+        $adx4 = $candle->getCandlePrev()->getCandlePrev()->getCandlePrev()->getADX($adx_value);
+        #$adx5 = $candle->getCandlePrev()->getCandlePrev()->getCandlePrev()->getCandlePrev()->getADX($adx_value);
 
-	#$slide = ($adx - $adx2) + ($adx2 - $adx3) + ($adx3 - $adx4) + ($adx4 - $adx5);
-	#$slide = ($adx - $adx2) + ($adx2 - $adx3) + ($adx3 - $adx4);
-	#$slide = ($adx*$aa > $adx2) && ($adx2*$aa > $adx3) && ($adx3*$aa > $adx4);
-	
-	#$slide = ($adx > $adx2) && ($adx2 > $adx3);
-	#$SLIDE_FLAG = $slide || $adx >= $adx_limit;
-	#$SLIDE_FLAG = $slide;
-	#$SLIDE_FLAG = True;
-	#$SLIDE_FLAG = $adx >= $adx_limit;
-	#$SLIDE_FLAG = True;
+    #$slide = ($adx - $adx2) + ($adx2 - $adx3) + ($adx3 - $adx4) + ($adx4 - $adx5);
+    #$slide = ($adx - $adx2) + ($adx2 - $adx3) + ($adx3 - $adx4);
+        $slide_1 = ($adx*$aa > $adx2) && ($adx2*$aa > $adx3) && ($adx3*$aa > $adx4);
+        $slide_2 = abs($candle->getDiPlus($adx_value) - $candle->getDiMinus($adx_value)) > 10;
+        #$slide = ($adx*$aa > $adx2) && ($adx2*$aa > $adx3);
+    
+    #$slide = ($adx > $adx2) && ($adx2 > $adx3);
+    #$SLIDE_FLAG = $slide || $adx >= $adx_limit;
+    #$SLIDE_FLAG = $slide;
+    #$SLIDE_FLAG = True;
+    #$SLIDE_FLAG = $adx >= $adx_limit;
+    #$SLIDE_FLAG = True;
 
-	$iiFlag = True;
+        $iiFlag = True;
 
         $sl = $candle->getEMA_slide(120, 100);
-
-	$SLIDE_FLAG = (abs($sl) > 0.0 && abs($sl) < 0.02) || (abs($sl) > 0.04 && abs($sl) < 0.05);
-	#$SLIDE_FLAG = (abs($sl) > 0.0 && abs($sl) < 0.02);
-	#$SLIDE_FLAG = abs($sl) < 0.01;
-	#$SLIDE_FLAG = True;
-	
-	#$SLIDE_FLAG = abs($ema120_1m - $ema50_1m) > abs($ema120_1m_2 - $ema50_1m_2) && abs($ema120_1m_2 - $ema50_1m_2) > abs($ema120_1m_3 - $ema50_1m_3);
-	#$no = (abs($ema120_1m - $ema50_1m) / $ema120_1m) > 0.0006;
-	#$SLIDE_FLAG = $SLIDE_FLAG && $no;
-	#$SLIDE_FLAG = True && $no;
-
-	$tt = date('Y-m-d H:i:s', $candle->t);
-	var_dump($tt." : ".$sl);
-	
-	$candle_tmp = $candle;
+        
+        if ($candle->getADX(200) > 10){
+            $slide_3 = (abs($sl) > 0.0 && abs($sl) < 0.01) || (abs($sl) > 0.03 && abs($sl) < 0.05);
+        }else{
+            $slide_3 = (abs($sl) > 0.0 && abs($sl) < 0.02) || (abs($sl) > 0.04 && abs($sl) < 0.05);
+        }
+        $SLIDE_FLAG = ($slide_1 || $slide_2) && $slide_3;
+        #$SLIDE_FLAG = (abs($sl) > 0.0 && abs($sl) < 0.02) || (abs($sl) > 0.04 && abs($sl) < 0.05);
+    #$SLIDE_FLAG = (abs($sl) > 0.0 && abs($sl) < 0.02);
+    #$SLIDE_FLAG = abs($sl) < 0.01;
+    #$SLIDE_FLAG = True;
     
-	print("======= Candle Info ======\n");
-	print(date('Y-d-m h:i:s', time())."\n");
-	print($tt." : [EMA SLIDE. TRADE TIME :  0.0 ~ 0.02 && 0.04 ~ 0.05] abs(".$sl.")\n");
-	for($i=0; $i<4; $i++)
-	{
-	    print("[candle-".$i."] ".$candle_tmp->displayCandle()."\n");
-            $candle_tmp = $candle_tmp->getCandlePrev();
-	}
-	print("==========================\n");
-    
-#		$candle = $candle_5m;
+    #$SLIDE_FLAG = abs($ema120_1m - $ema50_1m) > abs($ema120_1m_2 - $ema50_1m_2) && abs($ema120_1m_2 - $ema50_1m_2) > abs($ema120_1m_3 - $ema50_1m_3);
+    #$no = (abs($ema120_1m - $ema50_1m) / $ema120_1m) > 0.0006;
+    #$SLIDE_FLAG = $SLIDE_FLAG && $no;
+    #$SLIDE_FLAG = True && $no;
+
+        $tt = date('Y-m-d H:i:s', $candle->t);
+        #var_dump($tt." : ".$sl);
+
+        $candle_tmp = $candle;
+        /*
+        print("============\n");
+        var_dump($candle->getADX(14));
+        var_dump($candle->getDiPlus(14));
+        var_dump($candle->getDiMinus(14));
+        print($candle->c."\n");
+        print("============\n");
+        */
+        
+        if (Config::getInstance()->isRealTrade())
+        {
+            var_dump($tt." : ".$sl);
+            print("======= Candle Info ======\n");
+            print(date('Y-d-m h:i:s', time())."\n");
+            print($tt." : [EMA SLIDE. TRADE TIME :  0.0 ~ 0.02 && 0.04 ~ 0.05] abs(".$sl.")\n");
+            for($i=0; $i<4; $i++)
+            {
+                print("[candle-".$i."] ".$candle_tmp->displayCandle()."\n");
+                    $candle_tmp = $candle_tmp->getCandlePrev();
+            }
+            print("==========================\n");
+        }
+        
+#       $candle = $candle_5m;
         for($ii=0; $ii<3; $ii++)
         {
-		#if($candle->o < $candle->c)
-		if(($candle->c + $candle->o)/2 > ($candle->getCandlePrev()->c + $candle->getCandlePrev()->o)/2 )
-		#if(($candle->l + $candle->h)/2 > ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
+        #if($candle->o < $candle->c)
+        if(($candle->c + $candle->o)/2 > ($candle->getCandlePrev()->c + $candle->getCandlePrev()->o)/2 )
+        #if(($candle->l + $candle->h)/2 > ($candle->getCandlePrev()->l + $candle->getCandlePrev()->h)/2 )
                 {
                         $candle = $candle->getCandlePrev();
                 }else{
@@ -262,16 +283,16 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m > $ema50_1m && $ema5_1h > $ema10_1h && $rsi < 60) 
         if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 55 && $ema50_1m * 1.003 > $ema120_1m && $SLIDE_FLAG) 
-	{
-		# 주문이 없을때만 주문 넣음
-		if ($this->isThereOrdering() == False)
-		{
-	                return self::POSITION_LONG;
-		}
+        {
+        # 주문이 없을때만 주문 넣음
+            if ($this->isThereOrdering() == False)
+            {
+                        return self::POSITION_LONG;
+            }
         }
         
         $candle = $this->now_1m_candle;
-#		$candle = $candle_5m;
+#       $candle = $candle_5m;
         
         $iiFlag = True;
 
@@ -291,11 +312,11 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         //$amount = PositionManager::getInstance()->getPosition($this->getStrategyKey())->amount;
         
         $amount = $curPosition->amount;
-	$candle = $this->now_1m_candle;
-#		$candle = $candle_5m;
+        $candle = $this->now_1m_candle;
+#       $candle = $candle_5m;
         
         if ($iiFlag == True && $amount > 0)
-		#if ($iiFlag == True && $amount > 0 && $curPosition->entry * 1.005 < $candle->c+0.5)
+        #if ($iiFlag == True && $amount > 0 && $curPosition->entry * 1.005 < $candle->c+0.5)
         {
             $delta = 0;
             if ($amount > 0)
@@ -305,13 +326,13 @@ class StrategyBBScalping_ahn3 extends StrategyBase
             else
             {
                 $delta -= 0.5;
-	    }
-	    # 익절 시점에도  진입되어있는 주문이 있을 경우 전부 취소.
-	    # 부분 체결된 내용들에 대해.. 아래서 익절 주문 넣음
-	    if ($this->isThereOrdering() == True)
-	    {
-		$this->cancelOrdering();
-	    }
+        }
+        # 익절 시점에도  진입되어있는 주문이 있을 경우 전부 취소.
+        # 부분 체결된 내용들에 대해.. 아래서 익절 주문 넣음
+        if ($this->isThereOrdering() == True)
+        {
+        $this->cancelOrdering();
+        }
 
             OrderManager::getInstance()->updateOrder(
                 $candle->t,
@@ -330,7 +351,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         
         /*----------------------------*/
         $candle = $this->now_1m_candle;
-#		$candle = $candle_5m;
+#       $candle = $candle_5m;
         
         $iiFlag = True;
         
@@ -349,16 +370,16 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m < $ema50_1m && $ema5_1h < $ema10_1h && $rsi > 40) 
         if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 30 && $ema20_1m < $ema50_1m * 1.003 && $SLIDE_FLAG == True) 
-	{
-		# 주문이 없을때만 주문 넣음.
-		if ($this->isThereOrdering() == False)
-		{
-	                return self::POSITION_SHORT;
-		}
+        {
+        # 주문이 없을때만 주문 넣음.
+            if ($this->isThereOrdering() == False)
+            {
+                return self::POSITION_SHORT;
+            }
         }
         
         $candle = $this->now_1m_candle;
-#	$candle = $candle_5m;
+#   $candle = $candle_5m;
         
         $iiFlag = True;
 
@@ -376,8 +397,8 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         }
         
         $amount = $curPosition->amount;
-	$candle = $this->now_1m_candle;
-#	$candle = $candle_5m;
+        $candle = $this->now_1m_candle;
+        #$candle = $candle_5m;
         
         if ($iiFlag == True && $amount < 0)
         {
@@ -391,11 +412,11 @@ class StrategyBBScalping_ahn3 extends StrategyBase
                 $delta -= 0.5;
             }
 
-	    # 진입되어있는 주문이 있을 경우 전부 취소
-	    if ($this->isThereOrdering() == True)
-	    {
-	    	$this->cancelOrdering();
-	    }
+        # 진입되어있는 주문이 있을 경우 전부 취소
+        if ($this->isThereOrdering() == True)
+        {
+            $this->cancelOrdering();
+        }
 
             OrderManager::getInstance()->updateOrder(
                 $candle->t,
@@ -455,11 +476,11 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         #$range_value = $candle->getBBUpLine($this->day, $this->k) - $candle->getBBDownLine($this->day, $this->k);
         #$this->buyBit($candle->t, $candle->getBBDownLine($this->day, $this->k), $range_value);
-	#$this->buyBit($candle->t, $candle->c, 0);
-	
-	# 매수 시 매도 1호가 가격으로 buyBit 함수 호출. buyBit 함수 안에서 -0.5를 진행해주기 때문에, 
-	# 가장 체결 확률이 높은 가격으로 주문을 내게 됨
-	$this->buyBit($candle->t, $this->order_book_sell_price, 0);
+    #$this->buyBit($candle->t, $candle->c, 0);
+    
+    # 매수 시 매도 1호가 가격으로 buyBit 함수 호출. buyBit 함수 안에서 -0.5를 진행해주기 때문에, 
+    # 가장 체결 확률이 높은 가격으로 주문을 내게 됨
+    $this->buyBit($candle->t, $this->order_book_sell_price, 0);
         #print("==========================");
         #print($this->nowOrderingState());
         #print("==========================");
@@ -483,10 +504,10 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         #$range_value = $candle->getBBUpLine($this->day, $this->k) - $candle->getBBDownLine($this->day, $this->k);
         #$this->sellBit($candle->t, $candle->getBBUpLine($this->day, $this->k), $range_value);
-	#$this->sellBit($candle->t, $candle->c, 0);
-	
-	# 매도 시 매수 1호가 가격으로 sellBit 함수 호출. 
-	# sellBit 함수 내부에서 +0.5를 진행해주기 때문에 가장 체결 확률이 높은 가격으로 주문을 내게 됨
+    #$this->sellBit($candle->t, $candle->c, 0);
+    
+    # 매도 시 매수 1호가 가격으로 sellBit 함수 호출. 
+    # sellBit 함수 내부에서 +0.5를 진행해주기 때문에 가장 체결 확률이 높은 가격으로 주문을 내게 됨
         $this->sellBit($candle->t, $this->order_book_buy_price, 0);
     }
 
@@ -504,8 +525,8 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         $sell_price = $entry_price * 0.1;
 
 
-		$leverage_correct = $leverage;
-		/*
+        $leverage_correct = $leverage;
+        /*
         
         if ($leverage > 1)
         {
@@ -520,7 +541,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
                 $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage));
             }
         }
-		*/
+        */
 
         $leverage_correct = abs($leverage_correct);
         if ($this->is_welfare)
@@ -588,8 +609,8 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         $sell_price = $buy_price * 9999;
 
         $leverage_correct = $leverage;
-		
-		/*
+        
+        /*
         if ($leverage > 1)
         {
             $leverage_standard_stop_per = 0.013;
@@ -603,7 +624,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
                 $leverage_correct = $leverage - ($leverage - ($leverage_standard_stop_per / $leverage_stop_per * $leverage));
             }
         }
-		*/
+        */
 
 
         $leverage_correct = abs($leverage_correct);
