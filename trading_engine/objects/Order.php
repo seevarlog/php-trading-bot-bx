@@ -231,7 +231,7 @@ class Order
         }
         else if (str_contains($this->comment, "익절"))
         {
-            Notify::sendTradeMsg($this->comment."거래가 채워졌습니다. order : ".$this->amount." filled : ".$exec_amount);
+            #Notify::sendTradeMsg($this->comment."거래가 채워졌습니다. order : ".$this->amount." filled : ".$exec_amount);
             if ($exec_amount == abs($this->amount))
             {
                 return true;
