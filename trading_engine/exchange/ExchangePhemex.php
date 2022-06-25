@@ -2,6 +2,7 @@
 namespace trading_engine\exchange;
 
 use ccxt\DuplicateOrderId;
+use ccxt\InvalidOrder;
 use ccxt\phemex;
 use trading_engine\objects\Order;
 use trading_engine\managers\OrderManager;
@@ -92,7 +93,7 @@ class ExchangePhemex implements IExchange
         }
         $entry = $order->entry;
 
-        for ($i=0; $i<100; $i++)
+        for ($i=0; $i<20; $i++) // 100 -> 20으로 줄임. 문제가 생겨서 100번의 주문을 넣을 경우, order를 정리하기 위한 함수에서는 20개까지만 가져와서 보기 때문에 문제가 생김. 20개는 50개로 늘림.
         {
             try {
                 if ($i>=1)
@@ -178,10 +179,31 @@ class ExchangePhemex implements IExchange
                     }
                     break;
                 }
-            }
+            }catch (InvalidOrder $e)
+            {
+                print("Invalid Order. exception code :".$e->getCode()."\n");
+                var_dump($e);
+                
+                if ($e->getCode() == '11011')
+                {
+                    // orderlist 초기화 필요
+                    // 여기서 빠져나가기만 하면 Cancel 여부를 isRealServerContract 함수에서 확인 후 order를 정리함
+                    // 그래서 따로 초기화 하지 않아도 될듯
+                    break;
+                }else
+                {
+                    // 다른 Invalid Order도 멈춰야할 필요가 있다면 추후 break문 삽입할 것.
+                    sleep(1);
+                }
+            } 
             catch (\Exception $e)
             {
+                print("----postOrderCreate function---\n");
                 var_dump($e->getMessage());
+                print("=====================================\n");
+                var_dump($e);
+                print("=====================================\n");
+                sleep(1); // 이곳에 sleep이 없어서 create_order에서 예외가 발생할 경우 1초만에 100개의 주문을 넣고 차단당함
             }
 
         }
