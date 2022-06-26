@@ -153,7 +153,7 @@ for ($i=0; $i<300000; $i++)
 
 
     $candle = $candle->cn;
-    if ($i < 4000)
+    if ($i < 6000)
     {
         continue;
     }
