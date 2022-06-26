@@ -197,14 +197,14 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         $rsi = $candle->getRsiMA(7,7);
         $adx_value = 14;
-        $aa = 0.9;
+        $aa = 1;
         $adx = $candle->getADX($adx_value);
         #$adx_limit = 25;
         #$adx_limit = 0;
+        $di_value = 14;
 
-
-        $DiPlus = $candle->getDiPlus($adx_value);
-        $DiMinus = $candle->getDiMinus($adx_value);
+        $DiPlus = $candle->getDiPlus($di_value);
+        $DiMinus = $candle->getDiMinus($di_value);
 
         $adx2 = $candle->getCandlePrev()->getADX($adx_value);
         $adx3 = $candle->getCandlePrev()->getCandlePrev()->getADX($adx_value);
@@ -213,8 +213,11 @@ class StrategyBBScalping_ahn3 extends StrategyBase
 
         #$slide = ($adx - $adx2) + ($adx2 - $adx3) + ($adx3 - $adx4) + ($adx4 - $adx5);
         #$slide = ($adx - $adx2) + ($adx2 - $adx3) + ($adx3 - $adx4);
-        $slide_1 = ($adx*$aa > $adx2) && ($adx2*$aa > $adx3) && ($adx3*$aa > $adx4);
+        #$slide_1 = ($adx*$aa > $adx2) && ($adx2*$aa > $adx3) && ($adx3*$aa > $adx4);
+        $slide_1 = false;
+        #$slide_1 = (($adx*$aa > $adx2) && ($adx2*$aa > $adx3) && ($adx3*$aa > $adx4) || $adx > 20);
         $slide_2 = abs($DiPlus - $DiMinus) > 10;
+        #$slide_1 = ($adx*$aa > $adx2) && ($adx2*$aa > $adx3);
         #$slide_1 = ($adx*$aa > $adx2) && ($adx2*$aa > $adx3);
 
         $adx200 = $candle->getADX(200);
@@ -238,9 +241,9 @@ class StrategyBBScalping_ahn3 extends StrategyBase
         $sl = $candle->getEMA_slide(120, 100);
         
         if ($adx200 > 10){
-            $slide_3 = (abs($sl) > 0.0 && abs($sl) < 0.01) || (abs($sl) > 0.03 && abs($sl) < 0.05);
+            $slide_3 = (abs($sl) > 0.00 && abs($sl) < 0.01) || (abs($sl) > 0.03 && abs($sl) < 0.05);
         }else{
-            $slide_3 = (abs($sl) > 0.0 && abs($sl) < 0.02) || (abs($sl) > 0.04 && abs($sl) < 0.05);
+            $slide_3 = (abs($sl) > 0.00 && abs($sl) < 0.02) || (abs($sl) > 0.04 && abs($sl) < 0.05);
         }
         
     
