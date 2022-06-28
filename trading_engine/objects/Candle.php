@@ -1573,16 +1573,16 @@ class Candle
 
     public function getEMA_slide($length, $length2)
     {
-	$val = 0;
-	$candle = $this;
-	for ($i=0; $i<$length2; $i++)
-	{
-	    $ema = $candle->getEMA($length);
+        $val = 0;
+        $candle = $this;
+        for ($i=0; $i<$length2; $i++)
+        {
+            $ema = $candle->getEMA($length);
             if ($ema <= 0)
-		continue;
-	    $val += ($ema - $candle->getCandlePrev()->getEMA($length)) / $ema;
+                continue;
+            $val += ($ema - $candle->getCandlePrev()->getEMA($length)) / $ema;
             $candle = $candle->getCandlePrev();
-	}
+        }
         return $val;
     }
 
