@@ -1661,8 +1661,8 @@ class Candle
     {
         if ($left == -1)
         {
-            $left = $length * 5;
-            $left = max($left, 300);
+            $left = $length * 3;
+            $left = min($left, 300);
         }
 
         if (isset($this->d_p[$length]))
@@ -1725,8 +1725,8 @@ class Candle
     {
         if ($left == -1)
         {
-            $left = $length * 5;
-            $left = max($left, 300);
+            $left = $length * 3;
+            $left = min($left, 300);
         }
 
         if (isset($this->d_m[$length]))
@@ -1839,8 +1839,8 @@ class Candle
     {
         if ($left == -1)
         {
-            $left = $length * 5;
-            $left = max($left, 300);
+            $left = $length * 3;
+            $left = min($left, 300);
         }
 
         if (isset($this->adx[$length]))
