@@ -614,6 +614,34 @@ class Candle
         return $r;
     }
 
+    public function getChartCandle()
+    {
+        return $this->t.":".$this->o.":".$this->h.":".$this->l.":".$this->c;
+    }
+
+
+    public function getChartDataNear()
+    {
+        $ret = "";
+        $start_candle = $this;
+        for ($i=0; $i<30; $i++)
+        {
+            $start_candle = $start_candle->getCandlePrev();
+        }
+
+        for ($j=0; $j<60; $j++)
+        {
+            $ret .= $start_candle->getChartCandle()."|";
+            if ($start_candle->cn === null)
+            {
+                break;
+            }
+            $start_candle = $start_candle->cn;
+        }
+
+        return "chart_play.html?data=".$ret;
+    }
+
 
 
 

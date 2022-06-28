@@ -17,6 +17,7 @@ class LogTrade
     public $comment;
     public $log;
     public $position_log = [];
+    public $chart_link;
 
     public function getPositionLogMsg()
     {

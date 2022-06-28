@@ -297,6 +297,7 @@ MSG;
         $log->log = $order->action."s:".count(OrderManager::getInstance()->getOrderList($this->strategy_key))."limit:".$order->getLimitForCCXT();
         TradeLogManager::getInstance()->addTradeLog($log);
         $log->position_log = $this->log;
+        $log->chart_link = $candle->getChartDataNear();
         $this->resetLog();
     }
 

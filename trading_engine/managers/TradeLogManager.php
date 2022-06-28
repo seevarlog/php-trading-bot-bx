@@ -132,6 +132,7 @@ HTML;
         <td>총잔액</td>
         <td>로그</td>
         <td>포지션로그</td>
+        <td>차트보기</td>
     </tr>
 HTML;
             fwrite($fp, $str);
@@ -160,6 +161,7 @@ HTML;
         <td>{$log->comment}</td>
         <td>{$log->log}</td>
         <td>{$log->getPositionLogMsg()}</td> 
+        <td><a href="{$log->chart_link}">차트</a></td>
     </tr>
 HTML;
                 fwrite($fp, $str);

@@ -1,0 +1,119 @@
+
+
+
+<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+<body></body>
+
+
+<script>
+
+function receive_get_data(param) {
+    var result = null, tmp = [];
+    var items = window.location.search.substring(1).split("&");
+    for (var i = 0; i < items.length; i++) {
+    tmp = items[i].split("=");
+    if (tmp[0] === param) result = decodeURIComponent(tmp[1]);
+}
+    return result;
+}
+
+
+document.write(receive_get_data("data"));
+
+var chart = LightweightCharts.createChart(document.body, {
+	width: 600,
+  height: 300,
+
+    timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+        minBarSpacing : 1,
+    },
+
+
+
+
+
+	crosshair: {
+		mode: LightweightCharts.CrosshairMode.Normal,
+	},
+});
+
+var candleSeries = chart.addCandlestickSeries();
+var data = [];
+var candles_str = receive_get_data("data");
+var candles = candles_str.split("|");
+for (var i = 0; i < candles.length; i++) {
+    var candle = candles[i].split(":")
+    document.write(candle[0] + "<br>");
+    data.push(
+         { time: Number(candle[0]), open: candle[1], high: candle[2], low: candle[3], close: candle[4] }
+    )
+}
+
+candleSeries.setData(data);
+
+var lastClose = data[data.length - 1].close;
+var lastIndex = data.length - 1;
+
+var targetIndex = lastIndex + 105 + Math.round(Math.random() + 30);
+var targetPrice = getRandomPrice();
+
+var currentIndex = lastIndex + 1;
+var currentBusinessDay = { day: 29, month: 5, year: 2019 };
+var ticksInCurrentBar = 0;
+var currentBar = {
+	open: null,
+	high: null,
+	low: null,
+	close: null,
+	time: currentBusinessDay,
+};
+
+function mergeTickToBar(price) {
+	if (currentBar.open === null) {
+		currentBar.open = price;
+		currentBar.high = price;
+		currentBar.low = price;
+		currentBar.close = price;
+	} else {
+		currentBar.close = price;
+		currentBar.high = Math.max(currentBar.high, price);
+		currentBar.low = Math.min(currentBar.low, price);
+	}
+	candleSeries.update(currentBar);
+}
+
+function reset() {
+	candleSeries.setData(data);
+	lastClose = data[data.length - 1].close;
+	lastIndex = data.length - 1;
+
+	targetIndex = lastIndex + 5 + Math.round(Math.random() + 30);
+	targetPrice = getRandomPrice();
+
+	currentIndex = lastIndex + 1;
+	currentBusinessDay = { day: 29, month: 5, year: 2019 };
+	ticksInCurrentBar = 0;
+}
+
+function getRandomPrice() {
+	return 10 + Math.round(Math.random() * 10000) / 100;
+}
+
+function nextBusinessDay(time) {
+	var d = new Date();
+	d.setUTCFullYear(time.year);
+	d.setUTCMonth(time.month - 1);
+	d.setUTCDate(time.day + 1);
+	d.setUTCHours(0, 0, 0, 0);
+	return {
+		year: d.getUTCFullYear(),
+		month: d.getUTCMonth() + 1,
+		day: d.getUTCDate(),
+	};
+}
+
+</script>
+
+<div></div>
