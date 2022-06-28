@@ -249,6 +249,7 @@ class StrategyBBScalping_ahn3 extends StrategyBase
     
         #$slide_3 = (abs($sl) > 0.0 && abs($sl) < 0.01) || (abs($sl) > 0.04 && abs($sl) < 0.05);
         $SLIDE_FLAG = ($slide_1 || $slide_2) && $slide_3;
+        #$SLIDE_FLAG = ($slide_2);
         #$SLIDE_FLAG = (abs($sl) > 0.0 && abs($sl) < 0.02) || (abs($sl) > 0.04 && abs($sl) < 0.05);
         #$SLIDE_FLAG = (abs($sl) > 0.0 && abs($sl) < 0.02);
         #$SLIDE_FLAG = abs($sl) < 0.01;
@@ -308,8 +309,9 @@ class StrategyBBScalping_ahn3 extends StrategyBase
                 }
         }
 
+
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m > $ema50_1m && $ema5_1h > $ema10_1h && $rsi < 60) 
-        if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 55 && $ema50_1m * 1.003 > $ema120_1m && $SLIDE_FLAG && $BuyFlag) 
+        if ($curPosition->amount == 0 && $iiFlag == True && $rsi < 55 && $ema50_1m * 1.003 > $ema120_1m && $SLIDE_FLAG) 
         {
         # 주문이 없을때만 주문 넣음
             if ($this->isThereOrdering() == False)
@@ -395,8 +397,11 @@ class StrategyBBScalping_ahn3 extends StrategyBase
             }
         }
 
+        $sl20 = $candle->getEMA_slide(20, 5);
+
         #if ($curPosition->amount == 0 && $iiFlag == True && $ema20_1m < $ema50_1m && $ema5_1h < $ema10_1h && $rsi > 40) 
-        if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 30 && $ema20_1m < $ema50_1m * 1.003 && $SLIDE_FLAG && $SellFlag) 
+        if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 30 && $ema20_1m < $ema50_1m * 1.003 && $SLIDE_FLAG) 
+        #if ($curPosition->amount == 0 && $iiFlag == True && $rsi > 30 && $ema20_1m < $ema50_1m && $SLIDE_FLAG && $SellFlag) 
         {
         # 주문이 없을때만 주문 넣음.
             if ($this->isThereOrdering() == False)
