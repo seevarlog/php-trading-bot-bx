@@ -92,6 +92,7 @@ class ExchangePhemex implements IExchange
 
         }
         $entry = $order->entry;
+        $now_amount = $this->getPositionAmount(); // 현재 실데이터 수량을 갖고 옴
 
         for ($i=0; $i<20; $i++) // 100 -> 20으로 줄임. 문제가 생겨서 100번의 주문을 넣을 경우, order를 정리하기 위한 함수에서는 20개까지만 가져와서 보기 때문에 문제가 생김. 20개는 50개로 늘림.
         {
@@ -107,7 +108,7 @@ class ExchangePhemex implements IExchange
                     self::SYMBOL,
                     $order->getLimitForCCXT(),
                     $order->getSide(),
-                    abs($order->getExecLeftAmount()),
+                    abs($order->amount) - abs($now_amount),
                     $entry,
                     $param
                 );
